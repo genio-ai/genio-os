@@ -1,9 +1,7 @@
-// app/dashboard/layout.tsx
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-// tiny helper so styles apply to the real <a> tag (kills blue underline)
 function NavItem({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link href={href} legacyBehavior>
@@ -25,7 +23,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="font-bold text-lg leading-tight">GENIO OS</span>
         </div>
 
-        {/* Vertical menu */}
+        {/* Vertical Menu */}
         <nav className="space-y-2">
           <NavItem href="/dashboard">🏠 Overview</NavItem>
           <NavItem href="/dashboard/money">💸 Money Router</NavItem>
@@ -37,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
       </aside>
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="flex-1 p-6">{children}</main>
     </div>
   );
