@@ -1,72 +1,44 @@
 // app/dashboard/layout.tsx
-import Link from "next/link";
 import React from "react";
+import Link from "next/link";
 import Image from "next/image";
 
-export default function DashboardLayout({
-  children,
-}: { children: React.ReactNode }) {
+// tiny helper so styles apply to the real <a> tag (kills blue underline)
+function NavItem({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex">
+    <Link href={href} legacyBehavior>
+      <a className="block px-3 py-2 rounded text-slate-100 no-underline hover:bg-slate-800">
+        {children}
+      </a>
+    </Link>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex bg-slate-950">
       {/* Sidebar */}
-      <aside className="w-56 bg-slate-900 text-slate-100 p-4">
+      <aside className="w-60 bg-slate-900 text-slate-100 p-4">
         {/* Logo + Title */}
         <div className="flex items-center gap-2 mb-6">
           <Image src="/genio-logo.png" alt="Genio logo" width={28} height={28} />
-          <span className="font-bold text-lg">GENIO OS</span>
+          <span className="font-bold text-lg leading-tight">GENIO OS</span>
         </div>
 
-        {/* Menu */}
-        <nav className="flex flex-col gap-2">
-          <Link
-            href="/dashboard"
-            className="px-3 py-2 rounded hover:bg-slate-800 no-underline text-slate-100"
-          >
-            🏠 Overview
-          </Link>
-          <Link
-            href="/dashboard/money"
-            className="px-3 py-2 rounded hover:bg-slate-800 no-underline text-slate-100"
-          >
-            💸 Money Router
-          </Link>
-          <Link
-            href="/dashboard/transactions"
-            className="px-3 py-2 rounded hover:bg-slate-800 no-underline text-slate-100"
-          >
-            📊 Transactions
-          </Link>
-          <Link
-            href="/dashboard/kyc"
-            className="px-3 py-2 rounded hover:bg-slate-800 no-underline text-slate-100"
-          >
-            🪪 KYC
-          </Link>
-          <Link
-            href="/dashboard/aml"
-            className="px-3 py-2 rounded hover:bg-slate-800 no-underline text-slate-100"
-          >
-            🛡️ AML
-          </Link>
-          <Link
-            href="/dashboard/providers"
-            className="px-3 py-2 rounded hover:bg-slate-800 no-underline text-slate-100"
-          >
-            ⚙️ Providers
-          </Link>
-          <Link
-            href="/dashboard/settings"
-            className="px-3 py-2 rounded hover:bg-slate-800 no-underline text-slate-100"
-          >
-            🔧 Settings
-          </Link>
+        {/* Vertical menu */}
+        <nav className="space-y-2">
+          <NavItem href="/dashboard">🏠 Overview</NavItem>
+          <NavItem href="/dashboard/money">💸 Money Router</NavItem>
+          <NavItem href="/dashboard/transactions">📊 Transactions</NavItem>
+          <NavItem href="/dashboard/kyc">🪪 KYC</NavItem>
+          <NavItem href="/dashboard/aml">🛡️ AML</NavItem>
+          <NavItem href="/dashboard/providers">⚙️ Providers</NavItem>
+          <NavItem href="/dashboard/settings">🔧 Settings</NavItem>
         </nav>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-6 bg-white">
-        {children}
-      </main>
+      <main className="flex-1 p-6">{children}</main>
     </div>
   );
 }
