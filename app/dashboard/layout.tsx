@@ -14,29 +14,22 @@ function NavItem({ href, children }: { href: string; children: React.ReactNode }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex bg-slate-950">
+    <div className="flex h-screen bg-slate-900 text-white">
       {/* Sidebar */}
-      <aside className="w-60 bg-slate-900 text-slate-100 p-4">
-        {/* Logo + Title */}
-        <div className="flex items-center gap-2 mb-6">
-          <Image src="/genio-logo.png" alt="Genio logo" width={28} height={28} />
-          <span className="font-bold text-lg leading-tight">GENIO OS</span>
+      <aside className="w-64 bg-slate-950 p-4 flex flex-col">
+        <div className="flex items-center mb-8">
+          <Image src="/logo.png" alt="Genio Logo" width={40} height={40} />
+          <span className="ml-3 font-bold text-lg">Genio OS</span>
         </div>
-
-        {/* Vertical Menu */}
         <nav className="space-y-2">
-          <NavItem href="/dashboard">🏠 Overview</NavItem>
-          <NavItem href="/dashboard/money">💸 Money Router</NavItem>
-          <NavItem href="/dashboard/transactions">📊 Transactions</NavItem>
-          <NavItem href="/dashboard/kyc">🪪 KYC</NavItem>
-          <NavItem href="/dashboard/aml">🛡️ AML</NavItem>
-          <NavItem href="/dashboard/providers">⚙️ Providers</NavItem>
-          <NavItem href="/dashboard/settings">🔧 Settings</NavItem>
+          <NavItem href="/dashboard">Dashboard</NavItem>
+          <NavItem href="/dashboard/profile">Profile</NavItem>
+          <NavItem href="/dashboard/settings">Settings</NavItem>
         </nav>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-6">{children}</main>
+      {/* Main content */}
+      <main className="flex-1 p-6 overflow-y-auto">{children}</main>
     </div>
   );
 }
