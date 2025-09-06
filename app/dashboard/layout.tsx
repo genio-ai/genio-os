@@ -1,41 +1,56 @@
 // app/dashboard/layout.tsx
-
 import Link from "next/link";
 import React from "react";
 import Image from "next/image";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: { children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
+    <div className="min-h-screen flex">
       {/* Sidebar */}
-      <aside
-        style={{
-          width: "220px",
-          background: "#0f172a",
-          color: "white",
-          padding: "16px",
-        }}
-      >
-        {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px" }}>
+      <aside className="w-56 bg-slate-900 text-slate-100 p-4">
+        {/* Logo + Title */}
+        <div className="flex items-center gap-2 mb-6">
           <Image src="/genio-logo.png" alt="Genio logo" width={28} height={28} />
-          <span style={{ fontWeight: "bold", fontSize: "18px" }}>GENIO OS</span>
+          <span className="font-bold text-lg leading-tight">GENIO OS</span>
         </div>
 
         {/* Menu */}
-        <nav style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          <Link href="/dashboard">🏠 Overview</Link>
-          <Link href="/dashboard/money">💸 Money Router</Link>
-          <Link href="/dashboard/transactions">📊 Transactions</Link>
-          <Link href="/dashboard/kyc">🪪 KYC</Link>
-          <Link href="/dashboard/aml">🛡️ AML</Link>
-          <Link href="/dashboard/providers">⚙️ Providers</Link>
-          <Link href="/dashboard/settings">🔧 Settings</Link>
+        <nav className="space-y-2">
+          <Link href="/dashboard"
+            className="block px-3 py-2 rounded text-slate-100 no-underline hover:bg-slate-800">
+            🏠 Overview
+          </Link>
+          <Link href="/dashboard/money"
+            className="block px-3 py-2 rounded text-slate-100 no-underline hover:bg-slate-800">
+            💸 Money Router
+          </Link>
+          <Link href="/dashboard/transactions"
+            className="block px-3 py-2 rounded text-slate-100 no-underline hover:bg-slate-800">
+            📊 Transactions
+          </Link>
+          <Link href="/dashboard/kyc"
+            className="block px-3 py-2 rounded text-slate-100 no-underline hover:bg-slate-800">
+            🪪 KYC
+          </Link>
+          <Link href="/dashboard/aml"
+            className="block px-3 py-2 rounded text-slate-100 no-underline hover:bg-slate-800">
+            🛡️ AML
+          </Link>
+          <Link href="/dashboard/providers"
+            className="block px-3 py-2 rounded text-slate-100 no-underline hover:bg-slate-800">
+            ⚙️ Providers
+          </Link>
+          <Link href="/dashboard/settings"
+            className="block px-3 py-2 rounded text-slate-100 no-underline hover:bg-slate-800">
+            🔧 Settings
+          </Link>
         </nav>
       </aside>
 
-      {/* Main content */}
-      <main style={{ flex: 1, background: "white", padding: "24px" }}>
+      {/* Main area (don’t force white) */}
+      <main className="flex-1 p-6">
         {children}
       </main>
     </div>
