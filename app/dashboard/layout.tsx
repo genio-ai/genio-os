@@ -4,7 +4,7 @@ import Image from "next/image";
 
 function NavItem({ href, children }: { href: string; children: React.ReactNode }) {
   return (
-    <Link href={href} legacyBehavior>
+    <Link href={href} passHref legacyBehavior>
       <a className="block px-3 py-2 rounded text-slate-100 no-underline hover:bg-slate-800">
         {children}
       </a>
