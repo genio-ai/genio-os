@@ -1,14 +1,20 @@
 import './globals.css';
-
-export const metadata = {
-  title: 'Genio OS',
-  description: 'Next.js + Tailwind starter project',
-};
+import Link from 'next/link';
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <header className="p-4 border-b flex gap-4">
+          <Link href="/">Home</Link>
+          <Link href="/services">Services</Link>
+          <Link href="/settings">Settings</Link>
+        </header>
+        <main className="p-6">{children}</main>
+        <footer className="p-4 border-t text-center text-sm text-gray-500">
+          © {new Date().getFullYear()} Genio Systems
+        </footer>
+      </body>
     </html>
   );
 }
