@@ -1,7 +1,8 @@
 export default function Home() {
   return (
-    <div className="min-h-[60vh] grid place-items-center">
-      <h1 className="text-4xl font-bold">🚀 Genio OS — It works!</h1>
-    </div>
+    <main style={{ padding: "40px", textAlign: "center" }}>
+      <h1>🚀 Welcome to Genio OS</h1>
+      <p>Your Next.js app is deployed successfully on Vercel!</p>
+    </main>
   );
 }
