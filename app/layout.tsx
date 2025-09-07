@@ -1,13 +1,11 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-
-  const navLinks = [
+  const nav = [
     { name: "Home", path: "/" },
     { name: "Dashboard", path: "/dashboard" },
     { name: "Services", path: "/services" },
@@ -27,91 +25,54 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           <div
             style={{
-              maxWidth: 1080,
+              maxWidth: 1100,
               margin: "0 auto",
+              padding: "12px 16px",
               display: "flex",
               alignItems: "center",
-              gap: 12,
-              padding: "12px 16px",
+              gap: 14,
             }}
           >
-            {/* Logo */}
-            <Link
-              href="/"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                textDecoration: "none",
-              }}
-            >
-              <img src="/genio-logo.png" alt="Genio Logo" height={36} />
-            </Link>
+            <img src="/genio-logo.png" alt="Genio" width={36} height={36} />
+            <div style={{ lineHeight: 1 }}>
+              <div style={{ fontWeight: 700 }}>Smart Payment System</div>
+              <div style={{ fontSize: 12, color: "#555" }}>Genio Systems</div>
+            </div>
 
-            <span style={{ fontSize: 12, color: "#6b7280" }}>
-              Smart Payment System
-            </span>
-
-            {/* Navigation */}
-            <nav
-              style={{
-                marginLeft: "auto",
-                display: "flex",
-                gap: 20,
-                alignItems: "center",
-              }}
-            >
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  href={link.path}
-                  style={{
-                    textDecoration: "none",
-                    fontWeight: pathname === link.path ? "bold" : "normal",
-                    color: pathname === link.path ? "#2563eb" : "#111827",
-                    padding: "6px 10px",
-                    borderRadius: 4,
-                    backgroundColor:
-                      pathname === link.path ? "rgba(37,99,235,0.1)" : "transparent",
-                    transition: "all 0.2s ease-in-out",
-                  }}
-                >
-                  {link.name}
-                </Link>
-              ))}
-
-              {/* Mascot */}
-              <img
-                src="/genio-mascot.png"
-                alt="Genio Mascot"
-                height={32}
-                style={{ marginLeft: 12 }}
-              />
+            <nav style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
+              {nav.map((item) => {
+                const active = pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    style={{
+                      textDecoration: "none",
+                      fontWeight: 600,
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      color: active ? "#1f2937" : "#374151",
+                      background: active ? "#e5edff" : "transparent",
+                    }}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
         </header>
 
-        {/* Main Content */}
-        <main
-          style={{
-            maxWidth: 1080,
-            margin: "0 auto",
-            padding: "24px 16px",
-            minHeight: "70vh",
-          }}
-        >
-          {children}
-        </main>
+        {/* Page content */}
+        <main style={{ maxWidth: 1100, margin: "0 auto", padding: 24 }}>{children}</main>
 
         {/* Footer */}
         <footer
           style={{
-            maxWidth: 1080,
-            margin: "0 auto",
-            padding: "24px 16px",
-            fontSize: 12,
-            color: "#6b7280",
+            marginTop: 60,
+            padding: "18px 16px",
             borderTop: "1px solid #e5e7eb",
+            color: "#6b7280",
             textAlign: "center",
           }}
         >
