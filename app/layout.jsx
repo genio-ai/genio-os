@@ -2,16 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }) {
   const pathname = usePathname();
-
-  const navLinks = [
+  const tabs = [
     { name: "Home", path: "/" },
     { name: "Dashboard", path: "/dashboard" },
     { name: "Services", path: "/services" },
@@ -20,64 +14,53 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body
-        style={{
-          margin: 0,
-          fontFamily: "system-ui, Arial",
-          background: "#f9fafb",
-        }}
-      >
-        {/* Header */}
+      <body style={{ margin: 0, fontFamily: "system-ui, Arial" }}>
         <header
           style={{
             width: "100%",
             borderBottom: "1px solid #e5e7eb",
             background: "#ffffff",
-            padding: "12px 24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
           }}
         >
-          {/* Logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <img src="/genio-logo.png" alt="Genio Logo" height={40} />
-            <span style={{ fontWeight: "bold", fontSize: "18px" }}>
-              Genio OS
-            </span>
-          </div>
+          <div
+            style={{
+              maxWidth: 1100,
+              margin: "0 auto",
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+              padding: "12px 16px",
+            }}
+          >
+            <img src="/genio-logo.png" alt="Genio" height={32} />
+            <div style={{ fontWeight: 600 }}>Smart Payment System</div>
 
-          {/* Navigation */}
-          <nav style={{ display: "flex", gap: "16px" }}>
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                href={link.path}
-                style={{
-                  textDecoration: "none",
-                  color: pathname === link.path ? "#2563eb" : "#374151",
-                  fontWeight: pathname === link.path ? "bold" : "normal",
-                }}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
+            <nav style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
+              {tabs.map((t) => (
+                <Link
+                  key={t.path}
+                  href={t.path}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    background: pathname === t.path ? "#e5edff" : "transparent",
+                    color: pathname === t.path ? "#1e40af" : "#111827",
+                    textDecoration: "none",
+                    fontWeight: pathname === t.path ? 700 : 500,
+                  }}
+                >
+                  {t.name}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </header>
 
-        {/* Page Content */}
-        <main style={{ padding: "24px" }}>{children}</main>
+        <main style={{ maxWidth: 1100, margin: "24px auto", padding: "0 16px" }}>
+          {children}
+        </main>
 
-        {/* Footer */}
-        <footer
-          style={{
-            textAlign: "center",
-            padding: "12px",
-            marginTop: "40px",
-            fontSize: "14px",
-            color: "#6b7280",
-          }}
-        >
+        <footer style={{ textAlign: "center", padding: "24px 0", color: "#6b7280" }}>
           © {new Date().getFullYear()} Genio Systems
         </footer>
       </body>
