@@ -1,10 +1,13 @@
 export default function Home() {
   return (
-    <div style={{ padding: 24, textAlign: "center" }}>
-      <h1>GENIO Money OS</h1>
-      <p>Router • KYC • AML — built for speed, savings, and compliance.</p>
-      <img src="/genio-logo.png" alt="Genio Logo" height={100} />
-      <img src="/genio-mascot.png" alt="Genio Mascot" height={120} />
-    </div>
+    <section style={{ paddingTop: 24 }}>
+      <h1 style={{ fontSize: 44, margin: "0 0 12px", fontWeight: 800 }}>Genio OS</h1>
+      <p style={{ margin: "0 0 24px", fontSize: 18 }}>It works!</p>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <img src="/genio-logo.png" alt="Genio Logo" height={80} />
+        <img src="/genio-mascot.png" alt="Genio Mascot" height={80} />
+      </div>
+    </section>
   );
 }
