@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
+
   const tabs = [
     { name: "Home", path: "/" },
     { name: "Dashboard", path: "/dashboard" },
@@ -12,66 +13,84 @@ export default function RootLayout({ children }) {
     { name: "Settings", path: "/settings" },
   ];
 
+  const isActive = (path) => (pathname === path ? "active" : "");
+
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: "system-ui, Arial" }}>
-        <header
-          style={{
-            width: "100%",
-            borderBottom: "1px solid #e5e7eb",
-            background: "#ffffff",
-          }}
-        >
-          <div
-            style={{
-              maxWidth: 1100,
-              margin: "0 auto",
-              padding: "12px 16px",
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-            }}
-          >
-            <img src="/genio-logo.png" alt="Genio logo" width={36} height={36} />
-            <div style={{ lineHeight: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>Smart</div>
-              <div style={{ fontSize: 14, color: "#6b7280" }}>Payment System</div>
-            </div>
-
-            <nav style={{ marginLeft: "auto", display: "flex", gap: 16 }}>
-              {tabs.map((t) => {
-                const active = pathname === t.path;
-                return (
-                  <Link
-                    key={t.path}
-                    href={t.path}
-                    style={{
-                      textDecoration: "none",
-                      fontWeight: 700,
-                      padding: "8px 12px",
-                      borderRadius: 8,
-                      background: active ? "#e5edff" : "transparent",
-                      color: active ? "#1f4ed8" : "#111827",
-                    }}
-                  >
-                    {t.name}
-                  </Link>
-                );
-              })}
-            </nav>
+      <body>
+        {/* Header */}
+        <header style={styles.header}>
+          <div style={styles.brand}>
+            <span style={{ fontWeight: 700 }}>Smart Payment System</span>
           </div>
+
+          <nav style={styles.nav}>
+            {tabs.map((t) => (
+              <Link
+                key={t.path}
+                href={t.path}
+                style={{
+                  ...styles.link,
+                  ...(isActive(t.path) ? styles.linkActive : {}),
+                }}
+              >
+                {t.name}
+              </Link>
+            ))}
+          </nav>
         </header>
 
-        <main style={{ maxWidth: 1100, margin: "24px auto", padding: "0 16px" }}>
-          {children}
-        </main>
+        {/* Main content */}
+        <main style={styles.main}>{children}</main>
 
-        <footer
-          style={{ padding: "40px 16px", color: "#6b7280", textAlign: "center" }}
-        >
+        {/* Footer */}
+        <footer style={styles.footer}>
           © {new Date().getFullYear()} Genio Systems
         </footer>
       </body>
     </html>
   );
 }
+
+const styles = {
+  header: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "10px 16px",
+    borderBottom: "1px solid #e5e7eb",
+    position: "sticky",
+    top: 0,
+    background: "#ffffff",
+    zIndex: 10,
+    fontFamily: "system-ui, Arial, sans-serif",
+  },
+  brand: { display: "flex", gap: 8, alignItems: "center" },
+  nav: { display: "flex", gap: 14 },
+  link: {
+    padding: "8px 10px",
+    textDecoration: "none",
+    color: "#111827",
+    borderRadius: 8,
+    fontWeight: 500,
+  },
+  linkActive: {
+    background: "#111827",
+    color: "#ffffff",
+  },
+  main: {
+    maxWidth: 1100,
+    margin: "24px auto",
+    padding: "0 16px",
+    minHeight: "60vh",
+    fontFamily: "system-ui, Arial, sans-serif",
+  },
+  footer: {
+    textAlign: "center",
+    padding: "24px 0",
+    color: "#6b7280",
+    borderTop: "1px solid #e5e7eb",
+    fontFamily: "system-ui, Arial, sans-serif",
+  },
+};
