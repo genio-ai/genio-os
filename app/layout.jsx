@@ -26,32 +26,38 @@ export default function RootLayout({ children }) {
             style={{
               maxWidth: 1100,
               margin: "0 auto",
+              padding: "12px 16px",
               display: "flex",
               alignItems: "center",
               gap: 16,
-              padding: "12px 16px",
             }}
           >
-            <img src="/genio-logo.png" alt="Genio" height={32} />
-            <div style={{ fontWeight: 600 }}>Smart Payment System</div>
+            <img src="/genio-logo.png" alt="Genio logo" width={36} height={36} />
+            <div style={{ lineHeight: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>Smart</div>
+              <div style={{ fontSize: 14, color: "#6b7280" }}>Payment System</div>
+            </div>
 
-            <nav style={{ marginLeft: "auto", display: "flex", gap: 12 }}>
-              {tabs.map((t) => (
-                <Link
-                  key={t.path}
-                  href={t.path}
-                  style={{
-                    padding: "8px 12px",
-                    borderRadius: 8,
-                    background: pathname === t.path ? "#e5edff" : "transparent",
-                    color: pathname === t.path ? "#1e40af" : "#111827",
-                    textDecoration: "none",
-                    fontWeight: pathname === t.path ? 700 : 500,
-                  }}
-                >
-                  {t.name}
-                </Link>
-              ))}
+            <nav style={{ marginLeft: "auto", display: "flex", gap: 16 }}>
+              {tabs.map((t) => {
+                const active = pathname === t.path;
+                return (
+                  <Link
+                    key={t.path}
+                    href={t.path}
+                    style={{
+                      textDecoration: "none",
+                      fontWeight: 700,
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      background: active ? "#e5edff" : "transparent",
+                      color: active ? "#1f4ed8" : "#111827",
+                    }}
+                  >
+                    {t.name}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
         </header>
@@ -60,7 +66,9 @@ export default function RootLayout({ children }) {
           {children}
         </main>
 
-        <footer style={{ textAlign: "center", padding: "24px 0", color: "#6b7280" }}>
+        <footer
+          style={{ padding: "40px 16px", color: "#6b7280", textAlign: "center" }}
+        >
           © {new Date().getFullYear()} Genio Systems
         </footer>
       </body>
