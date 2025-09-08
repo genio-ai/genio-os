@@ -1,18 +1,17 @@
-import Navbar from "@/components/Navbar";export default function Home() {
-  return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <div className="max-w-3xl mx-auto p-6 space-y-8">
-        <header className="text-center">
-          <h1 className="text-3xl font-bold">Genio Money OS Dashboard</h1>
-          <p className="text-gray-400">
-            Route payments smartly. We simulate fees & FX spreads and suggest the best provider.
-          </p>
-        </header>
+import Navbar from "@/components/Navbar";
 
-        {/* Money Router */}
-        <section className="bg-gray-800 p-6 rounded-xl shadow-lg space-y-4">
-          <h2 className="text-xl font-semibold">Money Router</h2>
-          <form className="space-y-4">
+export default function Home() {
+  return (
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+        <div className="max-w-3xl mx-auto p-6 space-y-8">
+          <header className="text-center">
+            <h1 className="text-3xl font-bold">Genio Money OS Dashboard</h1>
+            <p className="text-gray-400">
+              Route payments smartly. We simulate fees & FX spread.
+            </p>
+          </header>
             <input
               type="number"
               defaultValue="1000"
