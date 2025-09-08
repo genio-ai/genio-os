@@ -1,52 +1,77 @@
 export default function Home() {
-  const providers = [
-    { name: "Wise", fee: "$6.00", spread: "$1.00", logo: "https://seeklogo.com/images/W/wise-logo-8F1E1DB97C-seeklogo.com.png" },
-    { name: "PayGate", fee: "$9.00", spread: "$2.50", logo: "https://paygate.co.za/wp-content/uploads/2020/04/paygate-logo.png" },
-    { name: "Flutterwave", fee: "$12.00", spread: "$2.00", logo: "https://flutterwave.com/images/logo.png" },
-    { name: "Stripe", fee: "$14.00", spread: "$1.50", logo: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Stripe_Logo%2C_revised_2016.svg" },
-  ];
-
   return (
-    <div className="space-y-8">
-      <section className="bg-gray-800 bg-opacity-70 p-6 rounded-xl shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">Genio Money OS Dashboard</h2>
-        <p className="text-gray-400">Route payments smartly. We simulate fees & FX spreads and suggest the best provider.</p>
+    <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+      <div className="max-w-3xl mx-auto p-6 space-y-8">
+        <header className="text-center">
+          <h1 className="text-3xl font-bold">Genio Money OS Dashboard</h1>
+          <p className="text-gray-400">
+            Route payments smartly. We simulate fees & FX spreads and suggest the best provider.
+          </p>
+        </header>
 
-        <div className="mt-6 bg-gray-900 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Money Router</h3>
-          <form className="space-y-3">
-            <input type="number" placeholder="Amount" className="w-full p-2 rounded bg-gray-700" defaultValue="1000" />
-            <select className="w-full p-2 rounded bg-gray-700">
-              <option>USD</option>
-              <option>EUR</option>
-              <option>ZAR</option>
-            </select>
-            <select className="w-full p-2 rounded bg-gray-700">
-              <option>EUR</option>
-              <option>USD</option>
-              <option>ZAR</option>
-            </select>
-            <button className="w-full bg-blue-600 hover:bg-blue-500 p-2 rounded font-bold">USD → EUR</button>
+        {/* Money Router */}
+        <section className="bg-gray-800 p-6 rounded-xl shadow-lg space-y-4">
+          <h2 className="text-xl font-semibold">Money Router</h2>
+          <form className="space-y-4">
+            <input
+              type="number"
+              defaultValue="1000"
+              className="w-full px-4 py-2 rounded-lg bg-gray-900 border border-gray-700 focus:outline-none"
+            />
+            <div className="flex space-x-2">
+              <select className="flex-1 px-4 py-2 rounded-lg bg-gray-900 border border-gray-700">
+                <option>USD</option>
+              </select>
+              <select className="flex-1 px-4 py-2 rounded-lg bg-gray-900 border border-gray-700">
+                <option>EUR</option>
+              </select>
+            </div>
+            <button className="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded-lg font-semibold">
+              USD → EUR
+            </button>
           </form>
-        </div>
-      </section>
+        </section>
 
-      <section className="bg-gray-800 bg-opacity-70 p-6 rounded-xl shadow-lg">
-        <h3 className="text-xl font-bold mb-4">Provider Comparison</h3>
-        <ul className="space-y-4">
-          {providers.map((p, i) => (
-            <li key={i} className="flex items-center justify-between bg-gray-900 p-3 rounded-lg">
-              <div className="flex items-center space-x-3">
-                <img src={p.logo} alt={p.name} className="w-8 h-8" />
-                <span className="font-semibold">{p.name}</span>
-              </div>
-              <div className="text-gray-300">
-                Fee: {p.fee} | Spread: {p.spread}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-    </div>
+        {/* Provider Comparison */}
+        <section className="bg-gray-800 p-6 rounded-xl shadow-lg">
+          <h2 className="text-xl font-semibold mb-4">Provider Comparison</h2>
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="text-gray-400">
+                <th className="pb-2">Provider</th>
+                <th className="pb-2">Fee</th>
+                <th className="pb-2">FX Spread</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              <tr>
+                <td>Wise</td>
+                <td>$6.00 (0.6%)</td>
+                <td>$1.00 (0.1%)</td>
+              </tr>
+              <tr>
+                <td>PayGate</td>
+                <td>$9.00 (0.9%)</td>
+                <td>$2.50 (0.3%)</td>
+              </tr>
+              <tr>
+                <td>Flutterwave</td>
+                <td>$12.00 (1.2%)</td>
+                <td>$2.00 (0.2%)</td>
+              </tr>
+              <tr>
+                <td>Stripe</td>
+                <td>$14.00 (1.4%)</td>
+                <td>$1.50 (0.1%)</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <footer className="text-center text-gray-500 text-sm">
+          © 2025 Genio Systems
+        </footer>
+      </div>
+    </main>
   );
 }
