@@ -1,4 +1,4 @@
-export default function Home() {
+import Navbar from "@/components/Navbar";export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
       <div className="max-w-3xl mx-auto p-6 space-y-8">
