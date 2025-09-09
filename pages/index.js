@@ -1,126 +1,169 @@
 // pages/index.js
-import Image from "next/image";
-
-const wrap = { maxWidth: 900, margin: "0 auto", padding: "20px" };
-const btn = {
-  padding: "12px 18px",
-  borderRadius: 10,
-  textDecoration: "none",
-  display: "inline-block",
-  fontWeight: 600,
-  border: "1px solid rgba(255,255,255,0.15)",
-  background: "rgba(255,255,255,0.08)",
-  color: "#fff",
-};
-const btnPrimary = {
-  ...btn,
-  border: "none",
-  background: "linear-gradient(90deg,#22d3ee,#10b981)",
-  color: "#001015",
-};
-const btnGhost = { ...btn };
-const card = {
-  border: "1px solid rgba(255,255,255,0.12)",
-  borderRadius: 14,
-  padding: 16,
-  background: "rgba(255,255,255,0.06)",
-};
-
-function StatCard({ title, value }) {
-  return (
-    <div style={card}>
-      <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 14 }}>{title}</div>
-      <div style={{ marginTop: 8, fontSize: 26, fontWeight: 700, color: "#fff" }}>{value}</div>
-    </div>
-  );
-}
-
 export default function Home() {
   return (
-    <main style={{ minHeight: "100vh", background: "#0a0f1f", color: "#fff" }}>
+    <main className="page">
       {/* Header */}
-      <header style={{ ...wrap, display: "flex", alignItems: "center", gap: 10 }}>
-        {/* ملاحظة: لازم يكون logo.png بخلفية شفافة */}
-        <Image src="/logo.png" alt="Genio Logo" width={36} height={36} priority />
-        <div style={{ fontSize: 20, fontWeight: 700 }}>Genio OS</div>
+      <header className="header container">
+        <div className="brand">
+          <span>Genio OS</span>
+        </div>
+
+        <nav className="top-links">
+          <a href="/pricing">Pricing</a>
+          <a href="/docs">Docs</a>
+          <a href="/compliance">Compliance</a>
+          <a href="/support">Support</a>
+        </nav>
       </header>
 
       {/* Hero */}
-      <section style={{ ...wrap, paddingTop: 10 }}>
-        <h1
-          style={{
-            fontSize: 36,
-            lineHeight: 1.2,
-            fontWeight: 800,
-            color: "#fff", // عنوان أبيض مثل ما طلبت
-            marginBottom: 8,
-          }}
-        >
-          Route payments smartly.
-        </h1>
-        <p style={{ color: "rgba(255,255,255,0.72)", fontSize: 18, maxWidth: 720 }}>
-          Send & accept payments globally — faster, cheaper, smarter.
-        </p>
+      <section className="hero container">
+        <h1>Route payments smartly.</h1>
+        <p>Send & accept payments globally — faster, cheaper, smarter.</p>
 
-        {/* Actions */}
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
-          <a href="#send" style={btnGhost}>Send Money</a>
-          <a href="#receive" style={btnGhost}>Receive Money</a>
-          <a href="/links" style={btnPrimary}>Create Payment Link</a>
-          <a href="/dashboard" style={btnGhost}>Open Dashboard</a>
+        {/* CTA الرئيسي */}
+        <div className="cta">
+          <a href="/get-started" className="btn btn--green btn--big">
+            Get Started
+          </a>
         </div>
 
-        {/* Quick links */}
-        <div
-          style={{
-            display: "flex",
-            gap: 18,
-            flexWrap: "wrap",
-            marginTop: 16,
-            fontSize: 14,
-          }}
-        >
-          <a href="/pricing" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>
-            Pricing
-          </a>
-          <a href="/docs" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>
-            Docs
-          </a>
-          <a href="/compliance" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>
-            Compliance
-          </a>
-          <a href="/support" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>
-            Support
-          </a>
+        {/* أزرار إضافية */}
+        <div className="actions">
+          <a href="#send" className="btn btn--ghost">Send Money</a>
+          <a href="#receive" className="btn btn--ghost">Receive Money</a>
+          <a href="/links" className="btn btn--ghost">Create Payment Link</a>
+          <a href="/dashboard" className="btn btn--ghost">Open Dashboard</a>
         </div>
       </section>
 
       {/* Providers */}
-      <section style={{ ...wrap, marginTop: 28 }}>
-        <div style={{ opacity: 0.8, fontSize: 14, marginBottom: 10 }}>Powered by</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px,1fr))", gap: 10 }}>
-          <div style={card}>Wise</div>
-          <div style={card}>Flutterwave</div>
-          <div style={card}>PayGate</div>
-          <div style={card}>Stripe</div>
+      <section className="container">
+        <div className="subtle">Powered by</div>
+        <div className="providers">
+          <div className="pill">Wise</div>
+          <div className="pill">Flutterwave</div>
+          <div className="pill">PayGate</div>
+          <div className="pill">Stripe</div>
         </div>
       </section>
 
       {/* Stats */}
-      <section
-        style={{
-          ...wrap,
-          marginTop: 24,
-          marginBottom: 40,
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-          gap: 14,
-        }}
-      >
-        <StatCard title="Settlement Speed" value="< 1h avg" />
-        <StatCard title="Fees Saved" value="30–50%" />
-        <StatCard title="Uptime" value="99.9%" />
+      <section className="container stats">
+        <div className="card">
+          <div className="subtle">Settlement Speed</div>
+          <div className="value">&lt; 1h avg</div>
+        </div>
+        <div className="card">
+          <div className="subtle">Fees Saved</div>
+          <div className="value">30–50%</div>
+        </div>
+        <div className="card">
+          <div className="subtle">Uptime</div>
+          <div className="value">99.9%</div>
+        </div>
       </section>
+
+      <style jsx>{`
+        .page {
+          min-height: 100vh;
+          background: #0a0f1f;
+          color: #fff;
+          font-family: sans-serif;
+        }
+        .container {
+          max-width: 900px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .brand span {
+          font-size: 20px;
+          font-weight: 700;
+        }
+        .top-links a {
+          margin-left: 16px;
+          color: rgba(255,255,255,0.8);
+          text-decoration: none;
+        }
+        .hero h1 {
+          font-size: 28px;
+          margin: 0 0 10px;
+          font-weight: 700;
+        }
+        .hero p {
+          color: rgba(255,255,255,0.7);
+          font-size: 18px;
+          max-width: 600px;
+        }
+        .cta {
+          margin: 20px 0;
+        }
+        .actions {
+          margin-top: 10px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .btn {
+          padding: 12px 18px;
+          border-radius: 10px;
+          text-decoration: none;
+          font-weight: 600;
+        }
+        .btn--ghost {
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: #fff;
+        }
+        .btn--green {
+          background: linear-gradient(90deg,#16a34a,#22c55e);
+          color: #fff;
+          border: none;
+        }
+        .btn--big {
+          padding: 14px 28px;
+          font-size: 18px;
+        }
+        .subtle {
+          font-size: 14px;
+          color: rgba(255,255,255,0.7);
+        }
+        .providers {
+          display: grid;
+          grid-template-columns: repeat(auto-fit,minmax(120px,1fr));
+          gap: 10px;
+          margin-top: 10px;
+        }
+        .pill {
+          background: rgba(255,255,255,0.06);
+          border-radius: 12px;
+          padding: 14px;
+          text-align: center;
+        }
+        .stats {
+          display: grid;
+          grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+          gap: 14px;
+          margin-top: 30px;
+        }
+        .card {
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 14px;
+          padding: 16px;
+        }
+        .value {
+          margin-top: 6px;
+          font-size: 22px;
+          font-weight: 700;
+          color: #fff;
+        }
+      `}</style>
     </main>
   );
 }
