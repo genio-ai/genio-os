@@ -4,9 +4,7 @@ export default function Home() {
     <main className="page">
       {/* Header */}
       <header className="header container">
-        <div className="brand">
-          <span>Genio OS</span>
-        </div>
+        <div className="brand">Genio OS</div>
 
         <nav className="top-links">
           <a href="/pricing">Pricing</a>
@@ -52,15 +50,15 @@ export default function Home() {
       <section className="container stats">
         <div className="card">
           <div className="subtle">Settlement Speed</div>
-          <div className="value">&lt; 1h avg</div>
+          <div className="value small">&lt; 1h avg</div>
         </div>
         <div className="card">
           <div className="subtle">Fees Saved</div>
-          <div className="value">30–50%</div>
+          <div className="value small">30–50%</div>
         </div>
         <div className="card">
           <div className="subtle">Uptime</div>
-          <div className="value">99.9%</div>
+          <div className="value small">99.9%</div>
         </div>
       </section>
 
@@ -81,39 +79,41 @@ export default function Home() {
           align-items: center;
           justify-content: space-between;
         }
-        .brand span {
-          font-size: 20px;
-          font-weight: 700;
+        .brand {
+          font-size: 18px;
+          font-weight: 600;
         }
         .top-links a {
           margin-left: 16px;
           color: rgba(255,255,255,0.8);
           text-decoration: none;
+          font-size: 14px;
         }
         .hero h1 {
-          font-size: 28px;
-          margin: 0 0 10px;
-          font-weight: 700;
+          font-size: 24px;  /* أصغر */
+          margin: 0 0 8px;
+          font-weight: 600;
         }
         .hero p {
           color: rgba(255,255,255,0.7);
-          font-size: 18px;
+          font-size: 16px;
           max-width: 600px;
         }
         .cta {
-          margin: 20px 0;
+          margin: 18px 0;
         }
         .actions {
           margin-top: 10px;
           display: flex;
           flex-wrap: wrap;
-          gap: 12px;
+          gap: 10px;
         }
         .btn {
-          padding: 12px 18px;
-          border-radius: 10px;
+          padding: 10px 16px;
+          border-radius: 8px;
           text-decoration: none;
           font-weight: 600;
+          font-size: 14px;
         }
         .btn--ghost {
           background: rgba(255,255,255,0.08);
@@ -126,11 +126,11 @@ export default function Home() {
           border: none;
         }
         .btn--big {
-          padding: 14px 28px;
-          font-size: 18px;
+          padding: 12px 24px;
+          font-size: 16px;
         }
         .subtle {
-          font-size: 14px;
+          font-size: 13px;
           color: rgba(255,255,255,0.7);
         }
         .providers {
@@ -141,27 +141,30 @@ export default function Home() {
         }
         .pill {
           background: rgba(255,255,255,0.06);
-          border-radius: 12px;
-          padding: 14px;
+          border-radius: 10px;
+          padding: 12px;
           text-align: center;
+          font-size: 14px;
         }
         .stats {
           display: grid;
-          grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-          gap: 14px;
-          margin-top: 30px;
+          grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+          gap: 12px;
+          margin-top: 24px;
         }
         .card {
           background: rgba(255,255,255,0.06);
           border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 14px;
-          padding: 16px;
+          border-radius: 12px;
+          padding: 14px;
         }
         .value {
-          margin-top: 6px;
-          font-size: 22px;
-          font-weight: 700;
+          margin-top: 4px;
+          font-weight: 600;
           color: #fff;
+        }
+        .value.small {
+          font-size: 18px; /* أصغر */
         }
       `}</style>
     </main>
