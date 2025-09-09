@@ -19,14 +19,12 @@ export default function Home() {
         <h1>Route payments smartly.</h1>
         <p>Send & accept payments globally — faster, cheaper, smarter.</p>
 
-        {/* CTA الرئيسي */}
+        {/* Get Started CTA */}
         <div className="cta">
-          <a href="/get-started" className="btn btn--green btn--big">
-            Get Started
-          </a>
+          <a href="/get-started" className="btn btn--green">Get Started</a>
         </div>
 
-        {/* أزرار إضافية */}
+        {/* Other actions */}
         <div className="actions">
           <a href="#send" className="btn btn--ghost">Send Money</a>
           <a href="#receive" className="btn btn--ghost">Receive Money</a>
@@ -46,125 +44,83 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="container stats">
-        <div className="card">
-          <div className="subtle">Settlement Speed</div>
-          <div className="value small">&lt; 1h avg</div>
-        </div>
-        <div className="card">
-          <div className="subtle">Fees Saved</div>
-          <div className="value small">30–50%</div>
-        </div>
-        <div className="card">
-          <div className="subtle">Uptime</div>
-          <div className="value small">99.9%</div>
-        </div>
-      </section>
-
       <style jsx>{`
         .page {
           min-height: 100vh;
-          background: #0a0f1f;
+          background: #0b0f1e;
           color: #fff;
-          font-family: sans-serif;
+          font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
         }
-        .container {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 20px;
-        }
-        .header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .brand {
-          font-size: 18px;
-          font-weight: 600;
-        }
+        .container { max-width: 900px; margin: 0 auto; padding: 18px; }
+
+        /* Header */
+        .header { display: flex; align-items: center; justify-content: space-between; }
+        .brand { font-size: 18px; font-weight: 700; white-space: nowrap; }
         .top-links a {
-          margin-left: 16px;
-          color: rgba(255,255,255,0.8);
-          text-decoration: none;
-          font-size: 14px;
+          margin-left: 14px; font-size: 14px;
+          color: rgba(255,255,255,0.8); text-decoration: none;
         }
-        .hero h1 {
-          font-size: 24px;  /* أصغر */
-          margin: 0 0 8px;
-          font-weight: 600;
-        }
-        .hero p {
-          color: rgba(255,255,255,0.7);
-          font-size: 16px;
+
+        /* Hero */
+        .hero h1 { font-size: 24px; margin: 6px 0 6px; font-weight: 700; }
+        .hero p  { font-size: 16px; color: rgba(255,255,255,0.72); max-width: 640px; }
+
+        /* Get Started CTA */
+        .cta { margin-top: 20px; max-width: 300px; }
+        .cta .btn { width: 100%; }
+
+        /* Actions grid */
+        .actions {
+          margin-top: 16px;
+          display: grid;
+          grid-template-columns: repeat(2,1fr);
+          gap: 12px;
           max-width: 600px;
         }
-        .cta {
-          margin: 18px 0;
+        @media (min-width: 768px) {
+          .actions { grid-template-columns: repeat(4,1fr); }
         }
-        .actions {
-          margin-top: 10px;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
+
+        /* Buttons */
         .btn {
-          padding: 10px 16px;
-          border-radius: 8px;
+          display: block;
+          text-align: center;
+          padding: 14px 20px;
+          border-radius: 10px;
           text-decoration: none;
           font-weight: 600;
-          font-size: 14px;
+          font-size: 15px;
         }
         .btn--ghost {
           background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.15);
+          border: 1px solid rgba(255,255,255,0.14);
           color: #fff;
         }
         .btn--green {
-          background: linear-gradient(90deg,#16a34a,#22c55e);
+          background: #22c55e;
           color: #fff;
           border: none;
         }
-        .btn--big {
-          padding: 12px 24px;
-          font-size: 16px;
-        }
-        .subtle {
-          font-size: 13px;
-          color: rgba(255,255,255,0.7);
-        }
+
+        /* Providers */
+        .subtle { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 24px; }
         .providers {
           display: grid;
-          grid-template-columns: repeat(auto-fit,minmax(120px,1fr));
+          grid-template-columns: repeat(2,minmax(0,1fr));
           gap: 10px;
+          max-width: 520px;
           margin-top: 10px;
+        }
+        @media (min-width: 700px) {
+          .providers { grid-template-columns: repeat(4,minmax(0,1fr)); }
         }
         .pill {
           background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
           border-radius: 10px;
           padding: 12px;
           text-align: center;
           font-size: 14px;
-        }
-        .stats {
-          display: grid;
-          grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
-          gap: 12px;
-          margin-top: 24px;
-        }
-        .card {
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 12px;
-          padding: 14px;
-        }
-        .value {
-          margin-top: 4px;
-          font-weight: 600;
-          color: #fff;
-        }
-        .value.small {
-          font-size: 18px; /* أصغر */
         }
       `}</style>
     </main>
