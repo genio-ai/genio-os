@@ -1,4 +1,3 @@
-// pages/router.js
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -9,16 +8,15 @@ export default function RouterPage() {
 
   useEffect(() => {
     // داتا ديمو للـ routes
-    const mock = [
-      { id:"wise", name:"Wise", fee:0.5, eta:2, success:98 },
-      { id:"stripe", name:"Stripe", fee:0.7, eta:1, success:97 },
-      { id:"flutterwave", name:"Flutterwave", fee:0.4, eta:3, success:95 },
-      { id:"paygate", name:"PayGate", fee:0.6, eta:4, success:96 },
-    ];
-    setRoutes(mock);
+    setRoutes([
+      { id:"wise",        name:"Wise",        fee:0.50, eta:2, success:98 },
+      { id:"stripe",      name:"Stripe",      fee:0.70, eta:1, success:97 },
+      { id:"flutterwave", name:"Flutterwave", fee:0.40, eta:3, success:95 },
+      { id:"paygate",     name:"PayGate",     fee:0.60, eta:4, success:96 },
+    ]);
   }, []);
 
-  // احفظ العملية بالديمو Dashboard
+  // احفظ العملية في Dashboard (localStorage)
   const addToDashboard = (r) => {
     const txs = JSON.parse(localStorage.getItem("genio_txs") || "[]");
     const row = {
@@ -29,20 +27,17 @@ export default function RouterPage() {
       provider: r.name,
       status: "settled"
     };
-    const next = [row, ...txs].slice(0, 50);
+    const next = [row, ...txs].slice(0, 100);
     localStorage.setItem("genio_txs", JSON.stringify(next));
     alert(`Route ${r.name} selected & transaction added!`);
   };
 
-  // يختار أفضل Route
+  // اختر أفضل Route (الأرخص ثم الأسرع)
   const simulateBest = () => {
-    if (routes.length === 0) return;
-    const best = [...routes].sort((a,b) => {
-      if (a.fee === b.fee) return a.eta - b.eta;
-      return a.fee - b.fee;
-    })[0];
+    if (!routes.length) return;
+    const best = [...routes].sort((a,b) => (a.fee === b.fee ? a.eta - b.eta : a.fee - b.fee))[0];
     setPicked(best);
-    alert(`Best route: ${best.name} (Fee: $${best.fee}, ETA: ${best.eta}m)`);
+    alert(`Best route: ${best.name} (Fee: $${best.fee.toFixed(2)}, ETA: ${best.eta}m)`);
   };
 
   return (
@@ -94,25 +89,25 @@ export default function RouterPage() {
       {/* Styles */}
       <style jsx global>{`
         :root{--bg1:#0b1530;--bg2:#0f1f48;--text:#fff;--muted:#b8c0d4;--panel:rgba(255,255,255,.06);--border:rgba(255,255,255,.12);--gA:#22ff9a;--gB:#10e0ff}
-        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system; color:var(--text); background:linear-gradient(180deg,var(--bg1),var(--bg2))}
+        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system;color:var(--text);background:linear-gradient(180deg,var(--bg1),var(--bg2))}
         a{text-decoration:none;color:inherit}
       `}</style>
       <style jsx>{`
         .page{min-height:100vh;display:flex;flex-direction:column;padding-top:64px}
         .wrap{max-width:1120px;margin:0 auto;padding:0 16px}
-        .topbar{position:fixed;inset:0 0 auto 0;height:64px;background:rgba(10,18,42,.65);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08)}
+        .topbar{position:fixed;inset:0 0 auto 0;height:64px;background:rgba(10,18,42,.65);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08);z-index:50}
         .topbarRow{height:64px;display:flex;align-items:center;justify-content:space-between}
         .brand{font-weight:800}
         .nav{display:flex;gap:16px;color:#c9d1e8}
         .nav a:hover{color:#fff}
 
+        .hero{padding:28px 0 40px}
         .panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:26px 22px}
         h1{margin:0 0 6px;font-weight:900}
         .muted{color:var(--muted);margin-bottom:12px}
 
         .actions{display:flex;gap:12px;margin:14px 0}
-        .btn{background:linear-gradient(90deg,var(--gA),var(--gB));color:#08231f;font-weight:800;
-             padding:10px 18px;border-radius:12px;box-shadow:0 10px 28px rgba(16,224,255,.22);border:0;cursor:pointer}
+        .btn{background:linear-gradient(90deg,var(--gA),var(--gB));color:#08231f;font-weight:800;padding:10px 18px;border-radius:12px;box-shadow:0 10px 28px rgba(16,224,255,.22);border:0;cursor:pointer}
         .btn.small{padding:6px 12px;font-size:14px}
 
         .tableWrap{margin-top:14px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.04)}
