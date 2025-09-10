@@ -1,4 +1,3 @@
-// pages/dashboard.js
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -7,32 +6,29 @@ export default function Dashboard(){
   const [txs, setTxs] = useState([]);
   const [balances, setBalances] = useState({ usd: 0, eur: 0 });
 
-  // تحميل بيانات ديمو من localStorage أو إنشاء افتراضي
+  // حمّل بيانات ديمو من localStorage
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("genio_txs") || "[]");
     if (saved.length === 0) {
       const seed = [
-        { id: "TX-1001", time: Date.now()-86400000*2, amount: 150.12, currency: "USD", provider: "Wise", status: "settled" },
-        { id: "TX-1002", time: Date.now()-86400000, amount: 89.55, currency: "EUR", provider: "Stripe", status: "settled" },
-        { id: "TX-1003", time: Date.now()-3600*1000, amount: 42.00, currency: "USD", provider: "Flutterwave", status: "pending" },
+        { id: "TX-1001", time: Date.now()-86400000*2, amount: 150.12, currency: "USD", provider: "Wise",        status: "settled" },
+        { id: "TX-1002", time: Date.now()-86400000,   amount: 89.55,  currency: "EUR", provider: "Stripe",      status: "settled" },
+        { id: "TX-1003", time: Date.now()-3600*1000,  amount: 42.00,  currency: "USD", provider: "Flutterwave", status: "pending" },
       ];
       localStorage.setItem("genio_txs", JSON.stringify(seed));
       setTxs(seed);
-    } else {
-      setTxs(saved);
-    }
+    } else setTxs(saved);
   }, []);
 
-  // احسب الأرصدة عند تغيّر العمليات
+  // احسب الأرصدة
   useEffect(() => {
-    const usd = txs.filter(t=>t.currency==="USD" && t.status!=="failed")
-                   .reduce((s,t)=>s+t.amount,0);
-    const eur = txs.filter(t=>t.currency==="EUR" && t.status!=="failed")
-                   .reduce((s,t)=>s+t.amount,0);
+    const ok = (t) => t.status !== "failed";
+    const usd = txs.filter(t=>t.currency==="USD" && ok(t)).reduce((s,t)=>s+t.amount,0);
+    const eur = txs.filter(t=>t.currency==="EUR" && ok(t)).reduce((s,t)=>s+t.amount,0);
     setBalances({ usd, eur });
   }, [txs]);
 
-  const fmt = (n) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) => n.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2 });
 
   // أضف عملية ديمو
   const addTestPayment = () => {
@@ -42,7 +38,7 @@ export default function Dashboard(){
     const provider = providers[Math.floor(Math.random()*providers.length)];
     const amount = Number((Math.random()*200 + 10).toFixed(2));
     const row = { id, time: Date.now(), amount, currency: curr, provider, status: "settled" };
-    const next = [row, ...txs].slice(0, 50);
+    const next = [row, ...txs].slice(0, 100);
     setTxs(next);
     localStorage.setItem("genio_txs", JSON.stringify(next));
   };
@@ -51,12 +47,7 @@ export default function Dashboard(){
   const exportCSV = () => {
     const header = ["id,time,amount,currency,provider,status"];
     const rows = txs.map(t => [
-      t.id,
-      new Date(t.time).toISOString(),
-      t.amount,
-      t.currency,
-      t.provider,
-      t.status
+      t.id, new Date(t.time).toISOString(), t.amount, t.currency, t.provider, t.status
     ].join(","));
     const csv = [...header, ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -71,7 +62,7 @@ export default function Dashboard(){
     <>
       <Head><title>Genio OS — Dashboard</title></Head>
 
-      {/* Top bar بسيط */}
+      {/* Topbar */}
       <div className="topbar">
         <div className="wrap topbarRow">
           <div className="brand">Genio OS</div>
@@ -132,19 +123,16 @@ export default function Dashboard(){
         </section>
       </main>
 
-      {/* Global */}
+      {/* Styles */}
       <style jsx global>{`
         :root{--bg1:#0b1530;--bg2:#0f1f48;--text:#fff;--muted:#b8c0d4;--panel:rgba(255,255,255,.06);--border:rgba(255,255,255,.12);--accent:#78f6cf;--gA:#22ff9a;--gB:#10e0ff}
-        *{box-sizing:border-box} html,body,#__next{height:100%}
-        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:var(--text);background:linear-gradient(180deg,var(--bg1),var(--bg2))}
+        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system;color:var(--text);background:linear-gradient(180deg,var(--bg1),var(--bg2))}
         a{text-decoration:none;color:inherit}
       `}</style>
-
-      {/* Styles */}
       <style jsx>{`
         .page{min-height:100vh;display:flex;flex-direction:column;padding-top:64px}
         .wrap{max-width:1120px;margin:0 auto;padding:0 16px}
-        .topbar{position:fixed;inset:0 0 auto 0;height:64px;z-index:50;background:rgba(10,18,42,.65);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08)}
+        .topbar{position:fixed;inset:0 0 auto 0;height:64px;background:rgba(10,18,42,.65);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08);z-index:50}
         .topbarRow{height:64px;display:flex;align-items:center;justify-content:space-between}
         .brand{font-weight:800}
         .nav{display:flex;gap:16px;color:#c9d1e8}
@@ -168,7 +156,7 @@ export default function Dashboard(){
         .tableHead,.tableRow{display:grid;grid-template-columns:1.2fr 1.6fr 1fr 1fr .9fr;gap:10px;padding:12px 14px}
         .tableHead{background:rgba(255,255,255,.06);font-weight:800;color:#dbe6ff}
         .tableRow{border-top:1px solid rgba(255,255,255,.06);align-items:center}
-        .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+        .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;}
         .badge{padding:6px 10px;border-radius:999px;text-align:center;font-weight:800;color:#08231f;background:linear-gradient(90deg,#b0ffc8,#88f7ff)}
         .badge.pending{background:linear-gradient(90deg,#fff0a8,#ffd67a)}
         .badge.failed{background:linear-gradient(90deg,#ffb3b3,#ff8a8a)}
