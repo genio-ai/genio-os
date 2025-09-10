@@ -1,230 +1,153 @@
-// pages/index.js
-import { useState } from "react";
+// pages/index.tsx
+import Head from "next/head";
+import Link from "next/link";
 
 export default function Home() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   return (
-    <main className="page">
-      {/* Header */}
-      <header className="header container">
-        <div className="brand">Genio OS</div>
+    <>
+      <Head>
+        <title>Genio OS — Route payments smartly</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="description"
+          content="Send & accept payments globally — faster, cheaper, smarter."
+        />
+      </Head>
 
-        <nav className={`nav ${menuOpen ? "open" : ""}`}>
-          <a href="/pricing">Pricing</a>
-          <a href="/docs">Docs</a>
-          <a href="/compliance">Compliance</a>
-          <a href="/support">Support</a>
-        </nav>
+      <main className="min-h-screen bg-gradient-to-b from-[#0b1530] to-[#0f1f48] text-white">
+        {/* Header */}
+        <header className="mx-auto max-w-6xl px-4 py-5 flex items-center justify-between">
+          <div className="text-xl font-semibold tracking-wide">Genio OS</div>
+          <nav className="hidden sm:flex items-center gap-6 text-sm text-slate-300">
+            <a href="#how" className="hover:text-white">How it works</a>
+            <a href="#security" className="hover:text-white">Security</a>
+            <a href="#contact" className="hover:text-white">Contact</a>
+          </nav>
+        </header>
 
-        <button className="menuBtn" onClick={() => setMenuOpen((v) => !v)}>☰</button>
-      </header>
+        {/* Hero */}
+        <section className="mx-auto max-w-6xl px-4 pt-6 pb-10">
+          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 sm:p-10">
+            <div className="max-w-2xl">
+              <h1 className="text-3xl sm:text-4xl font-bold leading-tight">
+                Route payments <span className="text-emerald-300">smartly</span>.
+              </h1>
+              <p className="mt-3 text-slate-300">
+                Send & accept payments globally — faster, cheaper, smarter.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                {/* Gradient Button */}
+                <Link
+                  href="#get-started"
+                  className="inline-flex items-center justify-center rounded-lg 
+                             bg-gradient-to-r from-[#00ff94] to-[#00d4ff] 
+                             px-5 py-3 font-medium text-black shadow-md 
+                             hover:opacity-90 transition"
+                >
+                  Get Started
+                </Link>
+                <a
+                  href="#dashboard"
+                  className="inline-flex items-center justify-center rounded-lg border border-white/20 px-5 py-3 font-medium hover:bg-white/10 transition"
+                >
+                  Open Dashboard
+                </a>
+              </div>
+            </div>
 
-      {/* Hero */}
-      <section className="hero container">
-        <h1>Route payments smartly.</h1>
-        <p>Send & accept payments globally — faster, cheaper, smarter.</p>
+            {/* Quick actions */}
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: "Send Money", href: "#send" },
+                { label: "Receive Money", href: "#receive" },
+                { label: "Create Payment Link", href: "#link" },
+                { label: "Open Dashboard", href: "#dashboard" },
+              ].map((b) => (
+                <a
+                  key={b.label}
+                  href={b.href}
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-center text-sm font-semibold hover:bg-white/10 transition"
+                >
+                  {b.label}
+                </a>
+              ))}
+            </div>
 
-        {/* Get Started */}
-        <div className="cta">
-          <a href="/get-started" className="btn btnGreen">Get Started</a>
-        </div>
+            {/* Providers */}
+            <div className="mt-10">
+              <p className="text-xs uppercase tracking-wider text-slate-400">
+                Powered by
+              </p>
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {["Wise", "Flutterwave", "PayGate", "Stripe"].map((p) => (
+                  <div
+                    key={p}
+                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm text-slate-200"
+                  >
+                    {p}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
-        {/* Other actions */}
-        <div className="actions">
-          <a href="#send" className="btn btnGhost">Send Money</a>
-          <a href="#receive" className="btn btnGhost">Receive Money</a>
-          <a href="/links" className="btn btnGhost">Create Payment Link</a>
-          <a href="/dashboard" className="btn btnGhost">Open Dashboard</a>
-        </div>
-      </section>
+        {/* How it works */}
+        <section id="how" className="mx-auto max-w-6xl px-4 py-10">
+          <h2 className="text-xl font-semibold">How it works</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                t: "1) Connect",
+                d: "Link your preferred providers. No custody — Genio only routes.",
+              },
+              {
+                t: "2) Smart routing",
+                d: "We pick the best route for price, speed, and success rate.",
+              },
+              {
+                t: "3) Track & reconcile",
+                d: "Live status, webhooks, and simple exports for your finance team.",
+              },
+            ].map((item) => (
+              <div
+                key={item.t}
+                className="rounded-2xl border border-white/10 bg-white/5 p-5"
+              >
+                <div className="text-emerald-300 font-semibold">{item.t}</div>
+                <p className="mt-2 text-sm text-slate-300">{item.d}</p>
+              </div>
+            ))}
+          </div>
+        </section>
 
-      {/* Providers */}
-      <section className="container">
-        <div className="subtle">Powered by</div>
-        <div className="providers">
-          <div className="pill">Wise</div>
-          <div className="pill">Flutterwave</div>
-          <div className="pill">PayGate</div>
-          <div className="pill">Stripe</div>
-        </div>
-      </section>
+        {/* Security & Compliance */}
+        <section id="security" className="mx-auto max-w-6xl px-4 pb-14">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <h3 className="text-lg font-semibold">Security & Compliance</h3>
+            <ul className="mt-3 list-disc pl-5 text-sm text-slate-300 space-y-1">
+              <li>KYC tiers and AML screening via connected providers.</li>
+              <li>Genio OS is a routing layer — we do not hold customer funds.</li>
+              <li>Audit logs, role-based access, and provider webhooks.</li>
+            </ul>
+          </div>
+        </section>
 
-      <style jsx>{`
-        /* ===== COLORS ===== */
-        :global(:root) {
-          --bgTop: #0a1930;
-          --bgBottom: #0f1e3d;
-          --green: #22c55e;
-          --ghostBg: rgba(255,255,255,0.08);
-          --ghostBd: rgba(255,255,255,0.14);
-          --textSub: rgba(255,255,255,0.72);
-        }
-
-        /* Page background */
-        .page {
-          min-height: 100vh;
-          background: linear-gradient(180deg, var(--bgTop) 0%, var(--bgBottom) 100%);
-          color: #fff;
-          font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
-        }
-        .container {
-          max-width: 920px;
-          margin: 0 auto;
-          padding: 16px 20px;
-          box-sizing: border-box;
-        }
-
-        /* Header */
-        .header {
-          position: sticky;
-          top: 0;
-          z-index: 50;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          background: transparent;
-        }
-        .brand {
-          font-size: 18px;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-        .nav {
-          display: flex;
-          gap: 18px;
-        }
-        .nav a {
-          color: rgba(255, 255, 255, 0.85);
-          text-decoration: none;
-          font-size: 14px;
-        }
-        .nav a:hover {
-          color: var(--green);
-        }
-        .menuBtn {
-          display: none;
-          font-size: 20px;
-          background: none;
-          border: 0;
-          color: #fff;
-        }
-        @media (max-width: 768px) {
-          .menuBtn {
-            display: block;
-          }
-          .nav {
-            display: none;
-            position: absolute;
-            right: 20px;
-            top: 56px;
-            flex-direction: column;
-            gap: 10px;
-            background: rgba(10, 25, 48, 0.96);
-            padding: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-          }
-          .nav.open {
-            display: flex;
-          }
-        }
-
-        /* Hero */
-        .hero h1 {
-          font-size: 22px;
-          margin: 10px 0 6px;
-          font-weight: 700;
-        }
-        .hero p {
-          font-size: 15px;
-          color: var(--textSub);
-          max-width: 640px;
-        }
-
-        /* Get Started */
-        .cta {
-          margin-top: 18px;
-          display: flex;
-          justify-content: center;
-        }
-        .cta .btn {
-          max-width: 220px;
-          width: 100%;
-          background: var(--green);
-          color: #fff;
-          border: none;
-          border-radius: 12px;
-          font-weight: 600;
-          font-size: 15px;
-          text-align: center;
-          padding: 14px 20px;
-          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-        .cta .btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(34, 197, 94, 0.45);
-        }
-
-        /* Other actions */
-        .actions {
-          margin-top: 16px;
-          display: grid;
-          gap: 12px;
-          grid-template-columns: repeat(2, 1fr);
-          max-width: 640px;
-        }
-        @media (min-width: 880px) {
-          .actions {
-            grid-template-columns: repeat(4, 1fr);
-          }
-        }
-
-        /* Buttons */
-        .btn {
-          display: block;
-          text-align: center;
-          padding: 14px 20px;
-          border-radius: 12px;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 15px;
-          box-sizing: border-box;
-        }
-        .btnGhost {
-          background: var(--ghostBg);
-          border: 1px solid var(--ghostBd);
-          color: #fff;
-        }
-
-        /* Providers */
-        .subtle {
-          margin-top: 24px;
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.75);
-        }
-        .providers {
-          margin-top: 10px;
-          display: grid;
-          gap: 10px;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          max-width: 520px;
-        }
-        @media (min-width: 700px) {
-          .providers {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-          }
-        }
-        .pill {
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 10px;
-          padding: 12px;
-          text-align: center;
-          font-size: 14px;
-        }
-      `}</style>
-    </main>
+        {/* Footer */}
+        <footer
+          id="contact"
+          className="border-t border-white/10 bg-black/20 py-8 text-slate-300"
+        >
+          <div className="mx-auto max-w-6xl px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-sm">© {new Date().getFullYear()} Genio OS</div>
+            <div className="flex items-center gap-5 text-sm">
+              <a href="#" className="hover:text-white">Privacy</a>
+              <a href="#" className="hover:text-white">Terms</a>
+              <a href="#" className="hover:text-white">Support</a>
+            </div>
+          </div>
+        </footer>
+      </main>
+    </>
   );
 }
