@@ -1,3 +1,4 @@
+// pages/index.js
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -28,9 +29,10 @@ export default function Home() {
     <>
       <Head>
         <title>Genio OS — Route payments smartly</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      {/* Topbar */}
+      {/* Top Bar */}
       <div className="topbar">
         <div className="wrap topbarRow">
           <div className="brand">Genio OS</div>
@@ -45,55 +47,82 @@ export default function Home() {
 
       <main className="page">
         {/* Hero */}
-        <section className="wrap hero">
+        <section className="wrap hero" id="home">
           <div className="panel">
-            <h1>Route payments <span className="accent">smartly</span>.</h1>
-            <p className="muted">Send & accept payments globally — faster, cheaper, smarter.</p>
-            <div className="actions">
-              <Link href="/login" className="btn">Get Started</Link>
-              <Link href="/dashboard" className="btn">Open Dashboard</Link>
+            <div className="heroText">
+              <h1>
+                Route payments <span className="accent">smartly</span>.
+              </h1>
+              <p className="muted">
+                Send & accept payments globally — faster, cheaper, smarter.
+              </p>
+
+              <div className="actions">
+                <Link href="/login" className="btn">Get Started</Link>
+                <Link href="/dashboard" className="btn">Open Dashboard</Link>
+              </div>
             </div>
 
-            {/* Grid buttons */}
+            {/* Quick actions */}
             <div className="grid">
               <Link href="/router" className="btn">Send Money</Link>
               <Link href="/router" className="btn">Receive Money</Link>
               <Link href="/router" className="btn">Create Payment Link</Link>
             </div>
+
+            {/* Providers */}
+            <div className="providers">
+              <p className="label">Powered by</p>
+              <div className="providerGrid">
+                {["Wise", "Flutterwave", "PayGate", "Stripe"].map((p) => (
+                  <div key={p} className="chip">{p}</div>
+                ))}
+              </div>
+            </div>
           </div>
+        </section>
+
+        {/* How it works */}
+        <section id="how" className="wrap section">
+          <h2>How it works</h2>
+          <div className="cards3">
+            <div className="card">
+              <div className="cardTitle">1) Connect</div>
+              <p className="muted">Link your preferred providers. No custody — Genio only routes.</p>
+            </div>
+            <div className="card">
+              <div className="cardTitle">2) Smart routing</div>
+              <p className="muted">We pick the best route for price, speed, and success rate.</p>
+            </div>
+            <div className="card">
+              <div className="cardTitle">3) Track & reconcile</div>
+              <p className="muted">Live status, webhooks, and simple exports for your finance team.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Security */}
+        <section id="security" className="wrap section">
+          <h2>Security & Compliance</h2>
+          <ul>
+            <li>KYC tiers and AML screening via connected providers.</li>
+            <li>Genio OS is a routing layer — we do not hold customer funds.</li>
+            <li>Audit logs, role-based access, and provider webhooks.</li>
+          </ul>
         </section>
       </main>
 
-      {/* Styles */}
-      <style jsx global>{`
-        :root{
-          --bg1:#0b1530;--bg2:#0f1f48;
-          --text:#fff;--muted:#b8c0d4;
-          --panel:rgba(255,255,255,.06);
-          --border:rgba(255,255,255,.12);
-          --gA:#22ff9a;--gB:#10e0ff;
-        }
-        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system; color:var(--text);
-             background:linear-gradient(180deg,var(--bg1),var(--bg2))}
-        a{text-decoration:none;color:inherit}
-      `}</style>
-      <style jsx>{`
-        .page{padding-top:64px}
-        .topbar{position:fixed;top:0;left:0;right:0;height:64px;background:rgba(10,18,42,.65);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08)}
-        .topbarRow{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
-        .brand{font-weight:800}
-        .nav{display:flex;gap:14px;align-items:center}
-        .btn{background:linear-gradient(90deg,var(--gA),var(--gB));color:#08231f;padding:10px 18px;border-radius:12px;font-weight:700;box-shadow:0 6px 16px rgba(16,224,255,.22);position:relative;overflow:hidden}
-        .btn.small{padding:6px 14px}
-        .ripple{position:absolute;border-radius:50%;pointer-events:none;transform:scale(0);opacity:.5;background:radial-gradient(circle,rgba(255,255,255,.55) 0%,rgba(255,255,255,.15) 60%,transparent 70%);animation:ripple .6s ease-out}
-        @keyframes ripple{to{transform:scale(2.2);opacity:0}}
-        .hero{padding:40px 0}
-        .panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center}
-        h1{margin:0;font-size:32px;font-weight:900}
-        .muted{color:var(--muted);margin:12px 0}
-        .actions{display:flex;gap:12px;justify-content:center;margin-bottom:20px}
-        .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-      `}</style>
+      {/* Footer */}
+      <footer className="footer">
+        <div className="wrap footerRow">
+          <p>© 2025 Genio OS</p>
+          <div className="links">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Support</a>
+          </div>
+        </div>
+      </footer>
     </>
   );
 }
