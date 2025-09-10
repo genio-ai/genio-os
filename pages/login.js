@@ -1,4 +1,3 @@
-// pages/login.js
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -11,8 +10,7 @@ export default function Login() {
   }, []);
 
   const demoLogin = () => {
-    // توكن ديمو بسيط
-    localStorage.setItem("genio_token", "demo_" + Math.random().toString(36).slice(2));
+    localStorage.setItem("genio_token", "demo_" + Date.now());
     window.location.href = "/dashboard";
   };
 
@@ -23,51 +21,31 @@ export default function Login() {
 
   return (
     <>
-      <Head><title>Genio OS — Login</title></Head>
+      <Head><title>Login — Genio OS</title></Head>
       <main className="page">
-        <section className="wrap hero">
-          <div className="panel">
-            <h1>Login</h1>
-            <p className="muted">Sign in to access your dashboard and router.</p>
+        <div className="panel">
+          <h1>Login</h1>
+          <p className="muted">Demo login to access your dashboard</p>
 
-            {!loggedIn ? (
-              <div className="actions">
-                <button className="btn" onClick={demoLogin}>Continue (Demo Login)</button>
-                <Link href="/" className="btn">Back to Home</Link>
-              </div>
-            ) : (
-              <div className="actions">
-                <Link href="/dashboard" className="btn">Go to Dashboard</Link>
-                <button className="btn" onClick={logout}>Logout</button>
-              </div>
-            )}
-
-            <p className="hint">
-              لاحقًا منضيف <b>Passkeys/FaceID</b> و<em>Magic Link</em> بسهولة بدون ما نغيّر
-              التدفق الحالي.
-            </p>
-          </div>
-        </section>
+          {!loggedIn ? (
+            <button className="btn" onClick={demoLogin}>Continue (Demo Login)</button>
+          ) : (
+            <>
+              <Link href="/dashboard" className="btn">Go to Dashboard</Link>
+              <button className="btn" onClick={logout}>Logout</button>
+            </>
+          )}
+        </div>
       </main>
 
-      {/* نفس ستايل الصفحات السابقة */}
       <style jsx global>{`
-        :root{--bg1:#0b1530;--bg2:#0f1f48;--text:#fff;--muted:#b8c0d4;--panel:rgba(255,255,255,.06);--border:rgba(255,255,255,.12);--gA:#22ff9a;--gB:#10e0ff}
-        *{box-sizing:border-box} html,body,#__next{height:100%}
-        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system; color:var(--text);
-             background:linear-gradient(180deg,var(--bg1),var(--bg2))}
-        a{text-decoration:none;color:inherit}
+        body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system;background:linear-gradient(180deg,#0b1530,#0f1f48);color:#fff}
       `}</style>
       <style jsx>{`
-        .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-        .wrap{max-width:720px;margin:0 auto;width:100%}
-        .panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:28px}
-        h1{margin:0 0 6px;font-weight:900}
-        .muted{color:var(--muted)}
-        .actions{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
-        .btn{background:linear-gradient(90deg,var(--gA),var(--gB));color:#08231f;font-weight:800;
-             padding:10px 18px;border-radius:12px;box-shadow:0 10px 28px rgba(16,224,255,.22)}
-        .hint{margin-top:14px;color:#9fb1cf;font-size:14px}
+        .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+        .panel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:24px;text-align:center}
+        .muted{color:#b8c0d4;margin-bottom:20px}
+        .btn{background:linear-gradient(90deg,#22ff9a,#10e0ff);color:#08231f;padding:10px 18px;border-radius:12px;font-weight:700;margin:5px}
       `}</style>
     </>
   );
