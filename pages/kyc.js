@@ -1,7 +1,7 @@
-// pages/kyc.js  — Genio KYC OS (advanced demo)
+// pages/kyc.js — Genio KYC OS (Pro KYC Flow)
 import Head from "next/head";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const ui = {
   page:{minHeight:"100vh",background:"#0B1D3A",color:"#fff",fontFamily:"-apple-system, Segoe UI, Roboto, Arial, sans-serif"},
@@ -14,129 +14,141 @@ const ui = {
   card:{border:"1px solid rgba(255,255,255,0.1)",background:"linear-gradient(135deg,#102A55,#0A1936)",borderRadius:24,padding:24,boxShadow:"0 12px 30px rgba(0,0,0,0.35)"},
   h1:{fontSize:32,fontWeight:900,margin:"0 0 8px"},
   p:{opacity:.9,lineHeight:1.6,margin:"0 0 16px"},
-  tips:{borderRadius:14,padding:"12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.15)",fontSize:14,marginBottom:16},
-  steps:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,margin:"6px 0 18px"},
-  step:{textAlign:"center",padding:"8px 10px",borderRadius:12,border:"1px solid rgba(255,255,255,0.15)",opacity:.6},
+  tips:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10,margin:"10px 0 18px"},
+  tip:{borderRadius:12,border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.06)",padding:"10px 12px",fontSize:14,display:"flex",gap:8,alignItems:"center"},
+  steps:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,margin:"6px 0 14px"},
+  step:{textAlign:"center",padding:"8px 10px",borderRadius:12,border:"1px solid rgba(255,255,255,0.15)",opacity:.55},
   stepAct:{opacity:1,background:"rgba(255,255,255,0.08)"},
+  bar:{height:6,background:"rgba(255,255,255,0.18)",borderRadius:999,overflow:"hidden",margin:"6px 0 16px"},
+  barFill:(w)=>({height:"100%",width:w,background:"linear-gradient(90deg,#27E38A,#27D4F0)"}),
   grid:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,marginTop:12},
   field:{display:"flex",flexDirection:"column",gap:6},
-  label:{fontWeight:700,fontSize:14,opacity:.9},
+  label:{fontWeight:700,fontSize:14,opacity:.9,display:"flex",justifyContent:"space-between"},
+  hint:{fontSize:12,opacity:.7},
   input:{borderRadius:12,border:"1px solid rgba(255,255,255,0.2)",background:"rgba(255,255,255,0.06)",color:"#fff",padding:"10px 12px",outline:"none"},
   file:{borderRadius:12,border:"1px dashed rgba(255,255,255,0.25)",background:"rgba(255,255,255,0.05)",color:"#fff",padding:"14px 12px"},
-  note:{fontSize:12,opacity:.72,marginTop:4},
   row:{display:"flex",gap:12,flexWrap:"wrap",marginTop:16},
   btnPri:{borderRadius:12,padding:"10px 16px",fontWeight:700,color:"#000",background:"linear-gradient(90deg,#27E38A,#27D4F0)",border:"none",cursor:"pointer"},
-  btn:{borderRadius:12,padding:"10px 16px",fontWeight:700,border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.08)",color:"#fff",cursor:"pointer"},
+  btn:{borderRadius:12,padding:"10px 16px",fontWeight:700,border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.08)",color:"#fff",cursor:"pointer",textDecoration:"none"},
   err:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"rgba(227,55,55,0.15)",border:"1px solid rgba(227,55,55,0.35)"},
   ok:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"rgba(39,227,138,0.15)",border:"1px solid rgba(39,227,138,0.35)"},
   preview:{marginTop:8,display:"flex",gap:10,flexWrap:"wrap"},
-  img:{width:120,height:80,objectFit:"cover",borderRadius:10,border:"1px solid rgba(255,255,255,0.2)"},
+  img:{width:120,height:84,objectFit:"cover",borderRadius:10,border:"1px solid rgba(255,255,255,0.2)"},
+  chip:(ok)=>({fontSize:12,borderRadius:8,padding:"2px 8px",marginLeft:8,background: ok?"rgba(39,227,138,.2)":"rgba(227,55,55,.2)",border:`1px solid ${ok?"rgba(39,227,138,.45)":"rgba(227,55,55,.45)"}`}),
+  note:{fontSize:12,opacity:.72,marginTop:4},
 };
 
-const MAX_SIZE = 8 * 1024 * 1024; // 8MB
+const MAX_SIZE = 8*1024*1024; // 8MB
+const DRAFT_KEY = "genio_kyc_draft";
+const LIST_KEY  = "genio_kyc";
 
 export default function KYC(){
   const [step,setStep] = useState(1);
-
-  // بيانات المستخدم
   const [form,setForm] = useState({
-    fullName:"", dob:"", country:"",
-    phone:"", email:"", address:"",
-    idType:"passport", consent:false
+    fullName:"", dob:"", country:"", phone:"", email:"", address:"",
+    idType:"passport", consent:false, livenessOk:false
   });
+  const [idFront,setIdFront] = useState(null);
+  const [idBack,setIdBack]   = useState(null);
+  const [selfie,setSelfie]   = useState(null);
+  const [msg,setMsg]         = useState({ok:false,text:""});
 
-  // ملفات
-  const [idFront,setIdFront]   = useState(null);   // لكل الأنواع
-  const [idBack,setIdBack]     = useState(null);   // للهوية الوطنية/رخصة
-  const [selfie,setSelfie]     = useState(null);   // سيلفي حامل الهوية
+  // restore draft
+  useEffect(()=>{
+    try{
+      const d = JSON.parse(localStorage.getItem(DRAFT_KEY)||"null");
+      if(d){ setForm((f)=>({...f,...d.form})); setMsg({ok:true,text:"Draft restored"}); }
+    }catch{}
+  },[]);
+  // autosave draft
+  useEffect(()=>{
+    try{ localStorage.setItem(DRAFT_KEY, JSON.stringify({form})); }catch{}
+  },[form]);
 
-  // رسائل النظام
-  const [msg,setMsg] = useState({ok:false, text:""});
+  const onChange = (e)=>{
+    const {name,value,type,checked} = e.target;
+    setForm(prev=>({...prev,[name]: type==="checkbox"? checked : value}));
+  };
+  const clearDraft = ()=>{ localStorage.removeItem(DRAFT_KEY); setMsg({ok:true,text:"Draft cleared"}); };
 
-  // معاينة
   const preview = useMemo(()=>({
     idFront: idFront ? URL.createObjectURL(idFront) : "",
     idBack : idBack  ? URL.createObjectURL(idBack)  : "",
     selfie : selfie  ? URL.createObjectURL(selfie)  : "",
   }),[idFront,idBack,selfie]);
 
-  const onChange = (e)=>{
-    const {name,value,type,checked} = e.target;
-    setForm(prev=>({...prev,[name]: type==="checkbox"? checked : value}));
+  // live validation
+  const validName   = form.fullName.trim().length>=3;
+  const validDOB    = !!form.dob;
+  const validCountry= !!form.country.trim();
+  const validEmail  = !form.email || /^\S+@\S+\.\S+$/.test(form.email);
+  const validPhone  = !form.phone || /^\+?[0-9\-() ]{7,}$/.test(form.phone);
+
+  const checkFile = (f, imgOnly=false)=>{
+    if(!f) return false;
+    if(f.size>MAX_SIZE) return false;
+    if(imgOnly && !f.type.startsWith("image/")) return false;
+    return true;
   };
 
-  const checkFile = (f, acceptImageOnly=false)=>{
-    if(!f) return "Missing file";
-    if(f.size > MAX_SIZE) return "File too large (max 8MB)";
-    if(acceptImageOnly && !f.type.startsWith("image/")) return "Image required";
-    return "";
-  };
-
-  // تحقق لكل خطوة
-  const validateStep = ()=>{
+  const stepError = ()=>{
     if(step===1){
-      if(!form.fullName || !form.dob || !form.country) return "Name, date of birth and country are required";
-      if(form.email && !/^\S+@\S+\.\S+$/.test(form.email)) return "Invalid email format";
-      if(form.phone && !/^\+?[0-9\-() ]{7,}$/.test(form.phone)) return "Invalid phone number";
+      if(!validName||!validDOB||!validCountry) return "Name, DOB and Country are required";
+      if(!validEmail) return "Invalid email format";
+      if(!validPhone) return "Invalid phone number";
       return "";
     }
     if(step===2){
-      const e1 = checkFile(idFront,false);
-      if(e1) return "ID (front) is required";
-      if(form.idType!=="passport"){
-        const e2 = checkFile(idBack,false);
-        if(e2) return "ID (back) is required";
-      }
+      if(!checkFile(idFront)) return "ID (front) is required";
+      if(form.idType!=="passport" && !checkFile(idBack)) return "ID (back) is required";
       return "";
     }
     if(step===3){
-      const e3 = checkFile(selfie,true);
-      if(e3) return "Selfie holding the ID is required";
-      if(!form.consent) return "You must accept consent";
+      if(!checkFile(selfie,true)) return "Selfie holding the ID is required";
+      if(!form.livenessOk) return "Liveness check not confirmed";
+      if(!form.consent) return "Consent is required";
       return "";
     }
     return "";
   };
 
   const next = ()=>{
-    const err = validateStep();
-    if(err){ setMsg({ok:false,text:err}); return; }
-    setMsg({ok:true,text:"Looks good"}); setStep(s=>Math.min(s+1,3));
+    const e = stepError();
+    if(e){ setMsg({ok:false,text:e}); return; }
+    setMsg({ok:true,text:"Looks good"}); setStep(s=>Math.min(3,s+1));
   };
-  const back = ()=>{ setMsg({ok:false,text:""}); setStep(s=>Math.max(s-1,1)); };
+  const back = ()=>{ setMsg({ok:false,text:""}); setStep(s=>Math.max(1,s-1)); };
 
-  const handleSubmit = (e)=>{
+  const submit = (e)=>{
     e.preventDefault();
-    const err = validateStep();
-    if(err){ setMsg({ok:false,text:err}); return; }
+    const eMsg = stepError();
+    if(eMsg){ setMsg({ok:false,text:eMsg}); return; }
 
-    // قواعد قبول/رفض بسيطة (demo “smart rules”)
-    // - رفض إن كان البلد فاضي
-    // - رفض ID Back مفقود لما النوع ليس جواز
-    // - غير ذلك pending
+    // simple decision rules (demo)
     let status = "pending";
-    if(!form.country) status = "rejected";
-    if(form.idType!=="passport" && !idBack) status = "rejected";
+    if(form.idType!=="passport" && !idBack) status="rejected";
+    if(!form.country) status="rejected";
+    if(form.livenessOk && checkFile(selfie,true)) status = status==="rejected"?"rejected":"pending";
 
     const record = {
       id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()),
       status,
       ...form,
-      idFrontName: idFront?.name,
-      idBackName : idBack?.name,
-      selfieName : selfie?.name,
+      idFrontName:idFront?.name, idBackName:idBack?.name, selfieName:selfie?.name,
       submittedAt: new Date().toISOString()
     };
-
     try{
-      const list = JSON.parse(localStorage.getItem("genio_kyc")||"[]");
+      const list = JSON.parse(localStorage.getItem(LIST_KEY)||"[]");
       list.push(record);
-      localStorage.setItem("genio_kyc", JSON.stringify(list));
-      setMsg({ok:true,text:`Submitted. Status: ${status}. View it in Dashboard.`});
+      localStorage.setItem(LIST_KEY, JSON.stringify(list));
+      localStorage.removeItem(DRAFT_KEY);
+      setMsg({ok:true,text:`Submitted. Status: ${status}. You can review it in Dashboard.`});
     }catch{
-      setMsg({ok:false,text:"Unexpected error while saving. Try again."});
+      setMsg({ok:false,text:"Unexpected error. Try again."});
     }
   };
+
+  const progress = `${(step/3)*100}%`;
 
   return (
     <>
@@ -158,35 +170,45 @@ export default function KYC(){
         <section style={ui.wrap}>
           <div style={ui.card}>
             <h1 style={ui.h1}>Begin Verification</h1>
-            <p style={ui.p}>This is an advanced demo flow (no third-party provider connected yet).</p>
+            <p style={ui.p}>Advanced demo flow (no provider connected yet). Draft is saved automatically.</p>
 
-            {/* تعليمات */}
+            {/* tips */}
             <div style={ui.tips}>
-              <b>Tips:</b> good lighting • no glare • all corners visible • selfie holding the same ID • passport: open photo page • national ID/driver license: front + back.
+              <div style={ui.tip}>📸 Good lighting</div>
+              <div style={ui.tip}>🪪 All corners visible</div>
+              <div style={ui.tip}>🤳 Selfie with same ID</div>
+              <div style={ui.tip}>🛂 Passport: photo page</div>
+              <div style={ui.tip}>🪪 National/Driver: front + back</div>
             </div>
 
-            {/* شريط الخطوات */}
+            {/* steps + progress */}
             <div style={ui.steps}>
-              <div style={{...ui.step, ...(step===1?ui.stepAct:{})}}>1. Personal Info</div>
-              <div style={{...ui.step, ...(step===2?ui.stepAct:{})}}>2. ID Upload</div>
-              <div style={{...ui.step, ...(step===3?ui.stepAct:{})}}>3. Selfie & Consent</div>
+              <div style={{...ui.step,...(step===1?ui.stepAct:{})}}>1. Personal Info</div>
+              <div style={{...ui.step,...(step===2?ui.stepAct:{})}}>2. ID Upload</div>
+              <div style={{...ui.step,...(step===3?ui.stepAct:{})}}>3. Selfie & Consent</div>
             </div>
+            <div style={ui.bar}><div style={ui.barFill(progress)} /></div>
 
-            <form onSubmit={handleSubmit}>
-              {/* STEP 1 */}
+            <form onSubmit={submit}>
               {step===1 && (
                 <>
                   <div style={ui.grid}>
                     <div style={ui.field}>
-                      <label style={ui.label}>Full name *</label>
+                      <label style={ui.label}>
+                        Full name * {form.fullName.trim().length>=3?<span style={ui.chip(true)}>OK</span>:<span style={ui.chip(false)}>Required</span>}
+                      </label>
                       <input style={ui.input} name="fullName" value={form.fullName} onChange={onChange}/>
                     </div>
                     <div style={ui.field}>
-                      <label style={ui.label}>Date of birth *</label>
+                      <label style={ui.label}>
+                        Date of birth * {form.dob?<span style={ui.chip(true)}>OK</span>:<span style={ui.chip(false)}>Required</span>}
+                      </label>
                       <input style={ui.input} type="date" name="dob" value={form.dob} onChange={onChange}/>
                     </div>
                     <div style={ui.field}>
-                      <label style={ui.label}>Country *</label>
+                      <label style={ui.label}>
+                        Country * {form.country.trim()?<span style={ui.chip(true)}>OK</span>:<span style={ui.chip(false)}>Required</span>}
+                      </label>
                       <input style={ui.input} name="country" value={form.country} onChange={onChange} placeholder="e.g., Jordan"/>
                     </div>
                     <div style={ui.field}>
@@ -197,32 +219,30 @@ export default function KYC(){
                       <label style={ui.label}>Email</label>
                       <input style={ui.input} name="email" value={form.email} onChange={onChange} placeholder="you@company.com"/>
                     </div>
-                    <div style={ui.field} style={{gridColumn:"1/-1"}}>
-                      <label style={ui.label}>Address</label>
+                    <div style={{...ui.field,gridColumn:"1/-1"}}>
+                      <label style={ui.label}>Address <span style={ui.hint}>(optional)</span></label>
                       <input style={ui.input} name="address" value={form.address} onChange={onChange}/>
                     </div>
                   </div>
 
                   <div style={ui.row}>
                     <button type="button" onClick={next} style={ui.btnPri}>Continue</button>
+                    <button type="button" onClick={clearDraft} style={ui.btn}>Clear Draft</button>
                   </div>
                 </>
               )}
 
-              {/* STEP 2 */}
               {step===2 && (
                 <>
                   <div style={ui.grid}>
-                    <div className="idType" style={ui.field}>
+                    <div style={ui.field}>
                       <label style={ui.label}>ID type *</label>
                       <select name="idType" value={form.idType} onChange={onChange} style={ui.input}>
                         <option value="passport">Passport</option>
                         <option value="nid">National ID</option>
                         <option value="dl">Driver License</option>
                       </select>
-                      <div style={ui.note}>
-                        Passport: one photo. National ID / Driver License: front + back.
-                      </div>
+                      <div style={ui.note}>Passport: one photo. National/Driver: front + back.</div>
                     </div>
 
                     <div style={ui.field}>
@@ -247,23 +267,29 @@ export default function KYC(){
                 </>
               )}
 
-              {/* STEP 3 */}
               {step===3 && (
                 <>
                   <div style={ui.grid}>
                     <div style={ui.field}>
-                      <label style={ui.label}>Upload selfie holding your ID *</label>
+                      <label style={ui.label}>Upload selfie with the same ID *</label>
                       <input type="file" accept="image/*" onChange={(e)=>setSelfie(e.target.files?.[0]||null)} style={ui.file}/>
                       {preview.selfie && <div style={ui.preview}><img src={preview.selfie} style={{...ui.img,height:120}} alt="selfie"/></div>}
-                      <div style={ui.note}>Face and ID must be fully visible. No sunglasses or heavy filters.</div>
+                      <div style={ui.note}>No sunglasses • face fully visible • hold the ID next to your face.</div>
                     </div>
-                  </div>
-
-                  <div style={{marginTop:12}}>
-                    <label style={{display:"flex",alignItems:"center",gap:8}}>
-                      <input type="checkbox" name="consent" checked={form.consent} onChange={onChange}/>
-                      <span>I confirm the information is accurate and I consent to verification.</span>
-                    </label>
+                    <div style={ui.field}>
+                      <label style={ui.label}>Liveness (demo)</label>
+                      <label style={{display:"flex",alignItems:"center",gap:8}}>
+                        <input type="checkbox" name="livenessOk" checked={form.livenessOk} onChange={onChange}/>
+                        <span>I confirm I blinked and moved my head slowly.</span>
+                      </label>
+                    </div>
+                    <div style={{...ui.field,gridColumn:"1/-1"}}>
+                      <label style={ui.label}>Consent *</label>
+                      <label style={{display:"flex",alignItems:"center",gap:8}}>
+                        <input type="checkbox" name="consent" checked={form.consent} onChange={onChange}/>
+                        <span>I consent to identity verification and processing of my data.</span>
+                      </label>
+                    </div>
                   </div>
 
                   <div style={ui.row}>
