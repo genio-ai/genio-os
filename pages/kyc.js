@@ -2,7 +2,7 @@
 // No external deps. Works on Next.js Pages Router.
 import Head from "next/head";
 import Link from "next/link";
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 
 /* ---------------------- UI ---------------------- */
 const ui = {
@@ -72,8 +72,22 @@ const countries = [
 function maskPhone(p){ if(!p) return ""; return p.replace(/.(?=.{2})/g,"*"); }
 
 /* --------------- Drag & Drop box --------------- */
-function DropZone({label,required,onFile,accept="image/*,application/pdf",previewUrl}) {
-  const [drag,setDrag] = useState(false);
+function DropZone({ label, required, onFile, accept = "image/*,application/pdf", previewUrl }) {
+  const [drag, setDrag] = useState(false);
+  const inputRef = useRef(null);
+
+  const handlePick = () => { if (inputRef.current) inputRef.current.click(); };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDrag(false);
+    const f = e.dataTransfer?.files?.[0];
+    if (f) onFile?.(f);
+  };
+  const handleChange = (e) => {
+    const f = e.target.files?.[0] || null;
+    onFile?.(f);
+  };
+
   return (
     <div className="dz">
       <div style={ui.field}>
@@ -81,15 +95,24 @@ function DropZone({label,required,onFile,accept="image/*,application/pdf",previe
         {required ? <span style={ui.req}>Required</span> : null}
       </div>
       <div
-        onDragOver={(e)=>{e.preventDefault(); setDrag(true);}}
-        onDragLeave={()=>setDrag(false)}
-        onDrop={(e)=>{e.preventDefault(); setDrag(false); const f = e.dataTransfer.files?.[0]; f && onFile(f);}}
-        onClick={()=>document.getElementById(label).click()}
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={handleDrop}
+        onClick={handlePick}
         style={ui.dz(drag)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handlePick(); }}
       >
         Drop file here or click to upload
       </div>
-      <input id={label} type="file" accept={accept} onChange={(e)=>onFile(e.target.files?.[0]||null)} style={{display:"none"}}/>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        onChange={handleChange}
+        style={{ display: "none" }}
+      />
       {previewUrl && <div style={ui.preview}><img src={previewUrl} style={ui.img} alt="preview"/></div>}
       <div style={ui.note}>Max 8MB. JPG/PNG/PDF are accepted.</div>
     </div>
@@ -300,7 +323,9 @@ export default function KYC(){
                 {stepDone(1) ? "✔️" : "1."} Personal Info
               </div>
               <div style={{...ui.step, ...(step===2?ui.stepAct:{} )}}>
-                {stepDone(2) ? "✔️" : "2."} ID Upload
+                {stepDone(2) ? "✔️" : "2."}
+
+                ID Upload
               </div>
               <div style={{...ui.step, ...(step===3?ui.stepAct:{} )}}>
                 {stepDone(3) ? "✔️" : "3."} Selfie & Consent
