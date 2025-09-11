@@ -9,8 +9,10 @@ export default function Home() {
         <title>Genio KYC OS — The Operating System of Trust</title>
         <meta
           name="description"
-          content="Genio KYC OS — نظام تشغيل الثقة: تحقق هوية، AML، وذكاء مكافحة الاحتيال للبنوك والفنتك."
+          content="Genio KYC OS builds the trust layer for banks and fintechs: multi-layer identity verification, AML screening, anti-fraud intelligence, and compliant integrations."
         />
+        <meta name="google" content="notranslate" />
+        <meta httpEquiv="Content-Language" content="en" />
       </Head>
 
       <main className="min-h-screen bg-[#0B1D3A] text-white">
@@ -36,9 +38,9 @@ export default function Home() {
               The Operating System of <span className="opacity-80">Trust.</span>
             </h1>
             <p className="text-lg opacity-90 max-w-2xl">
-              <strong>Genio KYC OS</strong> يبني طبقة الثقة للبنوك والفنتك:
-              تحقق هوية متعدد الطبقات، فحص عقوبات وPEP، ذكاء مضاد للاحتيال،
-              وواجهة برمجية تربط مزوّدي الدفع المرخّصين — ضمن التزام كامل بالقوانين.
+              <strong>Genio KYC OS</strong> provides bank-grade identity verification,
+              sanctions & PEP screening, fraud detection, and a developer-friendly API.
+              Build compliance into your products with speed and confidence.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -77,15 +79,15 @@ export default function Home() {
           {[
             {
               t: "Bank-grade Compliance",
-              d: "KYC/AML مع تدقيق سجلات وعرض قرارات واضح. جاهز للتكامل مع مزودين مرخّصين.",
+              d: "End-to-end KYC/AML workflows with full audit trails and regulator-ready reporting.",
             },
             {
               t: "Adaptive Verification",
-              d: "التحقق يتكيّف مع المخاطر: وثائق + سيلفي حامل الهوية + Liveness + عنوان عند الحاجة.",
+              d: "Dynamic checks: documents, selfie with ID, liveness, address — based on risk level.",
             },
             {
               t: "Developer-first",
-              d: "APIs وWebhooks واضحة. ابدأ بالـMVP اليوم، وتوسّع لاحقاً لشركاء ودول متعددة.",
+              d: "Clear APIs and webhooks. Start small and scale across providers and countries.",
             },
           ].map((c) => (
             <div key={c.t} className="rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -101,7 +103,7 @@ export default function Home() {
             <div>
               <div className="text-2xl font-extrabold mb-1">Ready to power trust?</div>
               <p className="opacity-80 text-sm">
-                ابدأ التحقق الآن. ربط مزودات الدفع يتم فقط عبر شركاء مرخّصين وتبعاً للقوانين.
+                Start verification today. Compliance connections are available only through licensed providers.
               </p>
             </div>
             <Link
@@ -113,6 +115,7 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Footer */}
         <footer className="border-t border-white/10 py-6 text-center opacity-70 text-sm">
           © {new Date().getFullYear()} Genio KYC OS — The Operating System of Trust
         </footer>
