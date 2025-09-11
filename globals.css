@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* إعدادات بسيطة للصفحة */
+html, body, #__next { height: 100%; }
+body { background: #0B1D3A; color: #fff; }
