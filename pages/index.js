@@ -1,5 +1,5 @@
 // pages/index.js
-import "../styles/globals.css";import Head from "next/head";
+import Head from "next/head";
 import Link from "next/link";
 
 export default function Home() {
@@ -14,7 +14,7 @@ export default function Home() {
       </Head>
 
       <main className="min-h-screen bg-[#0B1D3A] text-white">
-        {/* Header / Navbar */}
+        {/* Header */}
         <header className="sticky top-0 z-50 bg-[#0E2344]/80 backdrop-blur border-b border-white/10">
           <nav className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
             <div className="font-extrabold tracking-wide">
