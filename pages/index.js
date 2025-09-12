@@ -142,7 +142,7 @@ export default function Home(){
       if(need(form.fullName) || need(form.dob) || need(form.residence) || need(form.citizenship))
         return "Full name, date of birth, residence and citizenship are required";
       if(form.email && !/^\S+@\S+\.\S+$/.test(form.email)) return "Invalid email format";
-      if(form.phone && !/^\+?[0-9\\-() ]{7,}$/.test(form.phone)) return "Invalid phone number";
+      if(form.phone && !/^\+?[0-9()\-\s]{7,}$/.test(form.phone)) return "Invalid phone number";
       return "";
     }
     if(step===2){
