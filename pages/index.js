@@ -1,247 +1,233 @@
-// pages/index.js — Genio KYC OS (Landing w/ Blockchain-ready story)
-// Next.js Pages Router — no external deps. Pure inline styles, SSR-safe.
-
+// pages/index.js — Genio KYC OS (Colorful Landing)
+// Works on Next.js Pages Router (no external deps)
 import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
 
 const ui = {
-  page:{minHeight:"100vh",background:"#0B1D3A",color:"#fff",fontFamily:"-apple-system, Segoe UI, Roboto, Arial, sans-serif"},
-  container:{maxWidth:1100,margin:"0 auto",padding:"24px 16px"},
-  header:{position:"sticky",top:0,zIndex:50,background:"rgba(14,35,68,0.9)",backdropFilter:"blur(6px)",borderBottom:"1px solid rgba(255,255,255,0.1)"},
-  nav:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:16,padding:"12px 0"},
-  brand:{display:"flex",alignItems:"baseline",gap:6,fontWeight:900,letterSpacing:.4},
-  brandTiny:{fontWeight:700,opacity:.85,fontSize:14,marginLeft:4},
-  navLinks:{display:"flex",alignItems:"center",gap:18,flexWrap:"wrap"},
+  page:{minHeight:"100vh",background:"#08162e",color:"#fff",fontFamily:"-apple-system, Segoe UI, Roboto, Arial, sans-serif"},
+  header:{position:"sticky",top:0,zIndex:40,background:"rgba(8,22,46,0.85)",backdropFilter:"blur(6px)",borderBottom:"1px solid rgba(255,255,255,.08)"},
+  nav:{maxWidth:1120,margin:"0 auto",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"},
+  brand:{display:"flex",gap:8,alignItems:"baseline",fontWeight:900,fontSize:20,letterSpacing:.2},
+  brandSub:{opacity:.9,fontWeight:700,fontSize:16},
+  navUl:{display:"flex",gap:22,listStyle:"none",margin:0,padding:0},
   link:{color:"rgba(255,255,255,.92)",textDecoration:"none"},
-  cta:{background:"linear-gradient(90deg,#27E38A,#27D4F0)",color:"#0b1d3a",padding:"10px 14px",borderRadius:12,fontWeight:800,textDecoration:"none"},
+  cta:{padding:"10px 14px",borderRadius:12,background:"linear-gradient(90deg,#2AF598,#009EFD)",color:"#001219",fontWeight:900,textDecoration:"none",border:"1px solid rgba(255,255,255,.2)"},
+  wrap:{maxWidth:1120,margin:"0 auto",padding:"28px 16px 64px"},
 
-  hero:{display:"grid",gap:18,borderRadius:24,padding:24,background:"linear-gradient(135deg,#102A55,#0A1936)",border:"1px solid rgba(255,255,255,0.1)",marginTop:14},
-  h1:{fontSize:42,lineHeight:1.1,margin:0,fontWeight:900},
-  p:{margin:"6px 0 0",opacity:.9,lineHeight:1.6},
-  heroBadges:{display:"flex",gap:10,flexWrap:"wrap",marginTop:14},
-  badge:{display:"inline-flex",alignItems:"center",gap:8,padding:"8px 10px",fontSize:13,borderRadius:999,border:"1px solid rgba(255,255,255,.18)",background:"rgba(255,255,255,.06)"},
+  // cards/sections
+  card:(bg)=>({borderRadius:28,padding:24,background:bg,border:"1px solid rgba(255,255,255,.08)",boxShadow:"0 16px 40px rgba(0,0,0,.35)"}),
 
-  section:{marginTop:28},
-  h2:{margin:"0 0 10px",fontSize:26,fontWeight:900},
-  grid3:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14},
-  card:{borderRadius:20,padding:20,border:"1px solid rgba(255,255,255,.12)",background:"rgba(255,255,255,.04)"},
-  mini:{fontSize:13,opacity:.85,marginTop:8},
+  // hero
+  hero:{display:"grid",gap:18,gridTemplateColumns:"1fr",paddingTop:10},
+  heroBox:{borderRadius:32,padding:"28px 22px",background:"linear-gradient(135deg,#0b2a59 0%, #2c2a72 60%, #6e2b8f 100%)",border:"1px solid rgba(255,255,255,.12)"},
+  h1:{fontSize:42,lineHeight:1.06,margin:"0 0 10px",fontWeight:900},
+  p:{opacity:.92,lineHeight:1.6,margin:"0 0 16px",fontSize:16},
+  btnRow:{display:"flex",gap:12,flexWrap:"wrap"},
+  btnPri:{padding:"12px 16px",borderRadius:12,fontWeight:800,color:"#001219",background:"linear-gradient(90deg,#2AF598,#009EFD)",border:"none",textDecoration:"none"},
+  btnSec:{padding:"12px 16px",borderRadius:12,fontWeight:800,color:"#fff",background:"transparent",border:"1px solid rgba(255,255,255,.35)",textDecoration:"none"},
 
-  steps:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12},
-  step:{padding:16,borderRadius:16,border:"1px solid rgba(255,255,255,.12)",background:"rgba(255,255,255,.05)"},
-  number:{width:28,height:28,borderRadius:8,display:"inline-flex",alignItems:"center",justifyContent:"center",fontWeight:800,background:"rgba(39,227,138,.2)",border:"1px solid rgba(39,227,138,.5)",marginRight:10},
+  badges:{display:"flex",gap:10,flexWrap:"wrap",marginTop:10},
+  badge:(bg)=>({display:"inline-flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:999,fontSize:13,fontWeight:700,background:bg,border:"1px solid rgba(255,255,255,.14)"}),
 
-  apiRow:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:14},
-  code:{whiteSpace:"pre-wrap",fontFamily:"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",fontSize:12,background:"rgba(0,0,0,.25)",border:"1px solid rgba(255,255,255,.12)",borderRadius:12,padding:12,marginTop:8},
+  grid2:{display:"grid",gap:16,gridTemplateColumns:"1fr",marginTop:18},
 
-  support:{display:"grid",gridTemplateColumns:"1.2fr .8fr",gap:16},
-  input:{width:"100%",padding:"10px 12px",borderRadius:10,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.06)",color:"#fff",outline:"none"},
-  textarea:{width:"100%",minHeight:120,padding:"10px 12px",borderRadius:10,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.06)",color:"#fff",outline:"none"},
+  // colorful info cards
+  infoCard:(col)=>({borderRadius:20,padding:18,background:col,border:"1px solid rgba(255,255,255,.12)"}),
+  infoTitle:{fontWeight:900,margin:"0 0 6px",fontSize:18},
+  infoText:{opacity:.95,margin:0,lineHeight:1.6},
 
-  footer:{marginTop:30,padding:"18px 0",borderTop:"1px solid rgba(255,255,255,.12)",opacity:.9,fontSize:14,display:"flex",justifyContent:"space-between",gap:10,flexWrap:"wrap"}
+  // steps
+  step:{borderRadius:20,padding:18,border:"1px solid rgba(255,255,255,.12)"},
+  stepNum:(c)=>({display:"inline-flex",width:32,height:32,alignItems:"center",justifyContent:"center",borderRadius:9,background:c,fontWeight:900,marginRight:10}),
+  stepTitle:{fontWeight:900,margin:"10px 0 8px",fontSize:18},
+
+  // API section
+  apiBox:{borderRadius:26,padding:20,background:"linear-gradient(135deg,#0b335a,#0d7a86)",border:"1px solid rgba(255,255,255,.12)"},
+  code:{fontFamily:"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",background:"rgba(0,0,0,.35)",borderRadius:12,padding:"10px 12px",display:"block",whiteSpace:"pre",overflowX:"auto",fontSize:13,marginTop:10},
+
+  // support
+  support:{display:"grid",gap:16,gridTemplateColumns:"1fr",marginTop:18},
+  input:{borderRadius:12,border:"1px solid rgba(255,255,255,.25)",background:"rgba(255,255,255,.06)",color:"#fff",padding:"10px 12px",width:"100%",outline:"none"},
+  textarea:{borderRadius:12,border:"1px solid rgba(255,255,255,.25)",background:"rgba(255,255,255,.06)",color:"#fff",padding:"10px 12px",minHeight:120,width:"100%",outline:"none"},
+  send:{padding:"12px 16px",borderRadius:12,fontWeight:900,color:"#001219",background:"linear-gradient(90deg,#21D4FD,#B721FF)",border:"none",width:"100%"},
+  footer:{marginTop:36,opacity:.8,fontSize:13,textAlign:"center",padding:"18px 0",borderTop:"1px solid rgba(255,255,255,.08)"},
 };
 
-export default function Home(){
-  const [contact,setContact] = useState({name:"",email:"",msg:""});
+// responsive upgrades
+const sectionTitle = {fontSize:26,margin:"0 0 12px",fontWeight:900};
+const sectionSub = {margin:"0 0 10px",opacity:.9};
 
-  const onSend = (e)=>{
+export default function Home(){
+  const [email,setEmail] = useState("");
+  const [msg,setMsg] = useState("");
+
+  const submit = (e)=>{
     e.preventDefault();
-    const subject = encodeURIComponent("Genio — Contact");
-    const body = encodeURIComponent(`Name: ${contact.name}\nEmail: ${contact.email}\n\n${contact.msg}`);
-    // mailto كبداية بدون باك-إند
-    if (typeof window !== "undefined") {
-      window.location.href = `mailto:support@genio.systems?subject=${subject}&body=${body}`;
-    }
+    // demo only
+    setEmail(""); setMsg("");
+    alert("Thanks! We'll get back to you shortly."); // client-only
   };
 
   return (
     <>
       <Head>
-        <title>Genio KYC OS — Multi-Modal KYC with On-Chain Attestation</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>Genio KYC OS — Verified identity, portable & colorful</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <main style={ui.page}>
-        {/* NAVBAR */}
+        {/* Header */}
         <header style={ui.header}>
-          <div style={ui.container}>
-            <nav style={ui.nav}>
-              <div style={ui.brand}>
-                <span style={{fontSize:18}}>Genio</span>
-                <span style={ui.brandTiny}>KYC&nbsp;OS</span>
-              </div>
-              <div style={ui.navLinks}>
-                <Link href="/" style={ui.link}>Home</Link>
-                <Link href="/kyc" style={ui.link}>KYC</Link>
-                <Link href="/dashboard" style={ui.link}>Dashboard</Link>
-                <Link href="/support" style={ui.link}>Support</Link>
-                <Link href="/login" style={ui.link}>Login</Link>
-                {/* CTA مرة واحدة فقط بالهبوط وليس مكرر */}
-              </div>
-            </nav>
-          </div>
+          <nav style={ui.nav}>
+            <div style={ui.brand}>
+              <span>Genio</span>
+              <span style={ui.brandSub}>KYC OS</span>
+            </div>
+            <ul style={ui.navUl}>
+              <li><Link href="/" style={ui.link}>Home</Link></li>
+              <li><Link href="/kyc" style={ui.link}>KYC</Link></li>
+              <li><Link href="/dashboard" style={ui.link}>Dashboard</Link></li>
+              <li><Link href="/support" style={ui.link}>Support</Link></li>
+              <li><Link href="/login" style={ui.link}>Login</Link></li>
+            </ul>
+            <Link href="/kyc" style={ui.cta}>Get Verified</Link>
+          </nav>
         </header>
 
-        <div style={ui.container}>
-          {/* HERO */}
-          <section style={ui.hero}>
-            <div>
+        <section style={ui.wrap}>
+          {/* Hero */}
+          <div style={ui.hero}>
+            <div style={ui.heroBox}>
               <h1 style={ui.h1}>Verified identity. Portable. On-chain proof.</h1>
               <p style={ui.p}>
                 Verify once with <b>multi-modal KYC</b>: documents + biometrics + liveness.
                 We store only <b>hash-based attestations</b> on-chain — privacy by design.
               </p>
-              <div style={{marginTop:16,display:"flex",gap:10,flexWrap:"wrap"}}>
-                <Link href="/kyc" style={ui.cta}>Get Verified</Link>
-                <a href="#how" style={{...ui.link,border:"1px solid rgba(255,255,255,.2)",padding:"10px 14px",borderRadius:12}}>How it works</a>
+              <div style={ui.btnRow}>
+                <Link href="/kyc" style={ui.btnPri}>Get Verified</Link>
+                <a href="#how" style={ui.btnSec}>How it works</a>
               </div>
-              <div style={ui.heroBadges}>
-                <span style={ui.badge}>🧩 Multi-Modal KYC</span>
-                <span style={ui.badge}>🔗 On-Chain Attestation</span>
-                <span style={ui.badge}>🛡️ Privacy-First</span>
-                <span style={ui.badge}>📱 Mobile-Ready</span>
-              </div>
-            </div>
-          </section>
-
-          {/* FEATURES */}
-          <section style={ui.section}>
-            <h2 style={ui.h2}>Why Genio KYC OS?</h2>
-            <div style={ui.grid3}>
-              <div style={ui.card}>
-                <h3 style={{margin:"0 0 6px"}}>Multi-Modal Identity</h3>
-                <p style={ui.p}>Official ID, facial biometrics, liveness, and proof of residence. Stronger than single-factor checks.</p>
-                <div style={ui.mini}>Residence ≠ Citizenship captured separately to avoid false rejections.</div>
-              </div>
-              <div style={ui.card}>
-                <h3 style={{margin:"0 0 6px"}}>On-Chain, Not On-Display</h3>
-                <p style={ui.p}>Only salted hashes & attestations go on-chain. No raw images or PII on public networks.</p>
-                <div style={ui.mini}>Portable Genio ID others can verify without re-uploading your documents.</div>
-              </div>
-              <div style={ui.card}>
-                <h3 style={{margin:"0 0 6px"}}>Developer-Friendly</h3>
-                <p style={ui.p}>Simple API: /api/biometrics for face embedding → /api/attest to anchor proofs on-chain.</p>
-                <div style={ui.mini}>Start on testnet; switch network later without changing your client flow.</div>
+              <div style={ui.badges}>
+                <span style={ui.badge("rgba(52, 211, 153, .15)")}>🔒 Privacy-first</span>
+                <span style={ui.badge("rgba(56, 189, 248, .15)")}>⚡ Fast & modern</span>
+                <span style={ui.badge("rgba(216, 180, 254, .18)")}>🌍 Vendor-agnostic</span>
+                <span style={ui.badge("rgba(45, 212, 191, .18)")}>📱 Mobile-friendly</span>
               </div>
             </div>
-          </section>
+          </div>
 
-          {/* HOW IT WORKS */}
-          <section id="how" style={ui.section}>
-            <h2 style={ui.h2}>How it works</h2>
-            <div style={ui.steps}>
-              <div style={ui.step}>
-                <div><span style={ui.number}>1</span><b>Personal Info</b></div>
-                <p style={ui.p}>Name, DOB, <b>Residence</b> & <b>Citizenship</b>. Contact optional.</p>
+          {/* Why Genio (colorful info cards) */}
+          <div style={{...ui.grid2, marginTop:20}}>
+            <div style={ui.infoCard("linear-gradient(135deg,#1d4ed8,#0ea5e9)")}>
+              <h3 style={ui.infoTitle}>Attestations, not raw data</h3>
+              <p style={ui.infoText}>Only salted hashes are anchored on-chain. Your raw files stay local or with your chosen vendor.</p>
+            </div>
+            <div style={ui.infoCard("linear-gradient(135deg,#16a34a,#22c55e)")}>
+              <h3 style={ui.infoTitle}>Strict file checks</h3>
+              <p style={ui.infoText}>Corners, glare, size, type, &lt; 8MB. Guiding tips for clean captures.</p>
+            </div>
+            <div style={ui.infoCard("linear-gradient(135deg,#9333ea,#22d3ee)")}>
+              <h3 style={ui.infoTitle}>Biometrics + Liveness</h3>
+              <p style={ui.infoText}>Face match on-device (demo), liveness prompts, and a portable “Genio ID”.</p>
+            </div>
+            <div style={ui.infoCard("linear-gradient(135deg,#f43f5e,#f59e0b)")}>
+              <h3 style={ui.infoTitle}>Developer-Friendly</h3>
+              <p style={ui.infoText}>Simple client flow now; drop-in API later. Start on testnet, switch network anytime.</p>
+            </div>
+          </div>
+
+          {/* How it works */}
+          <div id="how" style={{marginTop:26}}>
+            <h2 style={sectionTitle}>How it works</h2>
+            <p style={sectionSub}>Three quick steps. Verify once, re-use anywhere.</p>
+            <div style={{display:"grid",gap:16}}>
+              <div style={{...ui.step, background:"linear-gradient(135deg,rgba(16,185,129,.18),rgba(20,184,166,.12))"}}>
+                <span style={ui.stepNum("rgba(16,185,129,.8)")}>1</span>
+                <b>Personal Info</b>
+                <div style={ui.p}>Name, DOB, <b>Residence</b> & <b>Citizenship</b>. Contact optional.</div>
               </div>
-              <div style={ui.step}>
-                <div><span style={ui.number}>2</span><b>ID Upload</b></div>
-                <p style={ui.p}>Passport (photo page) or National/Driver (front+back). Client-side checks before submit.</p>
+              <div style={{...ui.step, background:"linear-gradient(135deg,rgba(59,130,246,.18),rgba(125,211,252,.12))"}}>
+                <span style={ui.stepNum("rgba(59,130,246,.85)")}>2</span>
+                <b>ID Upload</b>
+                <div style={ui.p}>Passport (photo page) or National/Driver (front+back). Client-side checks before submit.</div>
               </div>
-              <div style={ui.step}>
-                <div><span style={ui.number}>3</span><b>Biometrics + Liveness</b></div>
-                <p style={ui.p}>Selfie → server extracts a face embedding and returns <b>HMAC hash</b> (no raw face stored).</p>
+              <div style={{...ui.step, background:"linear-gradient(135deg,rgba(168,85,247,.18),rgba(20,184,166,.12))"}}>
+                <span style={ui.stepNum("rgba(168,85,247,.85)")}>3</span>
+                <b>Biometrics + Liveness</b>
+                <div style={ui.p}>Selfie match (demo) and liveness cues. Device-only preview; no uploads in demo.</div>
               </div>
-              <div style={ui.step}>
-                <div><span style={ui.number}>4</span><b>On-Chain Attestation</b></div>
-                <p style={ui.p}>We anchor salted hashes on-chain. Relying parties verify your Genio ID without re-KYC.</p>
+              <div style={{display:"flex",gap:12}}>
+                <Link href="/kyc" style={{...ui.btnPri, background:"linear-gradient(90deg,#ff7eb3,#ff758c)"}}>Start KYC</Link>
+                <Link href="/dashboard" style={ui.btnSec}>Open Dashboard</Link>
               </div>
             </div>
-          </section>
+          </div>
 
-          {/* API PREVIEW (شرح فقط) */}
-          <section style={ui.section}>
-            <h2 style={ui.h2}>API preview</h2>
-            <div style={ui.apiRow}>
-              <div style={ui.card}>
-                <b>/api/biometrics</b>
-                <div style={ui.code}>
-{`POST multipart/form-data
-- selfie: image/jpeg|png
+          {/* API / Dev box */}
+          <div style={{marginTop:28}}>
+            <h2 style={sectionTitle}>Developer-Friendly</h2>
+            <div style={ui.apiBox}>
+              <div style={ui.p}>Simple API: <b>/api/biometrics</b> to create a face embedding → <b>/api/attest</b> to anchor proofs on-chain (hash-only).</div>
+              <code style={ui.code}>
+{`POST /api/biometrics
+- body: { selfieBase64 }
+- returns: { embedding }
 
-Response:
-{ "embeddingHash": "base64-HMAC-SHA256(embedding)" }`}
-                </div>
-              </div>
-              <div style={ui.card}>
-                <b>/api/attest</b>
-                <div style={ui.code}>
-{`POST application/json
-{
-  "payloadHash": "...",
-  "frontHash": "...",
-  "backHash": "...",
-  "selfieHash": "...",
-  "embeddingHash": "...",
-  "salt": "base64",
-  "meta": { "idType": "passport", "ts": 1710000000 }
-}
-
-Response:
-{ "attestationId": "att-xyz" }  // or { "txHash": "0x..." }`}
-                </div>
-              </div>
+POST /api/attest
+- body: { attestationHash, network: "sepolia" }
+- returns: { txid }`}
+              </code>
             </div>
-          </section>
+          </div>
 
-          {/* SUPPORT & CONTACT */}
-          <section style={ui.section}>
-            <div style={{display:"grid",gridTemplateColumns:"1.2fr .8fr",gap:16}}>
-              <div style={ui.card}>
-                <h2 style={ui.h2}>Support</h2>
-                <p style={ui.p}>Need help with verification, integration, or testnet setup?</p>
-                <ul style={{lineHeight:1.8,marginTop:6,paddingLeft:18}}>
+          {/* Support */}
+          <div style={{marginTop:28}}>
+            <h2 style={sectionTitle}>Support</h2>
+            <div style={{display:"grid",gap:16,gridTemplateColumns:"1fr"}}>
+              <div style={ui.card("linear-gradient(135deg, rgba(45,212,191,.10), rgba(147,51,234,.10))")}>
+                <ul style={{margin:"0 0 14px 18px",lineHeight:1.8}}>
                   <li>Preparing passport / ID captures (corners, glare, size)</li>
                   <li>Biometrics & liveness best practices</li>
                   <li>Attestation & on-chain verification flows</li>
                 </ul>
-                <div style={{marginTop:12}}>
-                  <Link href="/kyc" style={ui.cta}>Start KYC</Link>
-                </div>
+                <Link href="/kyc" style={ui.btnPri}>Start KYC</Link>
               </div>
-              <div style={ui.card}>
-                <h2 style={ui.h2}>Contact us</h2>
-                <form onSubmit={onSend}>
-                  <div style={{display:"grid",gap:10}}>
-                    <input
-                      style={ui.input}
-                      placeholder="Your name"
-                      value={contact.name}
-                      onChange={(e)=>setContact({...contact,name:e.target.value})}
-                    />
-                    <input
-                      style={ui.input}
-                      placeholder="Email"
-                      value={contact.email}
-                      onChange={(e)=>setContact({...contact,email:e.target.value})}
-                    />
-                    <textarea
-                      style={ui.textarea}
-                      placeholder="How can we help?"
-                      value={contact.msg}
-                      onChange={(e)=>setContact({...contact,msg:e.target.value})}
-                    />
-                    <button type="submit" style={{...ui.cta,border:"none",cursor:"pointer",textAlign:"center"}}>
-                      Send message
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </section>
 
-          {/* FOOTER */}
-          <footer style={ui.footer}>
-            <div>© {new Date().getFullYear()} Genio KYC OS</div>
-            <div style={{display:"flex",gap:14}}>
-              <Link href="/privacy" style={ui.link}>Privacy</Link>
-              <Link href="/terms" style={ui.link}>Terms</Link>
-              <a href="mailto:support@genio.systems" style={ui.link}>support@genio.systems</a>
-              <Link href="/kyc" style={ui.link}>Get Verified</Link>
+              <form onSubmit={submit} style={ui.card("linear-gradient(135deg, rgba(37,99,235,.12), rgba(56,189,248,.12))")}>
+                <div style={{display:"grid",gap:12}}>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e)=>setEmail(e.target.value)}
+                    placeholder="Email"
+                    style={ui.input}
+                  />
+                  <textarea
+                    value={msg}
+                    onChange={(e)=>setMsg(e.target.value)}
+                    placeholder="How can we help?"
+                    style={ui.textarea}
+                  />
+                  <button type="submit" style={ui.send}>Send message</button>
+                </div>
+              </form>
             </div>
+          </div>
+
+          {/* Footer */}
+          <footer style={ui.footer}>
+            <div style={{display:"flex",gap:14,justifyContent:"center",marginBottom:8}}>
+              <Link href="/support" style={ui.link}>Contact</Link>
+              <span>•</span>
+              <Link href="/terms" style={ui.link}>Terms</Link>
+              <span>•</span>
+              <Link href="/privacy" style={ui.link}>Privacy</Link>
+            </div>
+            © {new Date().getFullYear()} Genio Systems — All rights reserved.
           </footer>
-        </div>
+        </section>
       </main>
     </>
   );
