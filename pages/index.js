@@ -1,12 +1,10 @@
-// pages/index.js — Genio KYC OS (Professional Home + KYC flow, v2)
-// Single-page KYC with Residence + Citizenship, strict file types, checklist gating,
-// API submit (/api/kyc), draft save, and polished hero/nav/footer.
+// pages/index.js — Genio KYC OS: Home + KYC + Support + FAQ + Footer (SSR-safe)
 
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
-/* ---------------------- UI ---------------------- */
+/* ================= UI ================= */
 const ui = {
   page:{minHeight:"100vh",background:"#0B1D3A",color:"#fff",fontFamily:"-apple-system, Segoe UI, Roboto, Arial, sans-serif"},
   header:{position:"sticky",top:0,zIndex:50,background:"rgba(11,29,58,0.85)",backdropFilter:"blur(6px)",borderBottom:"1px solid rgba(255,255,255,0.08)"},
@@ -27,7 +25,7 @@ const ui = {
   card:{border:"1px solid rgba(255,255,255,0.1)",background:"linear-gradient(135deg,#102A55,#0A1936)",borderRadius:24,padding:24,boxShadow:"0 12px 30px rgba(0,0,0,0.35)"},
   h1:{fontSize:28,fontWeight:900,margin:"0 0 6px"},
   p:{opacity:.9,lineHeight:1.6,margin:"0 0 14px"},
-  tips:{borderRadius:14,padding:"12px 14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.15)",fontSize:14,marginBottom:16},
+
   steps:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,margin:"6px 0 10px"},
   step:{textAlign:"center",padding:"10px",borderRadius:12,border:"1px solid rgba(255,255,255,0.15)",opacity:.65,display:"flex",alignItems:"center",justifyContent:"center",gap:8},
   stepAct:{opacity:1,background:"rgba(255,255,255,0.08)"},
@@ -53,45 +51,48 @@ const ui = {
   btnDis:{borderRadius:12,padding:"10px 16px",fontWeight:700,border:"1px solid rgba(255,255,255,0.15)",background:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.6)",cursor:"not-allowed"},
   err:{marginTop:12,padding:"10px 12px",borderRadius:12,background:"rgba(227,55,55,0.15)",border:"1px solid rgba(227,55,55,0.35)"},
   ok:{marginTop:12,padding:"10px 12px",borderRadius:12,background:"rgba(39,227,138,0.15)",border:"1px solid rgba(39,227,138,0.35)"},
-  badge:{display:"inline-block",padding:"6px 10px",borderRadius:999,border:"1px solid rgba(255,255,255,.2)",background:"rgba(255,255,255,.06)",fontSize:12,marginRight:8},
 
-  why:{maxWidth:1200,margin:"36px auto 0",padding:"0 16px",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14},
-  whyCard:{border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.04)",borderRadius:16,padding:"14px 16px"},
+  contact:{maxWidth:980,margin:"36px auto 0",padding:"0 16px"},
+  contactGrid:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14},
+  contactCard:{border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.05)",borderRadius:16,padding:"14px 16px"},
+  contactBtn:{display:"inline-block",marginTop:10,padding:"10px 14px",borderRadius:10,fontWeight:700,background:"linear-gradient(90deg,#27E38A,#27D4F0)",color:"#022",textDecoration:"none"},
+
+  faq:{maxWidth:980,margin:"24px auto 0",padding:"0 16px"},
+  faqItem:{border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.04)",borderRadius:12,padding:"12px 14px",marginTop:10},
+
+  policies:{maxWidth:980,margin:"36px auto 0",padding:"0 16px"},
+  policyCard:{border:"1px solid rgba(255,255,255,0.12)",background:"rgba(255,255,255,0.04)",borderRadius:12,padding:"12px 14px",marginTop:10},
+
   foot:{maxWidth:1200,margin:"36px auto 0",padding:"18px 16px",opacity:.7,borderTop:"1px solid rgba(255,255,255,0.08)"}
 };
 
 const MAX_SIZE = 8 * 1024 * 1024; // 8MB
-const DRAFT_KEY = "genio_kyc_draft_v2";
 
-/* ------------------ Helpers ------------------ */
+/* ============== Helpers ============== */
 const countries = [
-  // MENA
   {code:"AE", name:"United Arab Emirates 🇦🇪"},{code:"SA", name:"Saudi Arabia 🇸🇦"},
   {code:"QA", name:"Qatar 🇶🇦"},{code:"KW", name:"Kuwait 🇰🇼"},{code:"BH", name:"Bahrain 🇧🇭"},
   {code:"OM", name:"Oman 🇴🇲"},{code:"JO", name:"Jordan 🇯🇴"},{code:"EG", name:"Egypt 🇪🇬"},
   {code:"MA", name:"Morocco 🇲🇦"},{code:"LB", name:"Lebanon 🇱🇧"},
-  // Europe (sample)
   {code:"GB", name:"United Kingdom 🇬🇧"},{code:"IE", name:"Ireland 🇮🇪"},
   {code:"FR", name:"France 🇫🇷"},{code:"DE", name:"Germany 🇩🇪"},{code:"ES", name:"Spain 🇪🇸"},
   {code:"IT", name:"Italy 🇮🇹"},{code:"NL", name:"Netherlands 🇳🇱"},{code:"SE", name:"Sweden 🇸🇪"},
-  // Americas
   {code:"US", name:"United States 🇺🇸"},{code:"CA", name:"Canada 🇨🇦"},{code:"BR", name:"Brazil 🇧🇷"},
-  // Asia
   {code:"TR", name:"Türkiye 🇹🇷"},{code:"IN", name:"India 🇮🇳"},{code:"PK", name:"Pakistan 🇵🇰"},
   {code:"SG", name:"Singapore 🇸🇬"},{code:"MY", name:"Malaysia 🇲🇾"},{code:"PH", name:"Philippines 🇵🇭"},
-  // Africa
   {code:"ZA", name:"South Africa 🇿🇦"},{code:"KE", name:"Kenya 🇰🇪"},{code:"NG", name:"Nigeria 🇳🇬"},
 ];
 
-const maskPhone = (p)=> p ? p.replace(/.(?=.{2})/g,"*") : "";
 const tooBig = (f)=> f && f.size>MAX_SIZE ? "File too large (8MB max)" : "";
 
-function DropZone({ label, required, onFile, accept, previewUrl }) {
+/* ============= DropZone ============= */
+function DropZone({ label, required, onFile, accept = "image/jpeg,image/png,application/pdf", previewUrl }) {
   const [drag, setDrag] = useState(false);
   const inputRef = useRef(null);
   const handlePick = () => { inputRef.current?.click(); };
   const handleDrop = (e) => { e.preventDefault(); setDrag(false); const f = e.dataTransfer?.files?.[0]; if (f) onFile?.(f); };
   const handleChange = (e) => { const f = e.target.files?.[0] || null; onFile?.(f); };
+  const acceptLabel = (accept || "").split(",").join(", ");
 
   return (
     <div className="dz">
@@ -112,61 +113,36 @@ function DropZone({ label, required, onFile, accept, previewUrl }) {
       </div>
       <input ref={inputRef} type="file" accept={accept} onChange={handleChange} style={{display:"none"}}/>
       {previewUrl && <div style={ui.preview}><img src={previewUrl} style={ui.img} alt="preview"/></div>}
-      <div style={ui.note}>Max 8MB. Allowed: {accept.replaceAll(",", ", ")}</div>
+      <div style={ui.note}>Max 8MB. Allowed: {acceptLabel}</div>
     </div>
   );
 }
 
-/* ------------------ Main Page ------------------ */
+/* ============== Page ============== */
 export default function Home(){
   const [step,setStep] = useState(1);
-
-  // form state
   const [form,setForm] = useState({
     fullName:"", dob:"", residence:"", citizenship:"", phone:"", email:"", address:"",
     idType:"passport", consent:false
   });
-
-  // files
   const [idFront,setIdFront] = useState(null);
   const [idBack,setIdBack]   = useState(null);
   const [selfie,setSelfie]   = useState(null);
-
-  // messages
   const [msg,setMsg] = useState({ok:false,text:""});
 
-  // previews
   const preview = useMemo(()=>({
     idFront: idFront ? URL.createObjectURL(idFront) : "",
     idBack : idBack  ? URL.createObjectURL(idBack)  : "",
     selfie : selfie  ? URL.createObjectURL(selfie)  : "",
   }),[idFront,idBack,selfie]);
 
-  // draft: load
-  useEffect(()=>{
-    try{
-      if (typeof window === "undefined") return;
-      const d = JSON.parse(localStorage.getItem(DRAFT_KEY)||"{}");
-      if(d && Object.keys(d).length){ setForm((p)=>({...p,...d})); }
-    }catch{}
-  },[]);
-  // draft: save text fields
-  useEffect(()=>{
-    try{
-      if (typeof window === "undefined") return;
-      const {fullName,dob,residence,citizenship,phone,email,address,idType,consent}=form;
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({fullName,dob,residence,citizenship,phone,email,address,idType,consent}));
-    }catch{}
-  },[form]);
-
-  // validations
   const need = (x)=>!x || String(x).trim()==="";
   const validStep = ()=>{
     if(step===1){
       if(need(form.fullName) || need(form.dob) || need(form.residence) || need(form.citizenship))
         return "Full name, date of birth, residence and citizenship are required";
       if(form.email && !/^\S+@\S+\.\S+$/.test(form.email)) return "Invalid email format";
-      if(form.phone && !/^\+?[0-9\-() ]{7,}$/.test(form.phone)) return "Invalid phone number";
+      if(form.phone && !/^\+?[0-9\\-() ]{7,}$/.test(form.phone)) return "Invalid phone number";
       return "";
     }
     if(step===2){
@@ -193,47 +169,19 @@ export default function Home(){
     const {name,value,type,checked} = e.target;
     setForm((p)=>({...p,[name]: type==="checkbox"? checked : value}));
   };
-
   const next = ()=>{
     const e = validStep();
     if(e){ setMsg({ok:false,text:e}); return; }
     setMsg({ok:true,text:"Looks good"}); setStep((s)=>Math.min(3,s+1));
   };
   const back = ()=>{ setMsg({ok:false,text:""}); setStep((s)=>Math.max(1,s-1)); };
-
-  const handleSubmit = async (e)=>{
+  const handleSubmit = (e)=>{
     e.preventDefault();
     const eMsg = validStep();
     if(eMsg){ setMsg({ok:false,text:eMsg}); return; }
-
-    // Prepare submission (metadata only for now; files to S3 later)
-    const rec = {
-      fullName: form.fullName.trim(),
-      dob: form.dob,
-      countryOfResidence: form.residence,
-      citizenship: form.citizenship,
-      phoneMasked: maskPhone(form.phone||""),
-      email: form.email||"",
-      address: form.address||"",
-      idType: form.idType,
-      files: { idFront: !!idFront, idBack: !!idBack, selfie: !!selfie },
-      submittedAt: new Date().toISOString()
-    };
-
-    try{
-      const res = await fetch("/api/kyc", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify(rec)
-      });
-      const out = await res.json();
-      if(!res.ok) throw new Error(out?.error || "Server error");
-      setMsg({ok:true,text:`Submitted. Reference: ${out.requestId}.`});
-    }catch(err){
-      setMsg({ok:false,text:String(err.message||err)});
-    }
+    const ref = `${Date.now().toString(36)}-${Math.random().toString(16).slice(2,8)}`;
+    setMsg({ok:true,text:`Submitted successfully. Reference: ${ref}. (Demo – no backend yet)`});
   };
-
   const stepDone = (n)=> (n<step);
 
   return (
@@ -248,10 +196,11 @@ export default function Home(){
             <ul style={ui.navUl}>
               <li><Link href="/" style={ui.link}>Home</Link></li>
               <li><a href="#start" style={ui.link}>KYC</a></li>
+              <li><a href="#support" style={ui.link}>Support</a></li>
               <li><Link href="/dashboard" style={ui.link}>Dashboard</Link></li>
               <li><Link href="/login" style={ui.link}>Login</Link></li>
             </ul>
-            <a href="#start" style={ui.cta}>Start Verification</a>
+            <a href="#start" style={ui.cta}>Get Verified</a>
           </nav>
         </header>
 
@@ -260,8 +209,16 @@ export default function Home(){
           <div style={ui.hero}>
             <h1 style={ui.h0}>Identity Verification, simplified.</h1>
             <p style={ui.sub}>
-              Verify once in three quick steps. Separate <b>Residence</b> and <b>Citizenship</b>. Strict file checks. Clean, mobile-first UX.
+              Verify once in three quick steps. Separate <b>Residence</b> and <b>Citizenship</b>.
+              Strict file checks. Clean, mobile-first UX.
             </p>
+            <div style={{textAlign:"center",marginTop:16}}>
+              <a href="#start"
+                 style={{display:"inline-block",padding:"14px 28px",borderRadius:12,fontWeight:800,fontSize:16,color:"#022",
+                         background:"linear-gradient(90deg,#27E38A,#27D4F0)",textDecoration:"none"}}>
+                Get Verified
+              </a>
+            </div>
             <div style={ui.bullets}>
               <span style={ui.chip}>🔒 Privacy-first</span>
               <span style={ui.chip}>⚡ Fast & modern</span>
@@ -271,11 +228,11 @@ export default function Home(){
           </div>
         </section>
 
-        {/* BODY */}
+        {/* KYC BODY */}
         <section id="start" style={ui.wrap}>
           <div style={ui.card}>
             <h2 style={ui.h1}>Begin Verification</h2>
-            <p style={ui.p}>Complete the required checks. Text fields auto-save as draft. Your request posts to our server for review.</p>
+            <p style={ui.p}>Complete the required checks. Your files are validated locally before submission (demo).</p>
 
             {/* Steps */}
             <div style={ui.steps}>
@@ -291,17 +248,6 @@ export default function Home(){
             </div>
             <div style={ui.progBarWrap}><div style={ui.progBarFill(stepPct)} /></div>
 
-            {/* Checklist */}
-            <div style={ui.tips}>
-              <b>Verification Checklist:</b>
-              <div style={{marginTop:8,fontSize:14}}>
-                {(form.fullName && form.dob && form.residence && form.citizenship) ? "✓ Personal info" : "• Personal info"} &nbsp;|&nbsp;
-                {(idFront && (form.idType==="passport" || idBack)) ? "✓ ID uploaded" : "• ID uploaded"} &nbsp;|&nbsp;
-                {selfie ? "✓ Selfie" : "• Selfie"} &nbsp;|&nbsp;
-                {form.consent ? "✓ Consent" : "• Consent"}
-              </div>
-            </div>
-
             <form onSubmit={handleSubmit}>
               {/* STEP 1 */}
               {step===1 && (
@@ -312,13 +258,11 @@ export default function Home(){
                       <span style={ui.req}>Required</span>
                       <input style={ui.input} name="fullName" value={form.fullName} onChange={onChange}/>
                     </div>
-
                     <div style={ui.field}>
                       <label style={ui.label}>Date of birth</label>
                       <span style={ui.req}>Required</span>
                       <input style={ui.input} type="date" name="dob" value={form.dob} onChange={onChange}/>
                     </div>
-
                     <div style={ui.field}>
                       <label style={ui.label}>Country of Residence</label>
                       <span style={ui.req}>Required</span>
@@ -327,7 +271,6 @@ export default function Home(){
                         {countries.map(c=>(<option key={"r-"+c.code} value={c.name}>{c.name}</option>))}
                       </select>
                     </div>
-
                     <div style={ui.field}>
                       <label style={ui.label}>Citizenship</label>
                       <span style={ui.req}>Required</span>
@@ -336,28 +279,23 @@ export default function Home(){
                         {countries.map(c=>(<option key={"c-"+c.code} value={c.name}>{c.name}</option>))}
                       </select>
                     </div>
-
                     <div style={ui.field}>
                       <label style={ui.label}>Phone</label>
                       <input style={ui.input} name="phone" placeholder="+971…" value={form.phone} onChange={onChange}/>
                     </div>
-
                     <div style={ui.field}>
                       <label style={ui.label}>Email</label>
                       <input style={ui.input} name="email" placeholder="you@company.com" value={form.email} onChange={onChange}/>
                     </div>
-
                     <div style={{...ui.field, gridColumn:"1 / -1"}}>
                       <label style={ui.label}>Address</label>
                       <span style={ui.optional}>Optional</span>
                       <input style={ui.input} name="address" value={form.address} onChange={onChange}/>
                     </div>
                   </div>
-
                   <div style={ui.row}>
                     <button type="button" onClick={next} style={ui.btnPri}>Continue</button>
-                    <button type="button" onClick={()=>localStorage.setItem(DRAFT_KEY, JSON.stringify(form))} style={ui.btn}>Save Draft</button>
-                    <button type="button" onClick={()=>{localStorage.removeItem(DRAFT_KEY); setForm({fullName:"",dob:"",residence:"",citizenship:"",phone:"",email:"",address:"",idType:"passport",consent:false});}} style={ui.btn}>Clear Draft</button>
+                    <button type="button" onClick={()=>setForm({fullName:"",dob:"",residence:"",citizenship:"",phone:"",email:"",address:"",idType:"passport",consent:false})} style={ui.btn}>Clear</button>
                   </div>
                 </>
               )}
@@ -376,13 +314,11 @@ export default function Home(){
                       </select>
                       <div style={ui.note}>Passport: one photo. Others: front + back.</div>
                     </div>
-
                     <DropZone label="Upload ID (front)" required onFile={setIdFront} accept="image/jpeg,image/png,application/pdf" previewUrl={preview.idFront}/>
                     {form.idType!=="passport" && (
                       <DropZone label="Upload ID (back)" required onFile={setIdBack} accept="image/jpeg,image/png,application/pdf" previewUrl={preview.idBack}/>
                     )}
                   </div>
-
                   <div style={ui.row}>
                     <button type="button" onClick={back} style={ui.btn}>Back</button>
                     <button type="button" onClick={next} style={ui.btnPri}>Continue</button>
@@ -396,15 +332,13 @@ export default function Home(){
                   <div style={ui.grid}>
                     <DropZone label="Upload selfie holding your ID" required onFile={setSelfie} accept="image/jpeg,image/png" previewUrl={preview.selfie}/>
                   </div>
-
                   <div style={{marginTop:12}}>
                     <label style={{display:"flex",alignItems:"center",gap:8}}>
                       <input type="checkbox" name="consent" checked={form.consent} onChange={onChange}/>
                       <span>I confirm the information is accurate and I consent to verification & secure processing.</span>
                     </label>
-                    <div style={ui.note}>By submitting, you agree to our Privacy Notice and Terms.</div>
+                    <div style={ui.note}>By submitting, you agree to our <a href="#privacy" style={ui.link}>Privacy</a> and <a href="#terms" style={ui.link}>Terms</a>.</div>
                   </div>
-
                   <div style={ui.row}>
                     <button type="button" onClick={back} style={ui.btn}>Back</button>
                     <button type="submit" disabled={!canSubmit} style={canSubmit?ui.btnPri:ui.btnDis}>Submit for Verification</button>
@@ -417,17 +351,74 @@ export default function Home(){
           </div>
         </section>
 
-        {/* WHY GENIO */}
-        <section style={ui.why}>
-          <div style={ui.whyCard}><b>Fast</b><div style={ui.p}>Three quick steps built for mobile.</div></div>
-          <div style={ui.whyCard}><b>Secure</b><div style={ui.p}>Strict client-side checks & clear consent.</div></div>
-          <div style={ui.whyCard}><b>Portable Identity</b><div style={ui.p}>Reuse data across providers later.</div></div>
-          <div style={ui.whyCard}><b>Vendor-Agnostic</b><div style={ui.p}>Plug into any KYC vendor or ledger.</div></div>
+        {/* CONTACT & SUPPORT */}
+        <section id="support" style={ui.contact}>
+          <h2 style={ui.h1}>Contact & Support</h2>
+          <p style={ui.p}>Need help? Reach us anytime. We usually reply within a few hours.</p>
+          <div style={ui.contactGrid}>
+            <div style={ui.contactCard}>
+              <b>Email</b>
+              <div style={ui.p}>For general questions, onboarding, or reporting issues.</div>
+              <a href="mailto:support@genio.systems?subject=Support%20Request" style={ui.contactBtn}>Email support@genio.systems</a>
+              <div style={ui.note}>Hours: Sun–Thu 9:00–18:00 (GMT+3)</div>
+            </div>
+            <div style={ui.contactCard}>
+              <b>Live Chat</b>
+              <div style={ui.p}>Prefer quick chat? Use WhatsApp or Telegram.</div>
+              <a href="https://wa.me/000000000000" target="_blank" rel="noreferrer" style={ui.contactBtn}>WhatsApp</a>
+              <a href="https://t.me/genio_support" target="_blank" rel="noreferrer" style={{...ui.contactBtn,marginLeft:8}}>Telegram</a>
+              <div style={ui.note}>In-app chat widget coming soon.</div>
+            </div>
+            <div style={ui.contactCard}>
+              <b>Status & Incidents</b>
+              <div style={ui.p}>Check availability and any ongoing incidents.</div>
+              <a href="https://status.genio.systems" target="_blank" rel="noreferrer" style={ui.contactBtn}>Status page</a>
+              <div style={ui.note}>Subscribe for updates & maintenance windows.</div>
+            </div>
+            <div style={ui.contactCard}>
+              <b>Security</b>
+              <div style={ui.p}>Found a vulnerability? Report responsibly.</div>
+              <a href="mailto:security@genio.systems?subject=Security%20Report" style={ui.contactBtn}>security@genio.systems</a>
+              <div style={ui.note}>PGP key & policy coming soon.</div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section style={ui.faq}>
+          <h3 style={ui.h1}>FAQ</h3>
+          <div style={ui.faqItem}><b>Is this a production KYC?</b><div style={ui.p}>This is a demo flow. No live provider is connected yet.</div></div>
+          <div style={ui.faqItem}><b>Which documents are accepted?</b><div style={ui.p}>Passport, National ID, Driver License, or Residence Permit. Max 8MB; JPG/PNG/PDF.</div></div>
+          <div style={ui.faqItem}><b>What personal data do you collect?</b><div style={ui.p}>Name, DOB, residence, citizenship, contact info, and the images you upload for verification.</div></div>
+        </section>
+
+        {/* PRIVACY & TERMS */}
+        <section id="privacy" style={ui.policies}>
+          <h3 style={ui.h1}>Privacy Policy (Summary)</h3>
+          <div style={ui.policyCard}>
+            <div style={ui.p}>
+              In this demo, files are validated client-side only. No data is sent to a backend.
+              Production setup will follow applicable regulations and our full privacy policy.
+            </div>
+          </div>
+        </section>
+
+        <section id="terms" style={ui.policies}>
+          <h3 style={ui.h1}>Terms of Service (Summary)</h3>
+          <div style={ui.policyCard}>
+            <div style={ui.p}>
+              This demo is provided “as is” without warranties. You are responsible for the accuracy of your information.
+              We may change or discontinue the service at any time.
+            </div>
+          </div>
         </section>
 
         {/* FOOTER */}
         <footer style={ui.foot}>
-          © {new Date().getFullYear()} Genio KYC OS — <a href="#" style={ui.link}>Privacy</a> · <a href="#" style={ui.link}>Terms</a> · <a href="#" style={ui.link}>Contact</a>
+          © {new Date().getFullYear()} Genio KYC OS —
+          <a href="#privacy" style={ui.link}> Privacy</a> ·
+          <a href="#terms" style={ui.link}> Terms</a> ·
+          <a href="#support" style={ui.link}> Contact</a>
         </footer>
       </main>
     </>
