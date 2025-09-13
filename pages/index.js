@@ -1,175 +1,137 @@
-// pages/index.js — Genio KYC OS (Colorful Landing)
-// Works on Next.js Pages Router (no external deps)
+// pages/index.js — Genio KYC OS (Company-Style, Responsive, No external deps)
 import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
 
-const ui = {
-  page:{minHeight:"100vh",background:"#08162e",color:"#fff",fontFamily:"-apple-system, Segoe UI, Roboto, Arial, sans-serif"},
-  header:{position:"sticky",top:0,zIndex:40,background:"rgba(8,22,46,0.85)",backdropFilter:"blur(6px)",borderBottom:"1px solid rgba(255,255,255,.08)"},
-  nav:{maxWidth:1120,margin:"0 auto",padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"},
-  brand:{display:"flex",gap:8,alignItems:"baseline",fontWeight:900,fontSize:20,letterSpacing:.2},
-  brandSub:{opacity:.9,fontWeight:700,fontSize:16},
-  navUl:{display:"flex",gap:22,listStyle:"none",margin:0,padding:0},
-  link:{color:"rgba(255,255,255,.92)",textDecoration:"none"},
-  cta:{padding:"10px 14px",borderRadius:12,background:"linear-gradient(90deg,#2AF598,#009EFD)",color:"#001219",fontWeight:900,textDecoration:"none",border:"1px solid rgba(255,255,255,.2)"},
-  wrap:{maxWidth:1120,margin:"0 auto",padding:"28px 16px 64px"},
-
-  // cards/sections
-  card:(bg)=>({borderRadius:28,padding:24,background:bg,border:"1px solid rgba(255,255,255,.08)",boxShadow:"0 16px 40px rgba(0,0,0,.35)"}),
-
-  // hero
-  hero:{display:"grid",gap:18,gridTemplateColumns:"1fr",paddingTop:10},
-  heroBox:{borderRadius:32,padding:"28px 22px",background:"linear-gradient(135deg,#0b2a59 0%, #2c2a72 60%, #6e2b8f 100%)",border:"1px solid rgba(255,255,255,.12)"},
-  h1:{fontSize:42,lineHeight:1.06,margin:"0 0 10px",fontWeight:900},
-  p:{opacity:.92,lineHeight:1.6,margin:"0 0 16px",fontSize:16},
-  btnRow:{display:"flex",gap:12,flexWrap:"wrap"},
-  btnPri:{padding:"12px 16px",borderRadius:12,fontWeight:800,color:"#001219",background:"linear-gradient(90deg,#2AF598,#009EFD)",border:"none",textDecoration:"none"},
-  btnSec:{padding:"12px 16px",borderRadius:12,fontWeight:800,color:"#fff",background:"transparent",border:"1px solid rgba(255,255,255,.35)",textDecoration:"none"},
-
-  badges:{display:"flex",gap:10,flexWrap:"wrap",marginTop:10},
-  badge:(bg)=>({display:"inline-flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:999,fontSize:13,fontWeight:700,background:bg,border:"1px solid rgba(255,255,255,.14)"}),
-
-  grid2:{display:"grid",gap:16,gridTemplateColumns:"1fr",marginTop:18},
-
-  // colorful info cards
-  infoCard:(col)=>({borderRadius:20,padding:18,background:col,border:"1px solid rgba(255,255,255,.12)"}),
-  infoTitle:{fontWeight:900,margin:"0 0 6px",fontSize:18},
-  infoText:{opacity:.95,margin:0,lineHeight:1.6},
-
-  // steps
-  step:{borderRadius:20,padding:18,border:"1px solid rgba(255,255,255,.12)"},
-  stepNum:(c)=>({display:"inline-flex",width:32,height:32,alignItems:"center",justifyContent:"center",borderRadius:9,background:c,fontWeight:900,marginRight:10}),
-  stepTitle:{fontWeight:900,margin:"10px 0 8px",fontSize:18},
-
-  // API section
-  apiBox:{borderRadius:26,padding:20,background:"linear-gradient(135deg,#0b335a,#0d7a86)",border:"1px solid rgba(255,255,255,.12)"},
-  code:{fontFamily:"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",background:"rgba(0,0,0,.35)",borderRadius:12,padding:"10px 12px",display:"block",whiteSpace:"pre",overflowX:"auto",fontSize:13,marginTop:10},
-
-  // support
-  support:{display:"grid",gap:16,gridTemplateColumns:"1fr",marginTop:18},
-  input:{borderRadius:12,border:"1px solid rgba(255,255,255,.25)",background:"rgba(255,255,255,.06)",color:"#fff",padding:"10px 12px",width:"100%",outline:"none"},
-  textarea:{borderRadius:12,border:"1px solid rgba(255,255,255,.25)",background:"rgba(255,255,255,.06)",color:"#fff",padding:"10px 12px",minHeight:120,width:"100%",outline:"none"},
-  send:{padding:"12px 16px",borderRadius:12,fontWeight:900,color:"#001219",background:"linear-gradient(90deg,#21D4FD,#B721FF)",border:"none",width:"100%"},
-  footer:{marginTop:36,opacity:.8,fontSize:13,textAlign:"center",padding:"18px 0",borderTop:"1px solid rgba(255,255,255,.08)"},
-};
-
-// responsive upgrades
-const sectionTitle = {fontSize:26,margin:"0 0 12px",fontWeight:900};
-const sectionSub = {margin:"0 0 10px",opacity:.9};
-
-export default function Home(){
-  const [email,setEmail] = useState("");
-  const [msg,setMsg] = useState("");
-
-  const submit = (e)=>{
-    e.preventDefault();
-    // demo only
-    setEmail(""); setMsg("");
-    alert("Thanks! We'll get back to you shortly."); // client-only
-  };
+export default function Home() {
+  const [open, setOpen] = useState(false); // mobile nav
 
   return (
     <>
       <Head>
-        <title>Genio KYC OS — Verified identity, portable & colorful</title>
+        <title>Genio KYC OS — Verify once. Reuse anywhere.</title>
+        <meta name="description" content="Multi-modal KYC with privacy-first attestations. Verify once, reuse anywhere." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <main style={ui.page}>
-        {/* Header */}
-        <header style={ui.header}>
-          <nav style={ui.nav}>
-            <div style={ui.brand}>
-              <span>Genio</span>
-              <span style={ui.brandSub}>KYC OS</span>
-            </div>
-            <ul style={ui.navUl}>
-              <li><Link href="/" style={ui.link}>Home</Link></li>
-              <li><Link href="/kyc" style={ui.link}>KYC</Link></li>
-              <li><Link href="/dashboard" style={ui.link}>Dashboard</Link></li>
-              <li><Link href="/support" style={ui.link}>Support</Link></li>
-              <li><Link href="/login" style={ui.link}>Login</Link></li>
-            </ul>
-            <Link href="/kyc" style={ui.cta}>Get Verified</Link>
-          </nav>
-        </header>
-
-        <section style={ui.wrap}>
-          {/* Hero */}
-          <div style={ui.hero}>
-            <div style={ui.heroBox}>
-              <h1 style={ui.h1}>Verified identity. Portable. On-chain proof.</h1>
-              <p style={ui.p}>
-                Verify once with <b>multi-modal KYC</b>: documents + biometrics + liveness.
-                We store only <b>hash-based attestations</b> on-chain — privacy by design.
-              </p>
-              <div style={ui.btnRow}>
-                <Link href="/kyc" style={ui.btnPri}>Get Verified</Link>
-                <a href="#how" style={ui.btnSec}>How it works</a>
-              </div>
-              <div style={ui.badges}>
-                <span style={ui.badge("rgba(52, 211, 153, .15)")}>🔒 Privacy-first</span>
-                <span style={ui.badge("rgba(56, 189, 248, .15)")}>⚡ Fast & modern</span>
-                <span style={ui.badge("rgba(216, 180, 254, .18)")}>🌍 Vendor-agnostic</span>
-                <span style={ui.badge("rgba(45, 212, 191, .18)")}>📱 Mobile-friendly</span>
-              </div>
-            </div>
+      <header className="site-header">
+        <nav className="nav" aria-label="Main navigation">
+          <div className="brand">
+            <span className="brand-main">Genio</span>
+            <span className="brand-sub">KYC&nbsp;OS</span>
           </div>
 
-          {/* Why Genio (colorful info cards) */}
-          <div style={{...ui.grid2, marginTop:20}}>
-            <div style={ui.infoCard("linear-gradient(135deg,#1d4ed8,#0ea5e9)")}>
-              <h3 style={ui.infoTitle}>Attestations, not raw data</h3>
-              <p style={ui.infoText}>Only salted hashes are anchored on-chain. Your raw files stay local or with your chosen vendor.</p>
+          <button
+            className="hamburger"
+            aria-label="Toggle menu"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+
+          <ul className={`nav-links ${open ? "open" : ""}`} role="list">
+            <li><Link className="link" href="/">Home</Link></li>
+            <li><Link className="link" href="/kyc">KYC</Link></li>
+            <li><Link className="link" href="/dashboard">Dashboard</Link></li>
+            <li><Link className="link" href="/support">Support</Link></li>
+            <li><Link className="link" href="/login">Login</Link></li>
+            <li className="nav-cta"><Link className="btn btn-gradient" href="/kyc">Get Verified</Link></li>
+          </ul>
+        </nav>
+      </header>
+
+      <main className="page">
+        <section className="container hero">
+          <div className="hero-card">
+            <h1 className="h1">Verified identity. Portable. On-chain proof.</h1>
+            <p className="muted">
+              Verify once with <b>multi-modal KYC</b>: documents, biometrics, and liveness.
+              We anchor <b>hash-based attestations</b> on-chain—privacy by design.
+            </p>
+            <div className="row">
+              <Link href="/kyc" className="btn btn-gradient">Get Verified</Link>
+              <a href="#how" className="btn btn-outline">How it works</a>
             </div>
-            <div style={ui.infoCard("linear-gradient(135deg,#16a34a,#22c55e)")}>
-              <h3 style={ui.infoTitle}>Strict file checks</h3>
-              <p style={ui.infoText}>Corners, glare, size, type, &lt; 8MB. Guiding tips for clean captures.</p>
-            </div>
-            <div style={ui.infoCard("linear-gradient(135deg,#9333ea,#22d3ee)")}>
-              <h3 style={ui.infoTitle}>Biometrics + Liveness</h3>
-              <p style={ui.infoText}>Face match on-device (demo), liveness prompts, and a portable “Genio ID”.</p>
-            </div>
-            <div style={ui.infoCard("linear-gradient(135deg,#f43f5e,#f59e0b)")}>
-              <h3 style={ui.infoTitle}>Developer-Friendly</h3>
-              <p style={ui.infoText}>Simple client flow now; drop-in API later. Start on testnet, switch network anytime.</p>
+
+            <div className="badges" aria-label="Key benefits">
+              <span className="badge badge-green">🔒 Privacy-first</span>
+              <span className="badge badge-blue">⚡ Fast & modern</span>
+              <span className="badge badge-purple">🌍 Vendor-agnostic</span>
+              <span className="badge badge-teal">📱 Mobile-friendly</span>
             </div>
           </div>
+        </section>
 
-          {/* How it works */}
-          <div id="how" style={{marginTop:26}}>
-            <h2 style={sectionTitle}>How it works</h2>
-            <p style={sectionSub}>Three quick steps. Verify once, re-use anywhere.</p>
-            <div style={{display:"grid",gap:16}}>
-              <div style={{...ui.step, background:"linear-gradient(135deg,rgba(16,185,129,.18),rgba(20,184,166,.12))"}}>
-                <span style={ui.stepNum("rgba(16,185,129,.8)")}>1</span>
+        <section className="container grid gap">
+          <article className="card gradient-blue">
+            <h3 className="h3">Attestations, not raw data</h3>
+            <p className="muted">
+              Only salted hashes are anchored on-chain. Your raw files remain local or with your chosen vendor.
+            </p>
+          </article>
+
+          <article className="card gradient-green">
+            <h3 className="h3">Strict file checks</h3>
+            <p className="muted">Corners, glare, file type and size (&lt; 8&nbsp;MB). Clear guidance for clean captures.</p>
+          </article>
+
+          <article className="card gradient-violet">
+            <h3 className="h3">Biometrics + Liveness</h3>
+            <p className="muted">On-device face match (demo), liveness prompts, plus a portable “Genio ID”.</p>
+          </article>
+
+          <article className="card gradient-warm">
+            <h3 className="h3">Developer-friendly</h3>
+            <p className="muted">Simple client flow now; drop-in API later. Start on testnet, switch networks anytime.</p>
+          </article>
+        </section>
+
+        <section id="how" className="container section">
+          <h2 className="h2">How it works</h2>
+          <p className="muted">Three quick steps. Verify once, reuse anywhere.</p>
+
+          <div className="steps">
+            <div className="step">
+              <span className="step-num step-green">1</span>
+              <div className="step-body">
                 <b>Personal Info</b>
-                <div style={ui.p}>Name, DOB, <b>Residence</b> & <b>Citizenship</b>. Contact optional.</div>
+                <p className="muted">Name, date of birth, residence & citizenship. Contact optional.</p>
               </div>
-              <div style={{...ui.step, background:"linear-gradient(135deg,rgba(59,130,246,.18),rgba(125,211,252,.12))"}}>
-                <span style={ui.stepNum("rgba(59,130,246,.85)")}>2</span>
+            </div>
+
+            <div className="step">
+              <span className="step-num step-blue">2</span>
+              <div className="step-body">
                 <b>ID Upload</b>
-                <div style={ui.p}>Passport (photo page) or National/Driver (front+back). Client-side checks before submit.</div>
+                <p className="muted">Passport (photo page) or National/Driver (front & back). Client-side checks first.</p>
               </div>
-              <div style={{...ui.step, background:"linear-gradient(135deg,rgba(168,85,247,.18),rgba(20,184,166,.12))"}}>
-                <span style={ui.stepNum("rgba(168,85,247,.85)")}>3</span>
+            </div>
+
+            <div className="step">
+              <span className="step-num step-violet">3</span>
+              <div className="step-body">
                 <b>Biometrics + Liveness</b>
-                <div style={ui.p}>Selfie match (demo) and liveness cues. Device-only preview; no uploads in demo.</div>
-              </div>
-              <div style={{display:"flex",gap:12}}>
-                <Link href="/kyc" style={{...ui.btnPri, background:"linear-gradient(90deg,#ff7eb3,#ff758c)"}}>Start KYC</Link>
-                <Link href="/dashboard" style={ui.btnSec}>Open Dashboard</Link>
+                <p className="muted">Selfie match (demo) and liveness cues. Device-only preview in demo mode.</p>
               </div>
             </div>
           </div>
 
-          {/* API / Dev box */}
-          <div style={{marginTop:28}}>
-            <h2 style={sectionTitle}>Developer-Friendly</h2>
-            <div style={ui.apiBox}>
-              <div style={ui.p}>Simple API: <b>/api/biometrics</b> to create a face embedding → <b>/api/attest</b> to anchor proofs on-chain (hash-only).</div>
-              <code style={ui.code}>
+          <div className="row">
+            <Link href="/kyc" className="btn btn-pink">Start KYC</Link>
+            <Link href="/dashboard" className="btn btn-outline">Open Dashboard</Link>
+          </div>
+        </section>
+
+        <section className="container section">
+          <h2 className="h2">Developer API</h2>
+          <div className="api-box">
+            <p className="muted">
+              Minimal API surface: <b>/api/biometrics</b> to create a face embedding → <b>/api/attest</b> to anchor proofs (hash-only).
+            </p>
+            <code className="code">
 {`POST /api/biometrics
 - body: { selfieBase64 }
 - returns: { embedding }
@@ -177,58 +139,257 @@ export default function Home(){
 POST /api/attest
 - body: { attestationHash, network: "sepolia" }
 - returns: { txid }`}
-              </code>
-            </div>
+            </code>
           </div>
-
-          {/* Support */}
-          <div style={{marginTop:28}}>
-            <h2 style={sectionTitle}>Support</h2>
-            <div style={{display:"grid",gap:16,gridTemplateColumns:"1fr"}}>
-              <div style={ui.card("linear-gradient(135deg, rgba(45,212,191,.10), rgba(147,51,234,.10))")}>
-                <ul style={{margin:"0 0 14px 18px",lineHeight:1.8}}>
-                  <li>Preparing passport / ID captures (corners, glare, size)</li>
-                  <li>Biometrics & liveness best practices</li>
-                  <li>Attestation & on-chain verification flows</li>
-                </ul>
-                <Link href="/kyc" style={ui.btnPri}>Start KYC</Link>
-              </div>
-
-              <form onSubmit={submit} style={ui.card("linear-gradient(135deg, rgba(37,99,235,.12), rgba(56,189,248,.12))")}>
-                <div style={{display:"grid",gap:12}}>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e)=>setEmail(e.target.value)}
-                    placeholder="Email"
-                    style={ui.input}
-                  />
-                  <textarea
-                    value={msg}
-                    onChange={(e)=>setMsg(e.target.value)}
-                    placeholder="How can we help?"
-                    style={ui.textarea}
-                  />
-                  <button type="submit" style={ui.send}>Send message</button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <footer style={ui.footer}>
-            <div style={{display:"flex",gap:14,justifyContent:"center",marginBottom:8}}>
-              <Link href="/support" style={ui.link}>Contact</Link>
-              <span>•</span>
-              <Link href="/terms" style={ui.link}>Terms</Link>
-              <span>•</span>
-              <Link href="/privacy" style={ui.link}>Privacy</Link>
-            </div>
-            © {new Date().getFullYear()} Genio Systems — All rights reserved.
-          </footer>
         </section>
+
+        <section className="container section">
+          <h2 className="h2">Support</h2>
+          <div className="support-grid">
+            <div className="card gradient-mix">
+              <ul className="list">
+                <li>Passport/ID capture tips (corners, glare, size)</li>
+                <li>Biometrics & liveness best practices</li>
+                <li>Attestation flow & on-chain verification</li>
+              </ul>
+              <Link href="/kyc" className="btn btn-gradient">Start KYC</Link>
+            </div>
+
+            <SupportForm />
+          </div>
+        </section>
+
+        <footer className="footer">
+          <div className="footer-links">
+            <Link href="/support" className="link">Contact</Link>
+            <span aria-hidden>•</span>
+            <Link href="/terms" className="link">Terms</Link>
+            <span aria-hidden>•</span>
+            <Link href="/privacy" className="link">Privacy</Link>
+          </div>
+          © {new Date().getFullYear()} Genio Systems — All rights reserved.
+        </footer>
       </main>
+
+      {/* ======= Global Styles (Company-style, responsive) ======= */}
+      <style jsx global>{`
+        :root{
+          --bg: #08162e;
+          --panel: #0d1e3f;
+          --text: #e6f0ff;
+          --muted: #c8d4ea;
+          --surface: rgba(255,255,255,.06);
+          --border: rgba(255,255,255,.12);
+          --ring: #38bdf8;
+
+          /* gradients */
+          --grad-main: linear-gradient(90deg,#2AF598,#009EFD);
+          --grad-hero: linear-gradient(135deg,#0b2a59 0%, #2c2a72 60%, #6e2b8f 100%);
+          --grad-blue: linear-gradient(135deg,#1d4ed8,#0ea5e9);
+          --grad-green: linear-gradient(135deg,#16a34a,#22c55e);
+          --grad-violet: linear-gradient(135deg,#9333ea,#22d3ee);
+          --grad-warm: linear-gradient(135deg,#f43f5e,#f59e0b);
+          --grad-pink: linear-gradient(90deg,#ff7eb3,#ff758c);
+          --grad-mix: linear-gradient(135deg, rgba(45,212,191,.10), rgba(147,51,234,.10));
+        }
+        *{box-sizing:border-box}
+        html,body{padding:0;margin:0}
+        body{
+          background:var(--bg);
+          color:var(--text);
+          font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+          -webkit-font-smoothing:antialiased;
+          -moz-osx-font-smoothing:grayscale;
+        }
+        .container{max-width:1120px;margin:0 auto;padding:28px 16px}
+        .page{min-height:100vh}
+        .h1{font-size:42px;line-height:1.08;margin:0 0 10px;font-weight:900}
+        .h2{font-size:26px;line-height:1.2;margin:0 0 12px;font-weight:900}
+        .h3{font-size:18px;margin:0 0 6px;font-weight:900}
+        .muted{color:var(--muted);opacity:.92;line-height:1.6;margin:0 0 16px}
+        .row{display:flex;gap:12px;flex-wrap:wrap}
+
+        /* Header / Nav */
+        .site-header{
+          position:sticky;top:0;z-index:40;
+          background:rgba(8,22,46,.85);
+          backdrop-filter:blur(6px);
+          border-bottom:1px solid var(--border);
+        }
+        .nav{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto;padding:12px 16px}
+        .brand{display:flex;align-items:baseline;gap:8px}
+        .brand-main{font-weight:900;letter-spacing:.2px;font-size:20px}
+        .brand-sub{font-weight:700;font-size:16px;opacity:.9}
+        .nav-links{display:flex;align-items:center;gap:22px;list-style:none;margin:0;padding:0}
+        .nav-cta{margin-left:8px}
+        .link{color:rgba(255,255,255,.92);text-decoration:none}
+        .link:hover{text-decoration:underline}
+
+        .hamburger{
+          display:none;appearance:none;background:transparent;border:0;padding:8px;margin:0;border-radius:8px;cursor:pointer;
+        }
+        .hamburger:focus{outline:2px solid var(--ring);outline-offset:2px}
+        .hamburger span{display:block;width:22px;height:2px;background:#cfd9ef;margin:4px 0;border-radius:2px}
+
+        /* Buttons */
+        .btn{display:inline-flex;align-items:center;justify-content:center;font-weight:800;border-radius:12px;padding:12px 16px;text-decoration:none;border:1px solid rgba(255,255,255,.2);cursor:pointer}
+        .btn-gradient{background:var(--grad-main);color:#001219;border-color:rgba(255,255,255,.2)}
+        .btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.35)}
+        .btn-pink{background:var(--grad-pink);color:#001219;border-color:transparent}
+        .btn:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+        /* Hero */
+        .hero{padding-top:10px}
+        .hero-card{
+          border-radius:32px;padding:28px 22px;
+          background:var(--grad-hero);
+          border:1px solid var(--border);
+          box-shadow:0 16px 40px rgba(0,0,0,.35);
+        }
+        .badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+        .badge{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;font-size:13px;font-weight:700;border:1px solid rgba(255,255,255,.14)}
+        .badge-green{background:rgba(52,211,153,.15)}
+        .badge-blue{background:rgba(56,189,248,.15)}
+        .badge-purple{background:rgba(216,180,254,.18)}
+        .badge-teal{background:rgba(45,212,191,.18)}
+
+        /* Cards grid */
+        .grid{display:grid}
+        .gap{gap:16px}
+        .card{
+          border-radius:20px;padding:18px;border:1px solid var(--border);
+          box-shadow:0 12px 28px rgba(0,0,0,.25);
+        }
+        .gradient-blue{background:var(--grad-blue)}
+        .gradient-green{background:var(--grad-green)}
+        .gradient-violet{background:var(--grad-violet)}
+        .gradient-warm{background:var(--grad-warm)}
+
+        /* Steps */
+        .section{margin-top:26px}
+        .steps{display:grid;gap:16px}
+        .step{display:flex;align-items:flex-start;border-radius:20px;padding:18px;border:1px solid var(--border);background:rgba(255,255,255,.03)}
+        .step-num{display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:9px;font-weight:900;margin-right:10px;color:#0b0f1a}
+        .step-green{background:rgba(16,185,129,.85)}
+        .step-blue{background:rgba(59,130,246,.85)}
+        .step-violet{background:rgba(168,85,247,.85)}
+
+        /* API box */
+        .api-box{
+          border-radius:26px;padding:20px;
+          background:linear-gradient(135deg,#0b335a,#0d7a86);
+          border:1px solid var(--border)
+        }
+        .code{
+          display:block;white-space:pre;overflow-x:auto;margin-top:10px;
+          background:rgba(0,0,0,.35);border-radius:12px;padding:10px 12px;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size:13px;color:#dcf1ff
+        }
+
+        /* Support */
+        .support-grid{display:grid;gap:16px}
+        .gradient-mix{background:var(--grad-mix)}
+        .list{margin:0 0 14px 18px;line-height:1.8}
+        .field{width:100%;background:var(--surface);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:12px;padding:10px 12px;outline:0}
+        .field:focus{border-color:#7dd3fc;outline:2px solid #7dd3fc;outline-offset:0}
+        .textarea{min-height:120px;resize:vertical}
+
+        /* Footer */
+        .footer{margin-top:36px;padding:18px 0;border-top:1px solid var(--border);opacity:.85;font-size:13px;text-align:center}
+        .footer-links{display:flex;gap:14px;justify-content:center;margin-bottom:8px}
+
+        /* Responsive */
+        @media (min-width: 700px){
+          .grid{grid-template-columns:repeat(2,1fr)}
+          .steps{grid-template-columns:1fr}
+        }
+        @media (min-width: 960px){
+          .grid{grid-template-columns:repeat(4,1fr)}
+        }
+        @media (max-width: 900px){
+          .hamburger{display:inline-block}
+          .nav-links{
+            position:absolute;left:0;right:0;top:60px;
+            background:rgba(8,22,46,.96);
+            border-bottom:1px solid var(--border);
+            display:none;flex-direction:column;gap:14px;padding:12px 16px;
+          }
+          .nav-links.open{display:flex}
+          .nav-cta{margin-left:0}
+        }
+      `}</style>
     </>
+  );
+}
+
+/* ---------- Support Form as a child component (same file) ---------- */
+function SupportForm() {
+  const [email, setEmail] = useState("");
+  const [msg, setMsg] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | sending | ok | err
+  const [err, setErr] = useState("");
+
+  const emailOk = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e || "");
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setErr("");
+    if (!emailOk(email)) { setErr("Invalid email"); return; }
+    if (!msg || msg.trim().length < 3) { setErr("Message too short"); return; }
+
+    try {
+      setStatus("sending");
+      // You can implement /pages/api/support.js later
+      const r = await fetch("/api/support", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, msg })
+      });
+      if (!r.ok) throw new Error("Request failed");
+      setEmail(""); setMsg(""); setStatus("ok");
+    } catch {
+      setStatus("err"); setErr("Could not send. Try again.");
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="card" aria-label="Support form" style={{background:"linear-gradient(135deg, rgba(37,99,235,.12), rgba(56,189,248,.12))"}}>
+      <div className="row" style={{flexDirection:"column", gap:12}}>
+        <label>
+          <span className="sr-only">Email</span>
+          <input
+            type="email"
+            className="field"
+            placeholder="Email"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
+            aria-invalid={!emailOk(email)}
+            required
+          />
+        </label>
+        <label>
+          <span className="sr-only">Message</span>
+          <textarea
+            className="field textarea"
+            placeholder="How can we help?"
+            value={msg}
+            onChange={(e)=>setMsg(e.target.value)}
+          />
+        </label>
+        {err && <div role="alert" style={{color:"#ffbdbd"}}>{err}</div>}
+        <button type="submit" className="btn btn-gradient" disabled={status==="sending"}>
+          {status==="sending" ? "Sending..." : "Send message"}
+        </button>
+        {status==="ok" && <div role="status" style={{color:"#bdf9c4"}}>Thanks! We’ll get back to you shortly.</div>}
+      </div>
+
+      <style jsx>{`
+        .sr-only{
+          position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+          clip:rect(0,0,0,0);border:0;white-space:nowrap;
+        }
+      `}</style>
+    </form>
   );
 }
