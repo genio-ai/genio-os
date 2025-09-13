@@ -1,10 +1,17 @@
-// pages/index.js — Genio KYC OS (Company-Style FINAL)
+// pages/index.js — Genio KYC OS (Company-Style FINAL, full sections)
 import Head from "next/head";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [open, setOpen] = useState(false); // mobile nav
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+    return () => (document.body.style.overflow = "");
+  }, [open]);
 
   return (
     <>
@@ -45,7 +52,7 @@ export default function Home() {
 
         {/* Mobile overlay menu */}
         {open && (
-          <div className="mobile-menu">
+          <div className="mobile-menu" role="dialog" aria-modal="true">
             <div className="mobile-inner">
               <Link href="/" className="menu-link" onClick={()=>setOpen(false)}>Home</Link>
               <Link href="/kyc" className="menu-link" onClick={()=>setOpen(false)}>KYC</Link>
@@ -60,6 +67,7 @@ export default function Home() {
 
       {/* ===== Page ===== */}
       <main className="page">
+        {/* Hero */}
         <section className="container hero">
           <div className="hero-card">
             <h1 className="h1">Verified identity. Portable. On-chain proof.</h1>
@@ -202,12 +210,11 @@ POST /api/attest
           --bg: #08162e;
           --text: #e6f0ff;
           --muted: #cdd8ef;
-          --surface: rgba(255,255,255,.06);
           --border: rgba(255,255,255,.12);
           --ring: #38bdf8;
 
           /* unified brand */
-          --cta: linear-gradient(90deg,#2AF598,#009EFD); /* primary CTA */
+          --cta: linear-gradient(90deg,#2AF598,#009EFD);
           --cta-pressed: linear-gradient(90deg,#25e086,#0b8ee6);
 
           /* decorative */
@@ -242,7 +249,7 @@ POST /api/attest
         .muted{color:var(--muted);opacity:.95;line-height:1.65;margin:0 0 16px}
 
         /* Header / Nav */
-        .site-header{position:sticky;top:0;z-index:40;background:rgba(8,22,46,.85);backdrop-filter:blur(6px);border-bottom:1px solid var(--border)}
+        .site-header{position:sticky;top:0;z-index:60;background:rgba(8,22,46,.85);backdrop-filter:blur(6px);border-bottom:1px solid var(--border)}
         .nav{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto;padding:14px 16px}
         .brand{display:flex;align-items:baseline;gap:8px}
         .brand-main{font-weight:900;letter-spacing:.2px;font-size:20px}
@@ -256,7 +263,7 @@ POST /api/attest
         .hamburger span{display:block;width:22px;height:2px;background:#cfd9ef;margin:4px 0;border-radius:2px}
 
         /* Mobile overlay menu */
-        .mobile-menu{position:fixed;inset:0;background:rgba(8,22,46,.96);backdrop-filter:blur(6px);z-index:50}
+        .mobile-menu{position:fixed;inset:0;background:rgba(8,22,46,.96);backdrop-filter:blur(6px);z-index:100}
         .mobile-inner{max-width:1120px;margin:0 auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px}
         .menu-link{color:#e6efff;text-decoration:none;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.08)}
         .menu-cta{margin-top:6px;align-self:flex-start}
@@ -320,7 +327,7 @@ POST /api/attest
         /* Nav responsive */
         @media (max-width: 900px){
           .hamburger{display:inline-block}
-          .nav-links{display:none}
+          .nav-links{display:none} /* hide desktop links on mobile */
         }
 
         /* Very small phones */
@@ -387,7 +394,7 @@ function SupportForm() {
           />
         </label>
         {err && <div role="alert" style={{color:"#ffbdbd"}}>{err}</div>}
-        <button type="submit" className="btn btn-primary" disabled={status==="sending"}>
+        <button type="submit" className="btn btn-secondary" disabled={status==="sending"}>
           {status==="sending" ? "Sending..." : "Send message"}
         </button>
         {status==="ok" && <div role="status" style={{color:"#bdf9c4"}}>Thanks! We’ll get back to you shortly.</div>}
