@@ -1,7 +1,9 @@
-export default function Test() {
+// pages/test.js
+export default function TestPage() {
   return (
-    <div style={{padding:24,fontFamily:'system-ui'}}>
-      <h1>✅ Test page (Pages Router)</h1>
-    </div>
+    <main className="page container">
+      <h1 className="h1">Test</h1>
+      <p className="muted">Test page.</p>
+    </main>
   );
 }
