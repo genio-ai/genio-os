@@ -1,43 +1,50 @@
-// pages/index.js — Corporate single-page: stable header, mobile overlay menu, clear CTAs
+// pages/index.js — Corporate single page (clean header, mobile overlay menu, clear CTAs)
 import Head from "next/head";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
-  const [open, setOpen] = useState(false); // mobile menu state
-  const [email, setEmail] = useState("");
-  const [msg, setMsg] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | ok
+  // UI state
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [supportEmail, setSupportEmail] = useState("");
+  const [supportMsg, setSupportMsg] = useState("");
+  const [supportStatus, setSupportStatus] = useState("idle"); // idle | ok
+
   const dialogRef = useRef(null);
 
-  // Lock page scroll when the mobile menu is open
+  // Lock scroll when mobile menu is open
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
-  // Close on ESC for accessibility
+  // Close menu on Escape
   useEffect(() => {
-    function onKey(e) { if (e.key === "Escape") setOpen(false); }
+    function onKey(e) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   function onSupportSubmit(e) {
     e.preventDefault();
-    setStatus("ok");
-    setEmail("");
-    setMsg("");
+    // demo only
+    setSupportStatus("ok");
+    setSupportEmail("");
+    setSupportMsg("");
   }
 
-  function fakeLogin(e) {
-    e?.preventDefault?.();
+  function onLogin(e) {
+    e.preventDefault();
     alert("Login is coming soon.");
   }
 
   return (
     <>
       <Head>
-        <title>Genio KYC OS — Verify once. Reuse anywhere.</title>
+        <title>Genio KYC OS - Verify once. Reuse anywhere.</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"
@@ -46,7 +53,7 @@ export default function Home() {
       </Head>
 
       {/* Header */}
-      <header className={`site-header${open ? " is-open" : ""}`}>
+      <header className={`site-header${menuOpen ? " is-open" : ""}`}>
         <nav className="nav" aria-label="Main navigation">
           {/* Brand */}
           <a href="#hero" className="brand" aria-label="Genio home">
@@ -60,25 +67,25 @@ export default function Home() {
             <li><a className="link" href="#how">KYC</a></li>
             <li><a className="link" href="#api">Developer</a></li>
             <li><a className="link" href="#support">Support</a></li>
-            <li><a className="link" href="#" onClick={fakeLogin}>Login</a></li>
+            <li><a className="link" href="#" onClick={onLogin}>Login</a></li>
             <li><a className="btn btn-primary" href="/dashboard">Dashboard</a></li>
           </ul>
 
-          {/* Mobile: Login always visible + hamburger */}
-          <a href="#" onClick={fakeLogin} className="link login-mobile">Login</a>
+          {/* Mobile: login + hamburger */}
+          <a href="#" onClick={onLogin} className="link login-mobile">Login</a>
           <button
             className="hamburger"
             aria-label="Toggle menu"
-            aria-expanded={open}
+            aria-expanded={menuOpen}
             aria-controls="mobile-menu"
-            onClick={() => setOpen(!open)}
+            onClick={() => setMenuOpen((v) => !v)}
           >
             <span /><span /><span />
           </button>
         </nav>
 
         {/* Mobile overlay menu */}
-        {open && (
+        {menuOpen && (
           <div
             id="mobile-menu"
             className="mobile-menu"
@@ -86,24 +93,24 @@ export default function Home() {
             aria-modal="true"
             aria-label="Main menu"
             ref={dialogRef}
-            onClick={() => setOpen(false)}
+            onClick={() => setMenuOpen(false)}
           >
             <div className="mobile-inner" onClick={(e) => e.stopPropagation()}>
-              <a href="#hero" className="menu-link" onClick={() => setOpen(false)}>Home</a>
-              <a href="#how" className="menu-link" onClick={() => setOpen(false)}>KYC</a>
-              <a href="#api" className="menu-link" onClick={() => setOpen(false)}>Developer</a>
-              <a href="#support" className="menu-link" onClick={() => setOpen(false)}>Support</a>
+              <a href="#hero" className="menu-link" onClick={() => setMenuOpen(false)}>Home</a>
+              <a href="#how" className="menu-link" onClick={() => setMenuOpen(false)}>KYC</a>
+              <a href="#api" className="menu-link" onClick={() => setMenuOpen(false)}>Developer</a>
+              <a href="#support" className="menu-link" onClick={() => setMenuOpen(false)}>Support</a>
               <a
                 href="#"
                 className="menu-link"
-                onClick={(e) => { e.preventDefault(); setOpen(false); fakeLogin(e); }}
+                onClick={(e) => { e.preventDefault(); setMenuOpen(false); onLogin(e); }}
               >
                 Login
               </a>
-              <a href="/dashboard" className="btn btn-primary menu-cta" onClick={() => setOpen(false)}>
+              <a href="/dashboard" className="btn btn-primary menu-cta" onClick={() => setMenuOpen(false)}>
                 Dashboard
               </a>
-              <a href="#how" className="btn btn-secondary menu-cta" onClick={() => setOpen(false)}>
+              <a href="#how" className="btn btn-secondary menu-cta" onClick={() => setMenuOpen(false)}>
                 Get Verified
               </a>
             </div>
@@ -118,8 +125,8 @@ export default function Home() {
           <div className="hero-card">
             <h1 className="h1">Verified identity. Portable. On-chain proof.</h1>
             <p className="muted">
-              Verify once with <b>multi-modal KYC</b>: documents, biometrics, and liveness.
-              We anchor <b>hash-based attestations</b> on-chain — privacy by design.
+              Verify once with multi-modal KYC: documents, biometrics, and liveness.
+              We anchor hash-based attestations on-chain (privacy by design).
             </p>
             <div className="row">
               <a href="#how" className="btn btn-primary">Get Verified</a>
@@ -149,9 +156,9 @@ export default function Home() {
             </p>
           </article>
           <article className="card gradient-violet">
-            <h3 className="h3">Biometrics + Liveness</h3>
+            <h3 className="h3">Biometrics and liveness</h3>
             <p className="muted">
-              On-device face match (demo), liveness prompts, plus a portable Genio ID.
+              On-device face match (demo), liveness prompts, and a portable Genio ID.
             </p>
           </article>
           <article className="card gradient-warm">
@@ -170,21 +177,21 @@ export default function Home() {
             <div className="step">
               <span className="step-num step-green">1</span>
               <div className="step-body">
-                <b>Personal Info</b>
+                <b>Personal info</b>
                 <p className="muted">Name, date of birth, residence and citizenship. Contact optional.</p>
               </div>
             </div>
             <div className="step">
               <span className="step-num step-blue">2</span>
               <div className="step-body">
-                <b>ID Upload</b>
+                <b>ID upload</b>
                 <p className="muted">Passport (photo page) or National/Driver (front and back). Client-side checks first.</p>
               </div>
             </div>
             <div className="step">
               <span className="step-num step-violet">3</span>
               <div className="step-body">
-                <b>Biometrics + Liveness</b>
+                <b>Biometrics and liveness</b>
                 <p className="muted">Selfie match (demo) and liveness cues. Device-only preview in demo mode.</p>
               </div>
             </div>
@@ -200,17 +207,15 @@ export default function Home() {
           <h2 className="h2">Developer API</h2>
           <div className="api-box">
             <p className="muted">
-              Minimal API surface: <b>/api/biometrics</b> to create a face embedding -> <b>/api/attest</b> to anchor proofs (hash-only).
+              Minimal API surface: <b>/api/biometrics</b> to create a face embedding &rarr; <b>/api/attest</b> to anchor proofs (hash-only).
             </p>
-            <code className="code">
-{`POST /api/biometrics
+            <code className="code">{`POST /api/biometrics
 - body: { selfieBase64 }
 - returns: { embedding }
 
 POST /api/attest
 - body: { attestationHash, network: "sepolia" }
-- returns: { txid }`}
-            </code>
+- returns: { txid }`}</code>
           </div>
         </section>
 
@@ -237,22 +242,20 @@ POST /api/attest
                   className="field"
                   type="email"
                   placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={supportEmail}
+                  onChange={(e) => setSupportEmail(e.target.value)}
                   required
                 />
                 <textarea
                   className="field textarea"
                   placeholder="How can we help?"
-                  value={msg}
-                  onChange={(e) => setMsg(e.target.value)}
+                  value={supportMsg}
+                  onChange={(e) => setSupportMsg(e.target.value)}
                 />
-                <button type="submit" className="btn btn-secondary">
-                  Send message
-                </button>
-                {status === "ok" && (
+                <button type="submit" className="btn btn-secondary">Send message</button>
+                {supportStatus === "ok" && (
                   <div role="status" style={{ color: "#bdf9c4" }}>
-                    Thanks! We will get back to you shortly.
+                    Thanks. We will get back to you shortly.
                   </div>
                 )}
               </div>
@@ -260,7 +263,7 @@ POST /api/attest
           </div>
         </section>
 
-        {/* Footer (anchors only for this single page) */}
+        {/* Footer */}
         <footer className="footer">
           <div className="footer-links">
             <a className="link" href="#support">Contact</a>
@@ -269,7 +272,7 @@ POST /api/attest
             <span aria-hidden>•</span>
             <a className="link" href="#hero">Privacy</a>
           </div>
-          © {new Date().getFullYear()} Genio Systems — All rights reserved.
+          © {new Date().getFullYear()} Genio Systems - All rights reserved.
         </footer>
       </main>
 
