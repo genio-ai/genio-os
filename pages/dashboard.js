@@ -1,5 +1,6 @@
-// pages/dashboard.js
+// pages/dashboard.js — Clean dashboard matching landing style (no overlay menu)
 import Head from "next/head";
+import Link from "next/link";
 
 export default function Dashboard() {
   const rows = [
@@ -9,72 +10,151 @@ export default function Dashboard() {
 
   return (
     <>
-      <Head><title>Genio Dashboard</title></Head>
+      <Head>
+        <title>Genio Dashboard — KYC status & activity</title>
+        <meta name="description" content="Track your KYC status and recent activity." />
+      </Head>
 
+      {/* Header: simple, no mobile overlay */}
       <header className="site-header">
         <nav className="nav" aria-label="Dashboard navigation">
-          <a href="/" className="brand" aria-label="Genio home">
+          <Link href="/" className="brand" aria-label="Genio home">
             <span className="brand-main">Genio</span>
             <span className="brand-sub">KYC OS</span>
-          </a>
+          </Link>
           <ul className="nav-links" role="list">
-            <li><a className="link" href="/">Home</a></li>
-            <li><a className="link" href="/dashboard">Dashboard</a></li>
+            <li><Link className="link" href="/">Home</Link></li>
+            <li><Link className="link" href="/dashboard">Dashboard</Link></li>
           </ul>
         </nav>
       </header>
 
-      <main className="page container">
-        <section className="section">
+      <main className="page">
+        {/* Title */}
+        <section className="container section">
           <h1 className="h1">Dashboard</h1>
           <p className="muted">Track your KYC status and recent activity.</p>
         </section>
 
-        <section className="grid gap section">
+        {/* Cards */}
+        <section className="container grid gap">
           <article className="card gradient-blue">
             <h3 className="h3">KYC Status</h3>
             <p className="muted">Current status: <b>Pending</b></p>
           </article>
+
           <article className="card gradient-green">
             <h3 className="h3">Quick Action</h3>
-            <a href="/#how" className="btn btn-primary">Start New KYC</a>
+            <Link href="/#how" className="btn btn-primary">Start New KYC</Link>
           </article>
+
           <article className="card gradient-violet">
             <h3 className="h3">API Keys</h3>
             <p className="muted">Test Key: <code>demo_123456</code></p>
           </article>
         </section>
 
-        <section className="section">
+        {/* Activity */}
+        <section className="container section">
           <h2 className="h2">Recent Activity</h2>
-          <table className="activity-table">
-            <thead><tr><th>Date</th><th>Action</th><th>Status</th></tr></thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={i}><td>{r.date}</td><td>{r.action}</td><td>{r.status}</td></tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-wrap">
+            <table className="activity-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Action</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r, i) => (
+                  <tr key={i}>
+                    <td>{r.date}</td>
+                    <td>{r.action}</td>
+                    <td>{r.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
 
+        {/* Footer */}
         <footer className="footer">
           <div className="footer-links">
             <a className="link" href="/#support">Contact</a>
-            <span aria-hidden="true">•</span>
+            <span aria-hidden>•</span>
             <a className="link" href="/#hero">Terms</a>
-            <span aria-hidden="true">•</span>
+            <span aria-hidden>•</span>
             <a className="link" href="/#hero">Privacy</a>
           </div>
           © {new Date().getFullYear()} Genio Systems — All rights reserved.
         </footer>
       </main>
 
-      <style jsx>{`
-        .activity-table{width:100%;border-collapse:collapse;margin-top:16px}
-        .activity-table th,.activity-table td{border:1px solid var(--border);padding:10px 12px;text-align:left;font-size:14px}
-        .activity-table th{background:rgba(255,255,255,.06)}
-        @media (max-width:899px){ .nav-links{display:none !important;} }
-        @media (min-width:900px){ .nav-links{display:flex;gap:22px;list-style:none;margin:0;padding:0} }
+      {/* Styles (self-contained so we don't touch index.js) */}
+      <style jsx global>{`
+        :root{
+          --bg:#08162e; --text:#e6f0ff; --muted:#cdd8ef;
+          --border:rgba(255,255,255,.12); --ring:#38bdf8;
+
+          --cta:linear-gradient(90deg,#2AF598,#009EFD);
+          --grad-blue:linear-gradient(135deg,#1d4ed8,#0ea5e9);
+          --grad-green:linear-gradient(135deg,#16a34a,#22c55e);
+          --grad-violet:linear-gradient(135deg,#9333ea,#22d3ee);
+        }
+
+        html,body{background:var(--bg);color:var(--text);font-family:-apple-system, Segoe UI, Roboto, Arial, sans-serif}
+        .page{min-height:100vh}
+        .container{max-width:1120px;margin:0 auto;padding:32px 16px}
+        .section{margin:40px auto 0}
+        .grid{display:grid}
+        .gap{gap:18px}
+        .row{display:flex;gap:12px;flex-wrap:wrap}
+
+        .h1{font-size:44px;line-height:1.08;margin:0 0 12px;font-weight:900}
+        .h2{font-size:26px;margin:0 0 12px;font-weight:900}
+        .h3{font-size:18px;margin:0 0 6px;font-weight:900}
+        .muted{color:var(--muted);line-height:1.65;margin:0 0 16px}
+
+        /* Header (no overlay menu here) */
+        .site-header{position:sticky;top:0;z-index:40;background:rgba(8,22,46,.85);backdrop-filter:blur(6px);border-bottom:1px solid var(--border)}
+        .nav{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto;padding:14px 16px}
+        .brand{display:flex;align-items:baseline;gap:8px;text-decoration:none;color:inherit}
+        .brand-main{font-weight:900;font-size:20px}
+        .brand-sub{font-weight:700;font-size:16px;opacity:.9}
+        .nav-links{display:flex;align-items:center;gap:22px;list-style:none;margin:0;padding:0}
+        .link{color:rgba(255,255,255,.92);text-decoration:none}
+        .link:hover{text-decoration:underline;opacity:.9}
+
+        /* Cards */
+        .card{border-radius:20px;padding:20px;border:1px solid rgba(255,255,255,.14)}
+        .gradient-blue{background:var(--grad-blue)}
+        .gradient-green{background:var(--grad-green)}
+        .gradient-violet{background:var(--grad-violet)}
+
+        /* Buttons */
+        .btn{display:inline-flex;align-items:center;justify-content:center;font-weight:900;border-radius:12px;padding:12px 16px;text-decoration:none;min-height:44px;border:1px solid rgba(255,255,255,.2)}
+        .btn-primary{background:var(--cta);color:#001219}
+
+        /* Table */
+        .table-wrap{overflow:auto;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03)}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:12px 14px;border-bottom:1px solid var(--border);text-align:left}
+        thead th{background:rgba(255,255,255,.06);font-weight:800}
+
+        /* Footer */
+        .footer{margin-top:60px;padding:26px 0;border-top:1px solid var(--border);opacity:.9;font-size:13px;text-align:center}
+        .footer-links{display:flex;gap:14px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
+
+        /* Responsive */
+        @media (min-width:700px){ .grid{grid-template-columns:repeat(2,1fr)} }
+        @media (min-width:960px){ .grid{grid-template-columns:repeat(3,1fr)} }
+        @media (max-width:899px){ .nav-links{display:none !important} }
+        @media (max-width:360px){
+          .container{padding-left:14px;padding-right:14px}
+          .h1{font-size:40px}
+        }
       `}</style>
     </>
   );
