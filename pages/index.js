@@ -1,4 +1,4 @@
-// pages/index.js — mobile-safe header, overlay menu, clear CTAs
+// pages/index.js — Corporate landing (mobile-safe header + overlay menu)
 import Head from "next/head";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -7,27 +7,29 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [supportEmail, setSupportEmail] = useState("");
   const [supportMsg, setSupportMsg] = useState("");
-  const [supportStatus, setSupportStatus] = useState("idle"); // idle | ok
+  const [supportStatus, setSupportStatus] = useState("idle");
   const dialogRef = useRef(null);
 
+  // lock scroll when mobile menu opens
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
+  // esc closes mobile menu
   useEffect(() => {
-    function onKey(e) { if (e.key === "Escape") setMenuOpen(false); }
+    function onKey(e){ if(e.key==="Escape") setMenuOpen(false); }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  function onSupportSubmit(e) {
+  function onSupportSubmit(e){
     e.preventDefault();
     setSupportStatus("ok");
     setSupportEmail("");
     setSupportMsg("");
   }
-  function onLogin(e) {
+  function onLogin(e){
     e.preventDefault();
     alert("Login is coming soon.");
   }
@@ -35,7 +37,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Genio KYC OS - Verify once. Reuse anywhere.</title>
+        <title>Genio KYC OS — Verify once. Reuse anywhere.</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="Multi-modal KYC with privacy-first attestations. Verify once, reuse anywhere." />
       </Head>
@@ -82,14 +84,18 @@ export default function Home() {
             ref={dialogRef}
             onClick={() => setMenuOpen(false)}
           >
-            <div className="mobile-inner" onClick={(e) => e.stopPropagation()}>
-              <a href="#hero" className="menu-link" onClick={() => setMenuOpen(false)}>Home</a>
-              <a href="#how" className="menu-link" onClick={() => setMenuOpen(false)}>KYC</a>
-              <a href="#api" className="menu-link" onClick={() => setMenuOpen(false)}>Developer</a>
-              <a href="#support" className="menu-link" onClick={() => setMenuOpen(false)}>Support</a>
-              <a href="#" className="menu-link" onClick={(e) => { e.preventDefault(); setMenuOpen(false); onLogin(e); }}>Login</a>
-              <Link href="/dashboard" className="btn btn-primary menu-cta" onClick={() => setMenuOpen(false)}>Dashboard</Link>
-              <a href="#how" className="btn btn-secondary menu-cta" onClick={() => setMenuOpen(false)}>Get Verified</a>
+            <div className="mobile-inner" onClick={(e)=>e.stopPropagation()}>
+              <a href="#hero" className="menu-link" onClick={()=>setMenuOpen(false)}>Home</a>
+              <a href="#how" className="menu-link" onClick={()=>setMenuOpen(false)}>KYC</a>
+              <a href="#api" className="menu-link" onClick={()=>setMenuOpen(false)}>Developer</a>
+              <a href="#support" className="menu-link" onClick={()=>setMenuOpen(false)}>Support</a>
+              <a href="#" className="menu-link" onClick={(e)=>{e.preventDefault(); setMenuOpen(false); onLogin(e);}}>Login</a>
+              <Link href="/dashboard" className="btn btn-primary menu-cta" onClick={()=>setMenuOpen(false)}>
+                Dashboard
+              </Link>
+              <a href="#how" className="btn btn-secondary menu-cta" onClick={()=>setMenuOpen(false)}>
+                Get Verified
+              </a>
             </div>
           </div>
         )}
@@ -103,7 +109,7 @@ export default function Home() {
             <h1 className="h1">Verified identity. Portable. On-chain proof.</h1>
             <p className="muted">
               Verify once with multi-modal KYC: documents, biometrics, and liveness.
-              We anchor hash-based attestations on-chain (privacy by design).
+              We anchor hash-based attestations on-chain — privacy by design.
             </p>
             <div className="row">
               <a href="#how" className="btn btn-primary">Get Verified</a>
@@ -111,14 +117,14 @@ export default function Home() {
             </div>
             <div className="badges">
               <span className="badge">Privacy-first</span>
-              <span className="badge">Fast and modern</span>
+              <span className="badge">Fast & modern</span>
               <span className="badge">Vendor-agnostic</span>
               <span className="badge">Mobile-friendly</span>
             </div>
           </div>
         </section>
 
-        {/* Features */}
+        {/* Feature cards */}
         <section className="container grid gap">
           <article className="card gradient-blue">
             <h3 className="h3">Attestations, not raw data</h3>
@@ -129,7 +135,7 @@ export default function Home() {
             <p className="muted">Corners, glare, file type and size (&lt; 8 MB). Clear guidance for clean captures.</p>
           </article>
           <article className="card gradient-violet">
-            <h3 className="h3">Biometrics and liveness</h3>
+            <h3 className="h3">Biometrics + liveness</h3>
             <p className="muted">On-device face match (demo), liveness prompts, and a portable Genio ID.</p>
           </article>
           <article className="card gradient-warm">
@@ -147,20 +153,20 @@ export default function Home() {
               <span className="step-num step-green">1</span>
               <div className="step-body">
                 <b>Personal info</b>
-                <p className="muted">Name, date of birth, residence and citizenship. Contact optional.</p>
+                <p className="muted">Name, date of birth, residence & citizenship. Contact optional.</p>
               </div>
             </div>
             <div className="step">
               <span className="step-num step-blue">2</span>
               <div className="step-body">
                 <b>ID upload</b>
-                <p className="muted">Passport (photo page) or National/Driver (front and back). Client-side checks first.</p>
+                <p className="muted">Passport (photo page) or National/Driver (front & back). Client-side checks first.</p>
               </div>
             </div>
             <div className="step">
               <span className="step-num step-violet">3</span>
               <div className="step-body">
-                <b>Biometrics and liveness</b>
+                <b>Biometrics & liveness</b>
                 <p className="muted">Selfie match (demo) and liveness cues. Device-only preview in demo mode.</p>
               </div>
             </div>
@@ -195,8 +201,8 @@ POST /api/attest
             <div className="card gradient-mix">
               <ul className="list">
                 <li>Passport/ID capture tips (corners, glare, size)</li>
-                <li>Biometrics and liveness best practices</li>
-                <li>Attestation flow and on-chain verification</li>
+                <li>Biometrics & liveness best practices</li>
+                <li>Attestation flow & on-chain verification</li>
               </ul>
               <a href="#how" className="btn btn-primary">Start KYC</a>
             </div>
@@ -212,19 +218,19 @@ POST /api/attest
                   type="email"
                   placeholder="Email"
                   value={supportEmail}
-                  onChange={(e) => setSupportEmail(e.target.value)}
+                  onChange={(e)=>setSupportEmail(e.target.value)}
                   required
                 />
                 <textarea
                   className="field textarea"
                   placeholder="How can we help?"
                   value={supportMsg}
-                  onChange={(e) => setSupportMsg(e.target.value)}
+                  onChange={(e)=>setSupportMsg(e.target.value)}
                 />
                 <button type="submit" className="btn btn-secondary">Send message</button>
-                {supportStatus === "ok" && (
-                  <div role="status" style={{ color: "#bdf9c4" }}>
-                    Thanks. We will get back to you shortly.
+                {supportStatus==="ok" && (
+                  <div role="status" style={{color:"#bdf9c4"}}>
+                    Thanks! We’ll get back to you shortly.
                   </div>
                 )}
               </div>
@@ -241,11 +247,11 @@ POST /api/attest
             <span aria-hidden>•</span>
             <a className="link" href="#hero">Privacy</a>
           </div>
-          © {new Date().getFullYear()} Genio Systems - All rights reserved.
+          © {new Date().getFullYear()} Genio Systems — All rights reserved.
         </footer>
       </main>
 
-      {/* Styles */}
+      {/* Styles (page + header). If you already moved globals to _app.js, it's fine to keep these too. */}
       <style jsx global>{`
         :root{
           --bg:#08162e; --text:#e6f0ff; --muted:#cdd8ef;
@@ -287,7 +293,6 @@ POST /api/attest
 
         .hamburger{display:inline-block;background:transparent;border:0;padding:8px;border-radius:8px;cursor:pointer}
         .hamburger span{display:block;width:22px;height:2px;background:#cfd9ef;margin:4px 0;border-radius:2px}
-
         .login-mobile{display:inline-block;margin-left:auto;margin-right:8px}
 
         /* Mobile overlay menu */
@@ -317,6 +322,7 @@ POST /api/attest
         .gradient-green{background:var(--grad-green)}
         .gradient-violet{background:var(--grad-violet)}
         .gradient-warm{background:var(--grad-warm)}
+        .gradient-mix{background:var(--grad-mix)}
 
         /* Steps */
         .steps{display:grid;gap:18px}
@@ -332,7 +338,6 @@ POST /api/attest
 
         /* Support */
         .support-grid{display:grid;gap:20px}
-        .gradient-mix{background:var(--grad-mix)}
         .list{margin:0 0 14px 18px;line-height:1.8}
         .field{width:100%;background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.32);color:#fff;border-radius:12px;padding:12px 14px;outline:0}
         .field::placeholder{color:#d6e2ff;opacity:.95}
@@ -352,12 +357,8 @@ POST /api/attest
         @media (max-width:899px){
           .nav-links{display:none !important;}
         }
-        @media (min-width:700px){
-          .grid{grid-template-columns:repeat(2,1fr)}
-        }
-        @media (min-width:960px){
-          .grid{grid-template-columns:repeat(4,1fr)}
-        }
+        @media (min-width:700px){ .grid{grid-template-columns:repeat(2,1fr)} }
+        @media (min-width:960px){ .grid{grid-template-columns:repeat(4,1fr)} }
         @media (max-width:360px){
           .container{padding-left:14px;padding-right:14px}
           .h1{font-size:40px}
