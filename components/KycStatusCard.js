@@ -4,6 +4,15 @@ export default function KycStatusCard() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
+  // demo payload to send
+  const [payload, setPayload] = useState({
+    faceMatch: 0.82,
+    liveness: 0.80,
+    quality: 0.70,
+    docValid: true,
+    expiryValid: true
+  });
+
   const runDecision = async () => {
     setLoading(true);
     setResult(null);
@@ -11,14 +20,7 @@ export default function KycStatusCard() {
       const res = await fetch("/api/decision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Demo values — replace later with real capture results
-        body: JSON.stringify({
-          faceMatch: 0.82,
-          liveness: 0.80,
-          quality: 0.70,
-          docValid: true,
-          expiryValid: true
-        })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       setResult(data);
@@ -29,11 +31,21 @@ export default function KycStatusCard() {
     }
   };
 
+  const preset = (type) => {
+    if (type === "approved") {
+      setPayload({ faceMatch: 0.88, liveness: 0.86, quality: 0.75, docValid: true,  expiryValid: true });
+    } else if (type === "review") {
+      setPayload({ faceMatch: 0.76, liveness: 0.72, quality: 0.62, docValid: true,  expiryValid: true });
+    } else if (type === "rejected") {
+      setPayload({ faceMatch: 0.62, liveness: 0.60, quality: 0.50, docValid: false, expiryValid: false });
+    }
+  };
+
   const getBackground = (decision) => {
-    if (decision === "approved") return "#064E3B";       // dark green
-    if (decision === "manual_review") return "#78350F";  // dark amber
-    if (decision === "rejected") return "#7F1D1D";       // dark red
-    return "#111827"; // default dark
+    if (decision === "approved") return "#064E3B";
+    if (decision === "manual_review") return "#78350F";
+    if (decision === "rejected") return "#7F1D1D";
+    return "#111827";
   };
 
   const getBadgeStyle = (decision) => {
@@ -44,15 +56,22 @@ export default function KycStatusCard() {
     return { ...base, background: "#334155", color: "#fff" };
   };
 
+  const btn = { padding: "8px 12px", border: "none", borderRadius: 8, cursor: "pointer", color: "#fff" };
+  const btnBlue = { ...btn, background: "#3B82F6" };
+  const btnGray = { ...btn, background: "#334155" };
+
   return (
     <div style={{ background: "#0B1D3A", color: "#fff", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 16 }}>
       <h2 style={{ marginTop: 0, marginBottom: 8 }}>KYC Status</h2>
       <p style={{ marginTop: 0, opacity: 0.85 }}>Run a demo decision and show the status card below.</p>
 
-      <button
-        onClick={runDecision}
-        style={{ background: "#3B82F6", color: "#fff", border: "none", padding: "10px 14px", borderRadius: 8, cursor: "pointer" }}
-      >
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+        <button onClick={() => preset("approved")} style={btnGray}>Preset: Approved</button>
+        <button onClick={() => preset("review")}   style={btnGray}>Preset: Review</button>
+        <button onClick={() => preset("rejected")} style={btnGray}>Preset: Rejected</button>
+      </div>
+
+      <button onClick={runDecision} style={btnBlue}>
         {loading ? "Processing..." : "Run Decision"}
       </button>
 
