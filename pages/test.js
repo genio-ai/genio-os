@@ -9,45 +9,15 @@ export default function TestPage() {
     const r = await fetch("/api/sessions", { method: "POST" });
     const j = await r.json();
     setSessionId(j.sessionId);
-    setResult((prev) => [...prev, j]);
+    setResult([j]); // نعرض النتيجة
   }
 
-  async function uploadDocument() {
-    if (!sessionId) return;
-    const r = await fetch("/api/documents", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    });
-    const j = await r.json();
-    setResult((prev) => [...prev, j]);
-  }
-
-  async function biometrics() {
-    if (!sessionId) return;
-    const r = await fetch("/api/biometrics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    });
-    const j = await r.json();
-    setResult((prev) => [...prev, j]);
-  }
-
-  async function submit() {
-    if (!sessionId) return;
-    const r = await fetch("/api/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    });
-    const j = await r.json();
-    setResult((prev) => [...prev, j]);
-  }
-
-  async function attest() {
-    if (!sessionId) return;
-    const r = await fetch("/api/attest", {
+  async function callApi(path) {
+    if (!sessionId) {
+      setResult([{ error: "⚠️ لازم تعمل Create Session أول" }]);
+      return;
+    }
+    const r = await fetch(path, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sessionId }),
@@ -57,14 +27,14 @@ export default function TestPage() {
   }
 
   return (
-    <main style={{ padding: "20px", fontFamily: "Arial, sans-serif", color: "#fff", background: "#0B1D3A", minHeight: "100vh" }}>
+    <main style={{ padding: 20, fontFamily: "Arial, sans-serif", background: "#0B1D3A", color: "#fff", minHeight: "100vh" }}>
       <h1>Test KYC API</h1>
       <div style={{ marginBottom: 12 }}>
         <button onClick={createSession}>1) Create Session</button>{" "}
-        <button onClick={uploadDocument}>2) Upload Document</button>{" "}
-        <button onClick={biometrics}>3) Biometrics</button>{" "}
-        <button onClick={submit}>4) Submit</button>{" "}
-        <button onClick={attest}>5) Attest</button>
+        <button onClick={() => callApi("/api/documents")}>2) Upload Document</button>{" "}
+        <button onClick={() => callApi("/api/biometrics")}>3) Biometrics</button>{" "}
+        <button onClick={() => callApi("/api/submit")}>4) Submit</button>{" "}
+        <button onClick={() => callApi("/api/attest")}>5) Attest</button>
       </div>
       <div style={{ marginBottom: 8 }}>
         sessionId: <code>{sessionId || "-"}</code>
