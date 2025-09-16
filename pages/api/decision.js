@@ -2,88 +2,121 @@
 import fs from "fs";
 import path from "path";
 
+/**
+ * Weighted KYC decision engine:
+ * - Reads weights/thresholds from config/decision.json
+ * - Computes a 0..100 risk score (higher = better)
+ * - Returns decision + reasons + per-signal breakdown
+ * - Supports quick "preset" testing: approved | review | rejected
+ */
+
+const loadConfig = () => {
+  const cfgPath = path.join(process.cwd(), "config", "decision.json");
+  return JSON.parse(fs.readFileSync(cfgPath, "utf8"));
+};
+
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
 export default function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "method_not_allowed" });
   }
 
   try {
-    // Load thresholds from config
-    const configPath = path.join(process.cwd(), "config", "decision.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    const cfg = loadConfig();
 
-    // Read payload
-    const {
-      faceMatch = 0,
-      liveness = 0,
-      quality = 0,
-      docValid = false,
-      expiryValid = false,
+    // --- 1) Build payload (support presets for easy testing) ---
+    let {
+      preset,          // optional: "approved" | "review" | "rejected"
+      faceMatch,
+      liveness,
+      quality,
+      docValid,
+      expiryValid
     } = req.body || {};
 
-    let reasons = [];
-    let risk = 100;
-
-    // Face match rules
-    if (typeof faceMatch !== "number" || isNaN(faceMatch)) {
-      reasons.push("invalid_face_match");
-      return res.status(400).json({ error: "invalid_input", reasons });
-    }
-    if (faceMatch < config.FACE_REVIEW_MIN) {
-      reasons.push("face_match_low");
-      risk -= 30;
-    } else if (faceMatch < config.FACE_PASS) {
-      reasons.push("face_match_borderline");
-      risk -= 15;
+    if (preset === "approved") {
+      faceMatch = 0.90; liveness = 0.90; quality = 0.85; docValid = true;  expiryValid = true;
+    } else if (preset === "review") {
+      faceMatch = 0.73; liveness = 0.72; quality = 0.62; docValid = true;  expiryValid = true;
+    } else if (preset === "rejected") {
+      faceMatch = 0.55; liveness = 0.50; quality = 0.52; docValid = false; expiryValid = false;
     }
 
-    // Liveness rules
-    if (typeof liveness !== "number" || isNaN(liveness)) {
-      reasons.push("invalid_liveness");
-      return res.status(400).json({ error: "invalid_input", reasons });
-    }
-    if (liveness < config.LIVENESS_REVIEW_MIN) {
-      reasons.push("liveness_low");
-      risk -= 25;
-    } else if (liveness < config.LIVENESS_PASS) {
-      reasons.push("liveness_borderline");
-      risk -= 10;
+    // Basic validation
+    const reasons = [];
+    const badNum = (x) => typeof x !== "number" || Number.isNaN(x);
+
+    if (badNum(faceMatch) || badNum(liveness) || badNum(quality) ||
+        typeof docValid !== "boolean" || typeof expiryValid !== "boolean") {
+      return res.status(400).json({ error: "invalid_input", reason: cfg.reasonText.bad_input });
     }
 
-    // Image quality
-    if (typeof quality !== "number" || isNaN(quality)) {
-      reasons.push("invalid_quality");
-      return res.status(400).json({ error: "invalid_input", reasons });
-    }
-    if (quality < config.QUALITY_MIN) {
-      reasons.push("poor_quality");
-      risk -= 10;
+    // --- 2) Normalize 0..1 inputs ---
+    faceMatch = clamp01(faceMatch);
+    liveness  = clamp01(liveness);
+    quality   = clamp01(quality);
+
+    // --- 3) Score each signal by weight ---
+    const W = cfg.weights;
+    let score =
+      faceMatch * W.faceMatch +
+      liveness  * W.liveness  +
+      quality   * W.quality   +
+      (docValid    ? W.docValid    : 0) +
+      (expiryValid ? W.expiryValid : 0);
+
+    // --- 4) Reasons based on thresholds ---
+    const T = cfg.thresholds;
+
+    if (faceMatch < T.faceMatch.review) {
+      reasons.push(cfg.reasonText.face_low);
+    } else if (faceMatch < T.faceMatch.pass) {
+      reasons.push(cfg.reasonText.face_borderline);
     }
 
-    // Document checks
-    if (!docValid) {
-      reasons.push("document_invalid");
-      risk -= 40;
-    }
-    if (!expiryValid) {
-      reasons.push("document_expired");
-      risk -= 40;
+    if (liveness < T.liveness.review) {
+      reasons.push(cfg.reasonText.live_low);
+    } else if (liveness < T.liveness.pass) {
+      reasons.push(cfg.reasonText.live_borderline);
     }
 
-    // Final decision from risk thresholds
+    if (quality < T.quality.review) {
+      reasons.push(cfg.reasonText.qual_low);
+    }
+
+    if (!docValid) reasons.push(cfg.reasonText.doc_invalid);
+    if (!expiryValid) reasons.push(cfg.reasonText.doc_expired);
+
+    // --- 5) Final banding ---
+    const finalScore = Math.round(Math.max(0, Math.min(100, score)));
     let decision = "approved";
-    if (risk < config.RISK_THRESHOLDS.REVIEW) {
+    if (finalScore < cfg.bands.review) {
       decision = "rejected";
-    } else if (risk < config.RISK_THRESHOLDS.APPROVED) {
+    } else if (finalScore < cfg.bands.approved) {
       decision = "manual_review";
     }
 
+    // --- 6) Response with breakdown (great for UI + audits) ---
+    const breakdown = {
+      weights: { ...W },
+      inputs: { faceMatch, liveness, quality, docValid, expiryValid },
+      partial: {
+        faceMatch: +(faceMatch * W.faceMatch).toFixed(2),
+        liveness:  +(liveness  * W.liveness ).toFixed(2),
+        quality:   +(quality   * W.quality  ).toFixed(2),
+        docValid:    docValid    ? W.docValid    : 0,
+        expiryValid: expiryValid ? W.expiryValid : 0
+      }
+    };
+
     return res.status(200).json({
       decision,
-      risk_score: Math.max(0, Math.min(100, Math.round(risk))),
+      risk_score: finalScore,
       reasons,
-      echo: { faceMatch, liveness, quality, docValid, expiryValid },
+      breakdown
     });
+
   } catch (e) {
     return res.status(500).json({ error: "internal_error", details: e.message });
   }
