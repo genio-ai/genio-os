@@ -1,3 +1,4 @@
+// pages/test.js
 import { useState } from "react";
 
 export default function Test() {
@@ -28,7 +29,11 @@ export default function Test() {
     const r = await fetch("/api/kyc/biometrics", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, livenessScore: 0.72, selfieMeta: { device: "web" } }),
+      body: JSON.stringify({
+        sessionId,
+        livenessScore: 0.72,
+        selfieMeta: { device: "web" },
+      }),
     });
     log(await r.json());
   }
@@ -43,20 +48,27 @@ export default function Test() {
     log(await r.json());
   }
 
+  // NEW: attest sends only sessionId (server computes hash + txid)
   async function attest() {
     if (!sessionId) return log({ error: "no sessionId" });
-    const canonicalJSON = JSON.stringify({ sessionId, t: Date.now() });
-    const salt = Math.random().toString(36).slice(2, 10);
     const r = await fetch("/api/attest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, canonicalJSON, salt }),
+      body: JSON.stringify({ sessionId }),
     });
     log(await r.json());
   }
 
   return (
-    <main style={{ padding: 20, fontFamily: "Arial, sans-serif", background: "#0B1D3A", minHeight: "100vh", color: "#fff" }}>
+    <main
+      style={{
+        padding: 20,
+        fontFamily: "Arial, sans-serif",
+        background: "#0B1D3A",
+        minHeight: "100vh",
+        color: "#fff",
+      }}
+    >
       <h1>Test KYC API</h1>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
         <button onClick={createSession}>1) Create Session</button>
@@ -68,7 +80,14 @@ export default function Test() {
       <div style={{ marginBottom: 8 }}>
         sessionId: <code>{sessionId || "-"}</code>
       </div>
-      <pre style={{ background: "rgba(255,255,255,0.08)", padding: 12, borderRadius: 8, whiteSpace: "pre-wrap" }}>
+      <pre
+        style={{
+          background: "rgba(255,255,255,0.08)",
+          padding: 12,
+          borderRadius: 8,
+          whiteSpace: "pre-wrap",
+        }}
+      >
         {out}
       </pre>
     </main>
