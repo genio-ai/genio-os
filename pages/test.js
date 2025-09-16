@@ -9,7 +9,7 @@ export default function TestKycAPI() {
 
   async function createSession() {
     try {
-      const r = await fetch("/api/sessions", { method: "POST" });
+      const r = await fetch("/api/kyc/sessions", { method: "POST" });
       const j = await r.json();
       setSessionId(j.sessionId || null);
       push(j);
@@ -39,15 +39,7 @@ export default function TestKycAPI() {
   const disabled = !sessionId;
 
   return (
-    <main
-      style={{
-        padding: 20,
-        fontFamily: "Arial, sans-serif",
-        background: "#0B1D3A",
-        minHeight: "100vh",
-        color: "#fff",
-      }}
-    >
+    <main style={{ padding: 20, fontFamily: "Arial, sans-serif", background: "#0B1D3A", minHeight: "100vh", color: "#fff" }}>
       <h1>Test KYC API</h1>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
@@ -58,7 +50,7 @@ export default function TestKycAPI() {
         <button disabled={disabled} onClick={() => callApi("/api/biometrics")}>
           3) Biometrics
         </button>
-        <button disabled={disabled} onClick={() => callApi("/api/submit")}>
+        <button disabled={disabled} onClick={() => callApi("/api/kyc/submit")}>
           4) Submit
         </button>
         <button disabled={disabled} onClick={() => callApi("/api/attest")}>
@@ -70,14 +62,7 @@ export default function TestKycAPI() {
         sessionId: <code>{sessionId || "-"}</code>
       </div>
 
-      <pre
-        style={{
-          background: "rgba(255,255,255,0.08)",
-          padding: 12,
-          borderRadius: 8,
-          whiteSpace: "pre-wrap",
-        }}
-      >
+      <pre style={{ background: "rgba(255,255,255,0.08)", padding: 12, borderRadius: 8, whiteSpace: "pre-wrap" }}>
         {logs.map((x, i) => (
           <div key={i}>{JSON.stringify(x, null, 2)}</div>
         ))}
