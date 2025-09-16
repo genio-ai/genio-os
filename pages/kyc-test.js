@@ -34,7 +34,6 @@ export default function KycTest() {
     }
   };
 
-  // Presets سريعة
   const setPreset = (type) => {
     if (type === "approved") {
       setFaceMatch(0.88); setLiveness(0.86); setQuality(0.75);
@@ -60,7 +59,7 @@ export default function KycTest() {
   return (
     <div style={box}>
       <h1 style={{margin:0, fontSize:28}}>KYC Decision Sandbox</h1>
-      <p style={{opacity:.9, marginTop:8}}>جرّب القيم وشوف قرار النظام مباشرة.</p>
+      <p style={{opacity:.9, marginTop:8}}>Test different values and see the decision instantly.</p>
 
       <div style={card}>
         <div style={row}>
