@@ -7,65 +7,95 @@ export default function TestKycAPI() {
 
   const push = (obj) => setLogs((prev) => [...prev, obj]);
 
+  // 1) Create Session
   async function createSession() {
     try {
-      const r = await fetch("/api/kyc/sessions", { method: "POST" });
+      const r = await fetch("/api/session", { method: "POST" });
       const j = await r.json();
-      setSessionId(j.sessionId || null);
+      if (j.sessionId) setSessionId(j.sessionId);
       push(j);
     } catch (e) {
-      push({ error: "createSession failed", details: String(e) });
+      push({ error: "createSession failed", details: e.message });
     }
   }
 
-  async function callApi(path, extra = {}) {
-    if (!sessionId) {
-      push({ error: "No sessionId. Click 'Create Session' first." });
-      return;
-    }
+  // 2) Upload Document
+  async function uploadDocument() {
+    if (!sessionId) return push({ error: "⚠️ Please run Create Session first" });
     try {
-      const r = await fetch(path, {
+      const r = await fetch("/api/documents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, ...extra }),
+        body: JSON.stringify({ sessionId, type: "passport" }),
       });
       const j = await r.json();
       push(j);
     } catch (e) {
-      push({ error: `${path} failed`, details: String(e) });
+      push({ error: "uploadDocument failed", details: e.message });
     }
   }
 
-  const disabled = !sessionId;
+  // 3) Biometrics
+  async function biometrics() {
+    if (!sessionId) return push({ error: "⚠️ Please run Create Session first" });
+    try {
+      const r = await fetch("/api/biometrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const j = await r.json();
+      push(j);
+    } catch (e) {
+      push({ error: "biometrics failed", details: e.message });
+    }
+  }
+
+  // 4) Submit
+  async function submit() {
+    if (!sessionId) return push({ error: "⚠️ Please run Create Session first" });
+    try {
+      const r = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const j = await r.json();
+      push(j);
+    } catch (e) {
+      push({ error: "submit failed", details: e.message });
+    }
+  }
+
+  // 5) Attest
+  async function attest() {
+    if (!sessionId) return push({ error: "⚠️ Please run Create Session first" });
+    try {
+      const r = await fetch("/api/attest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const j = await r.json();
+      push(j);
+    } catch (e) {
+      push({ error: "attest failed", details: e.message });
+    }
+  }
 
   return (
-    <main style={{ padding: 20, fontFamily: "Arial, sans-serif", background: "#0B1D3A", minHeight: "100vh", color: "#fff" }}>
+    <main style={{ padding: "20px", fontFamily: "Arial, sans-serif", color: "#fff", background: "#0B1D3A", minHeight: "100vh" }}>
       <h1>Test KYC API</h1>
-
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-        <button onClick={createSession}>1) Create Session</button>
-        <button disabled={disabled} onClick={() => callApi("/api/documents", { type: "passport" })}>
-          2) Upload Document
-        </button>
-        <button disabled={disabled} onClick={() => callApi("/api/biometrics")}>
-          3) Biometrics
-        </button>
-        <button disabled={disabled} onClick={() => callApi("/api/kyc/submit")}>
-          4) Submit
-        </button>
-        <button disabled={disabled} onClick={() => callApi("/api/attest")}>
-          5) Attest
-        </button>
+      <div style={{ marginBottom: 12 }}>
+        <button onClick={createSession}>1) Create Session</button>{" "}
+        <button onClick={uploadDocument}>2) Upload Document</button>{" "}
+        <button onClick={biometrics}>3) Biometrics</button>{" "}
+        <button onClick={submit}>4) Submit</button>{" "}
+        <button onClick={attest}>5) Attest</button>
       </div>
-
-      <div style={{ marginBottom: 8 }}>
-        sessionId: <code>{sessionId || "-"}</code>
-      </div>
-
-      <pre style={{ background: "rgba(255,255,255,0.08)", padding: 12, borderRadius: 8, whiteSpace: "pre-wrap" }}>
-        {logs.map((x, i) => (
-          <div key={i}>{JSON.stringify(x, null, 2)}</div>
-        ))}
+      <div style={{ marginBottom: 12 }}>sessionId: {sessionId || "-"}</div>
+      <pre style={{ background: "#111", padding: 12, borderRadius: 4 }}>
+        {logs.map((l, i) => JSON.stringify(l, null, 2)).join("\n\n")}
       </pre>
     </main>
   );
