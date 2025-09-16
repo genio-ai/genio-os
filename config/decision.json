@@ -1,8 +1,28 @@
 {
-  "FACE_PASS": 0.80,
-  "FACE_REVIEW_MIN": 0.70,
-  "LIVENESS_PASS": 0.75,
-  "LIVENESS_REVIEW_MIN": 0.65,
-  "QUALITY_MIN": 0.60,
-  "RISK_THRESHOLDS": { "APPROVED": 80, "REVIEW": 50 }
+  "weights": {
+    "faceMatch": 40,
+    "liveness": 30,
+    "quality": 15,
+    "docValid": 10,
+    "expiryValid": 5
+  },
+  "thresholds": {
+    "faceMatch": { "pass": 0.80, "review": 0.70 },
+    "liveness":   { "pass": 0.80, "review": 0.70 },
+    "quality":    { "pass": 0.70, "review": 0.60 }
+  },
+  "bands": {
+    "approved": 75,
+    "review": 45
+  },
+  "reasonText": {
+    "face_low": "face_match_below_review",
+    "face_borderline": "face_match_borderline",
+    "live_low": "liveness_below_review",
+    "live_borderline": "liveness_borderline",
+    "qual_low": "poor_quality",
+    "doc_invalid": "document_invalid",
+    "doc_expired": "document_expired",
+    "bad_input": "invalid_input"
+  }
 }
