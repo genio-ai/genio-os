@@ -65,4 +65,12 @@ export default function Test() {
         <button onClick={submit}>4) Submit</button>
         <button onClick={attest}>5) Attest</button>
       </div>
-      <div style={{ marginBottom: 8 }}>sessionId: <code>{sessionId ||
+      <div style={{ marginBottom: 8 }}>
+        sessionId: <code>{sessionId || "-"}</code>
+      </div>
+      <pre style={{ background: "rgba(255,255,255,0.08)", padding: 12, borderRadius: 8, whiteSpace: "pre-wrap" }}>
+        {out}
+      </pre>
+    </main>
+  );
+}
