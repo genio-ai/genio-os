@@ -1,3 +1,4 @@
+// pages/api/decision.js
 import fs from "fs";
 import path from "path";
 
@@ -7,16 +8,27 @@ export default function handler(req, res) {
   }
 
   try {
-    // اقرأ ملف decision.json
+    // Load thresholds from config
     const configPath = path.join(process.cwd(), "config", "decision.json");
     const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
 
-    const { faceMatch, liveness, quality, docValid, expiryValid } = req.body || {};
+    // Read payload
+    const {
+      faceMatch = 0,
+      liveness = 0,
+      quality = 0,
+      docValid = false,
+      expiryValid = false,
+    } = req.body || {};
 
     let reasons = [];
     let risk = 100;
 
-    // Face rules
+    // Face match rules
+    if (typeof faceMatch !== "number" || isNaN(faceMatch)) {
+      reasons.push("invalid_face_match");
+      return res.status(400).json({ error: "invalid_input", reasons });
+    }
     if (faceMatch < config.FACE_REVIEW_MIN) {
       reasons.push("face_match_low");
       risk -= 30;
@@ -26,6 +38,10 @@ export default function handler(req, res) {
     }
 
     // Liveness rules
+    if (typeof liveness !== "number" || isNaN(liveness)) {
+      reasons.push("invalid_liveness");
+      return res.status(400).json({ error: "invalid_input", reasons });
+    }
     if (liveness < config.LIVENESS_REVIEW_MIN) {
       reasons.push("liveness_low");
       risk -= 25;
@@ -34,13 +50,17 @@ export default function handler(req, res) {
       risk -= 10;
     }
 
-    // Quality
+    // Image quality
+    if (typeof quality !== "number" || isNaN(quality)) {
+      reasons.push("invalid_quality");
+      return res.status(400).json({ error: "invalid_input", reasons });
+    }
     if (quality < config.QUALITY_MIN) {
       reasons.push("poor_quality");
       risk -= 10;
     }
 
-    // Document validity
+    // Document checks
     if (!docValid) {
       reasons.push("document_invalid");
       risk -= 40;
@@ -50,7 +70,7 @@ export default function handler(req, res) {
       risk -= 40;
     }
 
-    // Final decision
+    // Final decision from risk thresholds
     let decision = "approved";
     if (risk < config.RISK_THRESHOLDS.REVIEW) {
       decision = "rejected";
@@ -58,12 +78,13 @@ export default function handler(req, res) {
       decision = "manual_review";
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       decision,
-      risk_score: risk,
-      reasons
+      risk_score: Math.max(0, Math.min(100, Math.round(risk))),
+      reasons,
+      echo: { faceMatch, liveness, quality, docValid, expiryValid },
     });
-  } catch (err) {
-    res.status(500).json({ error: "internal_error", details: err.message });
+  } catch (e) {
+    return res.status(500).json({ error: "internal_error", details: e.message });
   }
 }
