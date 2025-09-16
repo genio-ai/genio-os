@@ -1,4 +1,4 @@
-// pages/dashboard.js
+import KycStatusCard from "../components/KycStatusCard";// pages/dashboard.js
 import { useEffect, useState } from "react";
 
 export default function Dashboard() {
