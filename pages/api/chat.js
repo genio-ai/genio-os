@@ -1,115 +1,96 @@
 // pages/api/chat.js
-
 /**
  * Genio Twin Studio — Chat API (Next.js)
- * - Method: POST
- * - Body: { message: string, locale?: "en"|"ar", style?: string }
- * - Response: { reply: string }
+ * Expects:  POST { message: string, locale?: "en" | "ar", style?: string }
+ * Returns:  { reply: string }
  *
  * Notes:
- * - Set OPENAI_API_KEY in your environment (e.g., .env.local)
- * - This endpoint is intentionally minimal: no DB, no auth (add later).
+ * - Uses OpenAI Chat Completions (no extra deps).
+ * - Set OPENAI_API_KEY in Vercel → Project → Settings → Environment Variables.
  */
 
 export default async function handler(req, res) {
-  // Enforce POST only
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
-    return res.status(405).json({ error: "Method Not Allowed" });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Basic validation
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: "Server misconfigured: missing OPENAI_API_KEY." });
+    return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
   }
-
-  let body = {};
-  try {
-    body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-  } catch {
-    return res.status(400).json({ error: "Invalid JSON body." });
-  }
-
-  const message = (body?.message || "").toString().trim();
-  const locale = (body?.locale || "en").toLowerCase() === "ar" ? "ar" : "en";
-  const style = (body?.style || "").toString().trim(); // Optional “Your Style” seed
-
-  if (!message) {
-    return res.status(400).json({ error: "Missing 'message'." });
-  }
-
-  // System prompt (kept short & safe). Uses optional style seed.
-  const systemPrompt =
-    locale === "ar"
-      ? [
-          "أنت مساعد ذكي يمثل Genio Twin.",
-          "أجب بإيجاز ووضوح وابتعد عن الوعود غير الواقعية.",
-          "حافظ على نبرة واثقة ومحترمة.",
-          style ? `اتّبع هذا الأسلوب عند الصياغة: ${style}` : null,
-        ]
-          .filter(Boolean)
-          .join("\n")
-      : [
-          "You are a smart assistant representing Genio Twin.",
-          "Reply briefly and clearly; avoid unrealistic claims.",
-          "Keep a confident, professional tone.",
-          style ? `Adopt this style when phrasing: ${style}` : null,
-        ]
-          .filter(Boolean)
-          .join("\n");
-
-  // Compose messages for Chat Completions
-  const messages = [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: message },
-  ];
 
   try {
-    // Call OpenAI Chat Completions (no streaming here — simple & robust).
-    // You can switch model names later; this is a reasonable default.
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const { message, locale = "en", style = "" } = req.body || {};
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "message is required" });
+    }
+
+    // System guardrails + language & style control
+    const lang = locale === "ar" ? "Arabic" : "English";
+    const styleNote = style
+      ? `Write in the user's style cues:\n${style}\n\n`
+      : "";
+    const systemPrompt = `
+You are "Genio Twin" — a trustworthy AI twin.
+- Language: ${lang}.
+- Review-First: do not promise actions; say "I'll route this for review" for any sensitive requests.
+- Brand guardrails: be clear, helpful, and concise.
+${styleNote}If user asks general questions, answer briefly and to the point.
+    `.trim();
+
+    // Call OpenAI Chat Completions (stable endpoint)
+    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages,
-        temperature: 0.4,
-        max_tokens: 300,
+        model: "gpt-4o-mini", // fast & affordable. You can change later.
+        temperature: 0.7,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message },
+        ],
       }),
     });
 
-    if (!response.ok) {
-      const errText = await response.text().catch(() => "");
-      return res.status(response.status).json({
-        error: "Upstream error from OpenAI.",
-        details: safeSlice(errText, 1000),
+    if (!resp.ok) {
+      const text = await safeText(resp);
+      return res.status(resp.status).json({ error: `OpenAI error: ${text}` });
+    }
+
+    const data = await resp.json();
+    const reply =
+      data?.choices?.[0]?.message?.content?.toString().trim() || "";
+
+    if (!reply) {
+      return res.status(200).json({
+        reply:
+          locale === "ar"
+            ? "تعذر توليد ردّ. حاول مرة أخرى."
+            : "I couldn’t generate a reply. Please try again.",
       });
     }
 
-    const data = await response.json();
-    const reply =
-      data?.choices?.[0]?.message?.content?.toString().trim() ||
-      (locale === "ar" ? "لم أتمكّن من توليد رد." : "I couldn’t generate a response.");
-
-    // Minimal success response
     return res.status(200).json({ reply });
   } catch (err) {
+    console.error("Chat API error:", err);
     return res.status(500).json({
-      error: "Unexpected server error.",
-      details: err?.message || String(err),
+      error: "Server error",
+      reply:
+        (req.body?.locale === "ar"
+          ? "حدث خطأ غير متوقع. حاول لاحقًا."
+          : "Unexpected error. Please try again later."),
     });
   }
 }
 
-// Small helper to prevent huge error payloads
-function safeSlice(str, max = 500) {
+async function safeText(resp) {
   try {
-    return (str || "").slice(0, max);
+    return await resp.text();
   } catch {
-    return "";
+    return "<no body>";
   }
 }
