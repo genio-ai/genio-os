@@ -1,8 +1,6 @@
-// /pages/api/check-key.js
 export default function handler(req, res) {
-  if (process.env.OPENAI_API_KEY) {
-    res.status(200).json({ status: "✅ Key موجود", length: process.env.OPENAI_API_KEY.length });
-  } else {
-    res.status(500).json({ status: "❌ Key مش موجود" });
-  }
+  res.status(200).json({
+    env: process.env.VERCEL_ENV || "local",
+    allKeys: Object.keys(process.env)   // اطبع كل أسماء المتغيرات الموجودة
+  });
 }
