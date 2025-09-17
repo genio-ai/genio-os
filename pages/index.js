@@ -6,7 +6,6 @@ import {useMemo, useState} from "react";
  * - Pure React + CSS-in-file (no Tailwind, no extra deps)
  * - Bilingual EN/AR with instant toggle and automatic RTL/LTR
  * - Landing + Mini Onboarding + Demo Sandbox in one page
- * - Clean, readable, production-style structure
  */
 
 export default function Home() {
@@ -21,13 +20,17 @@ export default function Home() {
       hero_sub: "It writes, speaks, appears, and responds for you — 24/7.",
       hero_cta: "✨ Create My Twin",
       steps_title: "Create your twin in 3 steps",
-      step1_title: "Style Seeds",
-      step1_desc: "Paste 3–5 short lines that sound like you.",
+      // CHANGED ↓
+      step1_title: "Your Style",
+      step1_desc: "Write 3–5 short lines that capture how you speak.",
+      // END CHANGE
       step2_title: "Voice Sample",
       step2_desc: "Record or upload a 5–10 min clear voice sample.",
+      // CHANGED ↓ (keep same English label, only AR changed)
       step3_title: "Generate Twin (Demo)",
       step3_desc: "We’ll simulate your twin for a quick test.",
       generate_btn: "Generate Twin (Demo)",
+      // END CHANGE
       sandbox_title: "Try your twin (Demo)",
       sandbox_placeholder: "Ask your twin something…",
       sandbox_send: "Send",
@@ -49,13 +52,17 @@ export default function Home() {
       hero_sub: "يكتب، يتكلم، يظهر، ويجيب عنك — على مدار الساعة.",
       hero_cta: "✨ أنشئ توأمي",
       steps_title: "أنشئ توأمك بثلاث خطوات",
-      step1_title: "بذور الأسلوب",
-      step1_desc: "الصق 3–5 جُمل قصيرة تعبّر عن أسلوبك.",
+      // CHANGED ↓
+      step1_title: "أسلوبك",
+      step1_desc: "اكتب ٣–٥ جمل قصيرة تعبّر عن طريقتك بالكلام.",
+      // END CHANGE
       step2_title: "عينة صوت",
       step2_desc: "سجّل أو ارفع 5–10 دقائق بصوت واضح.",
-      step3_title: "ولّد التوأم (تجريبي)",
+      // CHANGED ↓ (AR wording)
+      step3_title: "أنشئ التوأم (تجريبي)",
       step3_desc: "ننشئ محاكاة سريعة لتجربة التوأم.",
-      generate_btn: "ولّد التوأم (تجريبي)",
+      generate_btn: "أنشئ التوأم (تجريبي)",
+      // END CHANGE
       sandbox_title: "جرّب توأمك (تجريبي)",
       sandbox_placeholder: "اسأل توأمك سؤالًا…",
       sandbox_send: "إرسال",
@@ -101,12 +108,8 @@ export default function Home() {
         .filter(Boolean)[0] || "";
     const reply =
       locale === "ar"
-        ? `فهمت: “${q}”. ${
-            seed ? `أسلوب الرد: ${seed}` : "سأجيب بإيجاز وبشكل مباشر."
-          }`
-        : `Got it: “${q}”. ${
-            seed ? `Reply vibe: ${seed}` : "Replying briefly and directly."
-          }`;
+        ? `فهمت: “${q}”. ${seed ? `أسلوب الرد: ${seed}` : "سأجيب بإيجاز وبشكل مباشر."}`
+        : `Got it: “${q}”. ${seed ? `Reply vibe: ${seed}` : "Replying briefly and directly."}`;
     setTimeout(() => {
       setChat((c) => [...c, {role: "assistant", content: reply}]);
     }, 200);
@@ -155,7 +158,7 @@ export default function Home() {
                 className="inputArea"
                 placeholder={
                   locale === "ar"
-                    ? "اكتب كل سطر في جملة قصيرة…"
+                    ? "اكتب كل سطر كجملة قصيرة…"
                     : "One short line per style cue…"
                 }
                 value={styleSeeds}
@@ -170,14 +173,11 @@ export default function Home() {
                 <input
                   type="file"
                   accept="audio/*"
-                  onChange={(e) =>
-                    setVoiceFileName(e.target.files?.[0]?.name || "")
-                  }
+                  onChange={(e) => setVoiceFileName(e.target.files?.[0]?.name || "")}
                 />
                 <span>
                   {voiceFileName
-                    ? (locale === "ar" ? "تم اختيار: " : "Selected: ") +
-                      voiceFileName
+                    ? (locale === "ar" ? "تم اختيار: " : "Selected: ") + voiceFileName
                     : locale === "ar"
                     ? "اختر ملف صوتي (اختياري للتجربة)"
                     : "Choose audio file (optional for demo)"}
@@ -191,9 +191,7 @@ export default function Home() {
               <button className="cta full" onClick={handleGenerate}>
                 {t.generate_btn}
               </button>
-              {twinReady && (
-                <p className="ok">{t.toast_generated}</p>
-              )}
+              {twinReady && <p className="ok">{t.toast_generated}</p>}
             </div>
           </div>
         </div>
@@ -207,10 +205,7 @@ export default function Home() {
           <div className="chatBox">
             <div className="chatScroll">
               {chat.map((m, i) => (
-                <div
-                  key={i}
-                  className={`bubble ${m.role === "user" ? "you" : "bot"}`}
-                >
+                <div key={i} className={`bubble ${m.role === "user" ? "you" : "bot"}`}>
                   {m.content}
                 </div>
               ))}
@@ -254,7 +249,7 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Styles (scoped + global reset) */}
+      {/* Styles */}
       <style jsx global>{`
         :root{
           --bg:#0b1d3a;
