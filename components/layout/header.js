@@ -11,7 +11,7 @@ export default function Header() {
         </Link>
 
         {/* Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="flex items-center space-x-6">
           <Link href="/about" className="hover:text-yellow-400">
             About
           </Link>
