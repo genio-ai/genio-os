@@ -1,170 +1,139 @@
-// pages/index.js
-import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import TwinModal from "../components/TwinModal";
+import SystemChat from "../components/SystemChat";
 
-export default function HomePage() {
-  const [showTwinModal, setShowTwinModal] = useState(false);
-
+export default function Home() {
   return (
     <>
       <Head>
-        <title>Genio — Create Your Smart Twin</title>
+        <title>Genio · Build Your AI Twin</title>
         <meta
           name="description"
-          content="Create an AI twin that writes, speaks, and responds like you — 24/7."
+          content="Genio helps you create your AI Twin — a smarter, always-on version of you."
         />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.headerInner}>
-          <Link href="/" style={styles.brand} aria-label="Genio Home">
-            Genio
-          </Link>
-
-          <nav aria-label="Primary" style={styles.nav}>
-            <Link href="/login" style={styles.navLink}>
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              style={{ ...styles.navLink, ...styles.signup }}
-            >
-              Sign up
-            </Link>
+      <main className="wrap">
+        {/* Header */}
+        <header className="header">
+          <Link href="/" className="brand">Genio</Link>
+          <nav className="nav">
+            <Link href="/about" className="navLink">About</Link>
+            <Link href="/support" className="navLink">Support</Link>
+            <Link href="/auth/login" className="btn ghost">Log in</Link>
+            <Link href="/auth/signup" className="btn primary">Sign up</Link>
           </nav>
-        </div>
-      </header>
+        </header>
 
-      {/* Hero */}
-      <main style={styles.main}>
-        <section style={styles.hero}>
-          <h1 style={styles.title}>
-            Create your smart twin… a better version of you
-          </h1>
-          <p style={styles.subtitle}>
-            It writes, speaks, appears, and responds for you — 24/7.
+        {/* Hero */}
+        <section className="hero">
+          <h1>Meet Your AI Twin</h1>
+          <p>
+            A smarter version of you — available 24/7 to answer, draft, and
+            connect in your own style.
           </p>
-
-          <button
-            type="button"
-            onClick={() => setShowTwinModal(true)}
-            style={styles.cta}
-            aria-haspopup="dialog"
-            aria-expanded={showTwinModal ? "true" : "false"}
-            aria-controls="twin-modal"
-          >
-            Create My Twin
-          </button>
+          <div className="cta">
+            <Link href="/auth/signup" className="btn primary big">
+              Create My Twin
+            </Link>
+          </div>
         </section>
+
+        {/* Footer */}
+        <footer className="footer">
+          <p>© {new Date().getFullYear()} Genio · All rights reserved.</p>
+        </footer>
       </main>
 
-      <footer style={styles.footer}>
-        <small style={{ opacity: 0.7 }}>
-          © {new Date().getFullYear()} Genio Systems. All rights reserved.
-        </small>
-      </footer>
+      {/* System Chat */}
+      <SystemChat />
 
-      {showTwinModal && (
-        <TwinModal
-          id="twin-modal"
-          onClose={() => setShowTwinModal(false)}
-        />
-      )}
+      <style jsx>{`
+        .wrap {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          background: #0a1730;
+          color: #e6eef8;
+        }
+        .header {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px 24px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .brand {
+          font-size: 22px;
+          font-weight: 800;
+          color: #fff;
+          text-decoration: none;
+        }
+        .nav {
+          display: flex;
+          gap: 14px;
+          align-items: center;
+        }
+        .navLink {
+          color: #c9d6e5;
+          text-decoration: none;
+          font-size: 15px;
+        }
+        .btn {
+          border-radius: 10px;
+          padding: 8px 16px;
+          font-weight: 600;
+          text-decoration: none;
+        }
+        .btn.ghost {
+          border: 1px solid #ffd54d;
+          color: #ffd54d;
+        }
+        .btn.ghost:hover {
+          background: #ffd54d22;
+        }
+        .btn.primary {
+          background: #ffd54d;
+          color: #0a1730;
+        }
+        .btn.primary:hover {
+          filter: brightness(0.95);
+        }
+        .btn.big {
+          font-size: 18px;
+          padding: 12px 24px;
+        }
+        .hero {
+          flex: 1;
+          max-width: 960px;
+          margin: 0 auto;
+          padding: 80px 20px;
+          text-align: center;
+        }
+        .hero h1 {
+          font-size: 48px;
+          margin-bottom: 20px;
+          background: linear-gradient(90deg, #ffd54d, #ffae00);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+          color: #c9d6e5;
+          font-size: 20px;
+          margin-bottom: 32px;
+        }
+        .cta {
+          margin-top: 20px;
+        }
+        .footer {
+          border-top: 1px solid #22304a;
+          padding: 20px;
+          text-align: center;
+          color: #93a7c4;
+          font-size: 14px;
+        }
+      `}</style>
     </>
   );
 }
-
-const styles = {
-  header: {
-    position: "sticky",
-    top: 0,
-    width: "100%",
-    background: "rgba(5, 20, 45, 0.9)",
-    backdropFilter: "blur(6px)",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
-    zIndex: 40,
-  },
-  headerInner: {
-    maxWidth: 1120,
-    margin: "0 auto",
-    padding: "14px 20px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  brand: {
-    color: "white",
-    fontWeight: 800,
-    letterSpacing: "0.4px",
-    textDecoration: "none",
-    fontSize: 20,
-  },
-  nav: {
-    display: "flex",
-    gap: 12,
-    alignItems: "center",
-  },
-  navLink: {
-    color: "white",
-    textDecoration: "none",
-    padding: "8px 12px",
-    borderRadius: 8,
-    fontSize: 14,
-    border: "1px solid rgba(255,255,255,0.15)",
-  },
-  signup: {
-    background: "#ffd54d",
-    color: "#1b1b1b",
-    border: "1px solid #ffd54d",
-    fontWeight: 700,
-  },
-  main: {
-    minHeight: "calc(100vh - 140px)",
-    background:
-      "radial-gradient(1200px 600px at 50% 10%, rgba(255,255,255,0.06), rgba(5, 15, 35, 1))",
-  },
-  hero: {
-    maxWidth: 1120,
-    margin: "0 auto",
-    padding: "80px 20px 64px",
-    textAlign: "left",
-    color: "white",
-  },
-  title: {
-    fontSize: 40,
-    lineHeight: 1.2,
-    fontWeight: 800,
-    margin: 0,
-    letterSpacing: "0.3px",
-  },
-  subtitle: {
-    marginTop: 16,
-    fontSize: 18,
-    opacity: 0.9,
-    maxWidth: 680,
-  },
-  cta: {
-    marginTop: 28,
-    display: "inline-block",
-    background: "#ffd54d",
-    color: "#151515",
-    fontWeight: 800,
-    border: "none",
-    padding: "14px 22px",
-    borderRadius: 12,
-    cursor: "pointer",
-    fontSize: 16,
-    boxShadow: "0 6px 16px rgba(255, 213, 77, 0.25)",
-  },
-  footer: {
-    borderTop: "1px solid rgba(255,255,255,0.06)",
-    background: "rgba(5, 20, 45, 1)",
-    color: "white",
-    textAlign: "center",
-    padding: "18px 12px",
-  },
-};
