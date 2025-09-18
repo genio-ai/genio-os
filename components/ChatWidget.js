@@ -1,197 +1,77 @@
 // components/ChatWidget.js
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import styles from "../styles/hero.module.css";
 
-export default function ChatWidget({ initialGreeting = "Hi, I'm your AI Twin. I'm here to help. Ask me anything before you sign up." }) {
-  const [open, setOpen] = useState(true);
+export default function ChatWidget({ welcome = "How can I help?" }) {
+  const [open, setOpen] = useState(false);
+  const [msgs, setMsgs] = useState([{ role: "assistant", content: welcome }]);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([
-    { role: "assistant", content: initialGreeting, id: "greet" },
-  ]);
-  const listRef = useRef(null);
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (listRef.current) {
-      listRef.current.scrollTop = listRef.current.scrollHeight;
-    }
-  }, [messages, open]);
-
-  async function sendMessage() {
-    const text = input.trim();
-    if (!text) return;
-    const userMsg = { role: "user", content: text, id: `u-${Date.now()}` };
-    setMessages((m) => [...m, userMsg]);
+  async function send() {
+    if (!input.trim() || busy) return;
+    const userMsg = { role: "user", content: input.trim() };
+    setMsgs((m) => [...m, userMsg]);
     setInput("");
-
-    // Try backend first; fall back to a local smart reply if backend is unavailable
+    setBusy(true);
     try {
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), 8000);
-
-      const res = await fetch("/api/chat", {
+      const r = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
-        signal: controller.signal,
+        body: JSON.stringify({ message: userMsg.content }),
       });
-      clearTimeout(t);
-
-      let replyText = "";
-      if (res.ok) {
-        const data = await res.json();
-        // Accept multiple common shapes
-        replyText =
-          data.reply ||
-          data.message ||
-          data?.choices?.[0]?.message?.content ||
-          "Thanks — noted.";
-      } else {
-        replyText = smartLocalReply(text);
-      }
-
-      setMessages((m) => [
+      const data = await r.json();
+      const reply =
+        data.reply ||
+        data?.choices?.[0]?.message?.content ||
+        "I'm here to help.";
+      setMsgs((m) => [...m, { role: "assistant", content: reply }]);
+    } catch (e) {
+      setMsgs((m) => [
         ...m,
-        { role: "assistant", content: replyText, id: `a-${Date.now()}` },
+        { role: "assistant", content: "Sorry—something went wrong." },
       ]);
-    } catch {
-      const replyText = smartLocalReply(text);
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", content: replyText, id: `a-${Date.now()}` },
-      ]);
-    }
-  }
-
-  function smartLocalReply(text) {
-    const s = text.toLowerCase();
-    if (s.includes("price") || s.includes("cost")) {
-      return "We’ll share pricing after sign up. Create your account to see plans and usage details.";
-    }
-    if (s.includes("how") && s.includes("work")) {
-      return "Your Twin mirrors your tone and routines. Start by writing your style, add a short voice clip, and we’ll simulate it locally. Nothing is shared outside our system.";
-    }
-    if (s.includes("privacy") || s.includes("data")) {
-      return "Your raw data stays inside Genio. We don’t share phone numbers or media. You control consents in your dashboard.";
-    }
-    if (s.includes("create") || s.includes("start")) {
-      return "Tap “Create My Twin” to begin. I’ll guide you step-by-step.";
-    }
-    return "Got it. Would you like me to walk you through creating your Twin now?";
-  }
-
-  function onKey(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
     <>
-      {/* Floating toggle button (mobile-friendly) */}
-      <button
-        type="button"
-        aria-label="Open assistant"
-        onClick={() => setOpen((o) => !o)}
-        style={{
-          position: "fixed",
-          right: 20,
-          bottom: 20,
-          zIndex: 60,
-          padding: "10px 14px",
-          borderRadius: 999,
-          background: "#facc15", // yellow
-          border: "none",
-          boxShadow: "0 8px 24px rgba(0,0,0,.18)",
-          fontWeight: 600,
-        }}
-      >
-        {open ? "Hide assistant" : "Need help?"}
-      </button>
+      {!open && (
+        <button className={styles.helpFab} onClick={() => setOpen(true)}>
+          Need help?
+        </button>
+      )}
 
-      {/* Panel */}
       {open && (
-        <div
-          style={{
-            position: "fixed",
-            right: 20,
-            bottom: 80,
-            width: 360,
-            maxWidth: "92vw",
-            height: 420,
-            maxHeight: "60vh",
-            background: "#0f172a", // dark
-            color: "#e5e7eb",
-            border: "1px solid rgba(255,255,255,.08)",
-            borderRadius: 16,
-            boxShadow: "0 12px 32px rgba(0,0,0,.35)",
-            display: "flex",
-            flexDirection: "column",
-            zIndex: 59,
-          }}
-        >
-          <div style={{ padding: 12, borderBottom: "1px solid rgba(255,255,255,.06)", fontWeight: 700 }}>
-            Genio Assistant
+        <div className={styles.chatPanel}>
+          <div className={styles.chatHead}>
+            <strong>Genio Assistant</strong>
+            <button onClick={() => setOpen(false)} className={styles.xBtn}>
+              ×
+            </button>
           </div>
-
-          <div
-            ref={listRef}
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: 12,
-              gap: 8,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            {messages.map((m) => (
+          <div className={styles.chatBody}>
+            {msgs.map((m, i) => (
               <div
-                key={m.id}
-                style={{
-                  alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                  background: m.role === "user" ? "#1d4ed8" : "rgba(255,255,255,.06)",
-                  color: "#fff",
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  maxWidth: "85%",
-                  whiteSpace: "pre-wrap",
-                  lineHeight: 1.35,
-                }}
+                key={i}
+                className={
+                  m.role === "assistant" ? styles.bubbleAI : styles.bubbleUser
+                }
               >
                 {m.content}
               </div>
             ))}
           </div>
-
-          <div style={{ padding: 12, borderTop: "1px solid rgba(255,255,255,.06)", display: "flex", gap: 8 }}>
-            <textarea
+          <div className={styles.chatInputRow}>
+            <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKey}
               placeholder="Type your message…"
-              style={{
-                flex: 1,
-                resize: "none",
-                height: 44,
-                padding: "10px 12px",
-                borderRadius: 10,
-                border: "1px solid rgba(255,255,255,.12)",
-                background: "rgba(255,255,255,.03)",
-                color: "#e5e7eb",
-              }}
+              onKeyDown={(e) => e.key === "Enter" && send()}
             />
-            <button
-              type="button"
-              onClick={sendMessage}
-              style={{
-                padding: "10px 14px",
-                borderRadius: 10,
-                border: "none",
-                background: "#facc15",
-                color: "#111827",
-                fontWeight: 700,
-              }}
-            >
+            <button onClick={send} disabled={busy}>
               Send
             </button>
           </div>
