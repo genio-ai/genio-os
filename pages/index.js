@@ -1,79 +1,86 @@
 // pages/index.js
+import { useState } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import Header from "../components/header";
-import Hero from "../components/home/hero";
-import Features from "../components/home/features";
-import ChatWidget from "../components/ChatWidget";
-import TwinModal from "../components/TwinModal";
+import WhatIsTwinModal from "../components/home/WhatIsTwinModal";
 
-export default function HomePage() {
+export default function Home() {
+  const [openInfo, setOpenInfo] = useState(false);
+
   return (
     <>
       <Head>
         <title>Genio — Create your smart twin</title>
-        <meta
-          name="description"
-          content="Build your AI twin from your style, voice, and preferences. Private by design. 24/7 on-brand responses."
-        />
+        <meta name="description" content="Build your AI Twin: it writes, speaks, and responds 24/7 with your style, tone, and preferences." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta property="og:title" content="Genio — Create your smart twin" />
-        <meta
-          property="og:description"
-          content="A smarter version of you — writes, speaks, appears, and responds 24/7."
-        />
-        <meta property="og:type" content="website" />
       </Head>
 
-      {/* Site header (sticky, shared across pages) */}
+      {/* Fixed Header */}
       <Header />
 
-      {/* Main content */}
-      <main role="main">
-        {/* Hero section: headline + background visual + primary CTA */}
-        <Hero />
-
-        {/* Feature highlights: privacy-first, 24/7 availability, multi-channel, etc. */}
-        <Features />
-      </main>
-
-      {/* Footer (simple, keep in index to avoid global coupling) */}
-      <footer
-        role="contentinfo"
+      {/* Page Content */}
+      <main
         style={{
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-          padding: "32px 20px",
-          marginTop: 32,
-          opacity: 0.9,
+          minHeight: "100vh",
+          paddingTop: 80, // keeps content below header
+          background: "#08162e",
+          color: "#e6f0ff",
         }}
       >
-        <div
-          style={{
-            maxWidth: 1120,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <span style={{ fontSize: 14 }}>
-            © {new Date().getFullYear()} Genio Systems. All rights reserved.
-          </span>
-          <nav aria-label="Footer">
-            <a href="/terms" style={{ marginRight: 16 }}>
-              Terms
-            </a>
-            <a href="/privacy">Privacy</a>
-          </nav>
-        </div>
-      </footer>
+        {/* Hero Section */}
+        <section style={{ maxWidth: 1120, margin: "0 auto", padding: "40px 16px" }}>
+          <h1 style={{ fontSize: 46, lineHeight: "1.1", marginBottom: 16 }}>
+            Create your smart twin
+          </h1>
+          <p
+            style={{
+              maxWidth: 720,
+              fontSize: 18,
+              lineHeight: "28px",
+              color: "rgba(230,240,255,.85)",
+              marginBottom: 24,
+            }}
+          >
+            It writes, speaks, appears, and responds for you — 24/7. 
+            Built from your style, voice, and preferences. Private by design.
+          </p>
 
-      {/* On-page assistant: welcomes and answers pre-signup questions */}
-      <ChatWidget initialMessage="Hi, I'm your AI Twin. I'm here to help. Ask me anything before you sign up." />
+          {/* Call To Action Buttons */}
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <Link href="/twin" style={ctaPrimary}>
+              Create My Twin
+            </Link>
+            <button onClick={() => setOpenInfo(true)} style={ctaGhost}>
+              How it works
+            </button>
+          </div>
+        </section>
+      </main>
 
-      {/* Twin creation modal is kept mounted for fast open */}
-      <TwinModal />
+      {/* Modal */}
+      <WhatIsTwinModal open={openInfo} onClose={() => setOpenInfo(false)} />
     </>
   );
 }
+
+const ctaPrimary = {
+  textDecoration: "none",
+  background: "#ffd166",
+  color: "#0b1220",
+  padding: "14px 20px",
+  borderRadius: 12,
+  fontWeight: 700,
+  fontSize: 16,
+};
+
+const ctaGhost = {
+  background: "transparent",
+  border: "1px solid rgba(255,255,255,.2)",
+  color: "#fff",
+  padding: "14px 20px",
+  borderRadius: 12,
+  fontWeight: 600,
+  fontSize: 16,
+  cursor: "pointer",
+};
