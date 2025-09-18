@@ -1,5 +1,7 @@
 export default async function handler(req, res) {
   try {
+    const userMessage = req.query.msg || "Hello, are you working?";
+
     const r = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -8,7 +10,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [{ role: "user", content: "Hello, are you working?" }],
+        messages: [{ role: "user", content: userMessage }],
       }),
     });
 
