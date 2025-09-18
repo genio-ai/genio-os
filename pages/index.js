@@ -1,356 +1,417 @@
 // pages/index.js
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+/** Helper: read/write local auth & profile safely */
+const AUTH_FLAG = "genio.auth";          // set to "1" after your real login flow
+const PROFILE_KEY = "genio.profile";     // style + filenames
+const CONSENTS_KEY = "genio.consents";   // tos + ai_text + marketing
 
 export default function Home() {
-  const [locale, setLocale] = useState("en");
+  // Core state
+  const [styleText, setStyleText] = useState("");
+  const [audioFile, setAudioFile] = useState(null);
+  const [isAuthed, setIsAuthed] = useState(false);
 
-  const t = useMemo(() => {
-    const en = {
-      dir: "ltr",
-      brand: "Genio Twin Studio",
-      langToggle: "العربية",
-      hero_title: "Create your smart twin… a better version of you",
-      hero_sub: "It writes, speaks, appears, and responds for you — 24/7.",
-      hero_cta: "✨ Create My Twin",
-      steps_title: "Create your twin in 3 steps",
-      step1_title: "Your Style",
-      step1_desc: "Write 3–5 short lines that capture how you speak.",
-      step2_title: "Voice Sample",
-      step2_desc: "Record or upload a 5–10 min clear voice sample.",
-      step3_title: "Generate Twin (Demo)",
-      step3_desc: "We’ll simulate your twin for a quick test.",
-      generate_btn: "Generate Twin (Demo)",
-      sandbox_title: "Try your twin (Demo)",
-      sandbox_placeholder: "Ask your twin something…",
-      sandbox_send: "Send",
-      trust_title: "Why trust Genio Twin?",
-      trust_b1: "No stock faces. No generic posts. Your voice, your rules.",
-      trust_b2: "Review-First by default: nothing publishes without approval.",
-      trust_b3: "Brand guardrails: tone, templates, and visual system enforced.",
-      footer_note: "Your twin. Your presence. 24/7.",
-      footer_cta: "Start Now",
-      toast_generated: "Demo twin is ready.",
-      toast_needSeeds: "Please add at least 1 style line.",
-      nav_about: "About",
-      nav_support: "Support",
-      nav_login: "Login",
-      nav_chat: "Chat",
-      disclaimer_title: "Disclaimer",
-      disclaimer_text:
-        "This is a demo experience. AI may be inaccurate. Nothing is posted or sent without explicit approval.",
-      disclaimer_close: "Close",
-      footer_rights: "© 2025 Genio Systems. All rights reserved.",
-      footer_privacy: "Privacy",
-      footer_terms: "Terms",
-      footer_disclaimer: "Disclaimer",
-    };
+  // Consents
+  const [showConsents, setShowConsents] = useState(false);
+  const [consentTOS, setConsentTOS] = useState(false);
+  const [consentAIText, setConsentAIText] = useState(false);
+  const [consentMarketing, setConsentMarketing] = useState(false);
 
-    const ar = {
-      dir: "rtl",
-      brand: "Genio Twin Studio",
-      langToggle: "ENGLISH",
-      hero_title: "اصنع توأمك الذكي… نسخة محسّنة منك",
-      hero_sub: "يكتب، يتكلم، يظهر، ويرد عنك — على مدار الساعة.",
-      hero_cta: "✨ أنشئ توأمي",
-      steps_title: "أنشئ توأمك بثلاث خطوات",
-      step1_title: "أسلوبك",
-      step1_desc: "اكتب ٣–٥ جمل قصيرة تعبّر عن طريقتك بالكلام.",
-      step2_title: "عينة صوت",
-      step2_desc: "سجّل أو ارفع 5–10 دقائق بصوت واضح.",
-      step3_title: "أنشئ التوأم (تجريبي)",
-      step3_desc: "ننشئ محاكاة سريعة لتجربة التوأم.",
-      generate_btn: "أنشئ التوأم (تجريبي)",
-      sandbox_title: "جرّب توأمك (تجريبي)",
-      sandbox_placeholder: "اسأل توأمك سؤالًا…",
-      sandbox_send: "إرسال",
-      trust_title: "لماذا تثق بـ Genio Twin؟",
-      trust_b1: "بدون وجوه ستوك. بدون قوالب عامة. صوتك وقواعدك أنت.",
-      trust_b2: "وضع المراجعة أولًا: لا يُنشر شيء دون موافقتك.",
-      trust_b3: "حماية العلامة: نبرة، قوالب، ونظام بصري مُلزم.",
-      footer_note: "توأمك. حضورك. طوال الوقت.",
-      footer_cta: "ابدأ الآن",
-      toast_generated: "تم تجهيز التوأم التجريبي.",
-      toast_needSeeds: "رجاءً أضف سطرًا واحدًا على الأقل.",
-      nav_about: "من نحن",
-      nav_support: "الدعم",
-      nav_login: "تسجيل الدخول",
-      nav_chat: "المحادثة",
-      disclaimer_title: "تنبيه",
-      disclaimer_text:
-        "هذه تجربة تجريبية. قد تحتوي ردود الذكاء الاصطناعي على أخطاء. لا يتم نشر أو إرسال أي شيء دون موافقة صريحة.",
-      disclaimer_close: "إغلاق",
-      footer_rights: "© 2025 Genio Systems. جميع الحقوق محفوظة.",
-      footer_privacy: "الخصوصية",
-      footer_terms: "الشروط",
-      footer_disclaimer: "إخلاء مسؤولية",
-    };
+  // Save UX
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedTick, setSavedTick] = useState(false);
 
-    return locale === "ar" ? ar : en;
-  }, [locale]);
+  // Video recording
+  const [recStream, setRecStream] = useState(null);
+  const [recorder, setRecorder] = useState(null);
+  const recChunksRef = useRef([]);
+  const [videoBlob, setVideoBlob] = useState(null);
+  const videoPreviewRef = useRef(null);
 
-  const [styleSeeds, setStyleSeeds] = useState("");
-  const [voiceFileName, setVoiceFileName] = useState("");
-  const [twinReady, setTwinReady] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-  const [chat, setChat] = useState([]);
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  // Load local state
+  useEffect(() => {
+    const auth = localStorage.getItem(AUTH_FLAG);
+    setIsAuthed(!!auth);
 
-  const handleGenerate = () => {
-    if (!styleSeeds.trim()) {
-      alert(t.toast_needSeeds);
-      return;
+    const saved = localStorage.getItem(PROFILE_KEY);
+    if (saved) {
+      try {
+        const obj = JSON.parse(saved);
+        if (obj.styleText) setStyleText(obj.styleText);
+      } catch {}
     }
-    setTwinReady(true);
-    alert(t.toast_generated);
-  };
 
-  const handleSend = async () => {
-    const q = chatInput.trim();
-    if (!q) return;
-    setChat((c) => [...c, { role: "user", content: q }]);
-    setChatInput("");
+    const cons = localStorage.getItem(CONSENTS_KEY);
+    if (cons) {
+      try {
+        const c = JSON.parse(cons);
+        setConsentTOS(!!c.tos);
+        setConsentAIText(!!c.ai_text_opt_in);
+        setConsentMarketing(!!c.marketing_opt_in);
+      } catch {}
+    }
+  }, []);
+
+  /** Save profile locally + send best-effort to backend */
+  async function handleSave() {
+    if (!styleText.trim()) return;
+    setIsSaving(true);
+
+    // 1) Local save
+    const payload = {
+      styleText: styleText.trim(),
+      audioName: audioFile?.name || null,
+      videoName: videoBlob ? "capture.webm" : null,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(payload));
+
+    // 2) Server save (best-effort, safe to skip if backend not ready yet)
     try {
-      const res = await fetch("/api/chat", {
+      const form = new FormData();
+      form.append("styleText", payload.styleText);
+      if (audioFile) form.append("audio", audioFile);
+      if (videoBlob) form.append("video", videoBlob, "capture.webm");
+
+      await fetch("/api/profile", { method: "POST", body: form });
+    } catch {
+      // ignore for now (local copy is already saved)
+    }
+
+    setIsSaving(false);
+    setSavedTick(true);
+    setTimeout(() => setSavedTick(false), 1500);
+  }
+
+  /** Consents modal: persist locally + notify backend (optional) */
+  async function confirmConsents() {
+    if (!consentTOS) return; // must accept TOS
+    const cons = {
+      tos: true,
+      ai_text_opt_in: !!consentAIText,
+      marketing_opt_in: !!consentMarketing,
+      ts: new Date().toISOString(),
+    };
+    localStorage.setItem(CONSENTS_KEY, JSON.stringify(cons));
+    setShowConsents(false);
+
+    // best-effort server notify
+    try {
+      await fetch("/api/consents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: q,
-          locale,
-          style: styleSeeds,
-        }),
+        body: JSON.stringify(cons),
       });
-      const data = await res.json();
-      const reply =
-        data?.reply ||
-        (locale === "ar" ? "تعذّر توليد رد." : "No reply available.");
-      setChat((c) => [...c, { role: "assistant", content: reply }]);
-    } catch {
-      setChat((c) => [
-        ...c,
-        {
-          role: "assistant",
-          content:
-            locale === "ar"
-              ? "حدث خطأ غير متوقع."
-              : "An unexpected error occurred.",
-        },
-      ]);
+    } catch {}
+  }
+
+  /** Create Twin: gated by auth + TOS + saved style */
+  async function onCreateTwin() {
+    if (!isAuthed) {
+      alert("Please log in first to bind the Twin to your account.");
+      return;
     }
-  };
+    if (!consentTOS) {
+      setShowConsents(true);
+      return;
+    }
+    if (!styleText.trim()) {
+      alert("Please write your Style profile and click Save first.");
+      return;
+    }
+    // Redirect or call your Twin creation endpoint
+    window.location.href = "/chat";
+  }
 
+  /** Video: start recording from camera + mic */
+  async function startRecording() {
+    if (recorder) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 360 },
+        audio: true,
+      });
+      setRecStream(stream);
+      const mr = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9,opus" });
+      recChunksRef.current = [];
+      mr.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) recChunksRef.current.push(e.data);
+      };
+      mr.onstop = () => {
+        const blob = new Blob(recChunksRef.current, { type: "video/webm" });
+        setVideoBlob(blob);
+        // attach to preview
+        if (videoPreviewRef.current) {
+          videoPreviewRef.current.src = URL.createObjectURL(blob);
+          videoPreviewRef.current.play().catch(() => {});
+        }
+        // stop tracks
+        if (stream) stream.getTracks().forEach((t) => t.stop());
+        setRecStream(null);
+        setRecorder(null);
+      };
+      mr.start();
+      setRecorder(mr);
+    } catch (err) {
+      alert("Camera/Mic permission denied or not available.");
+    }
+  }
+
+  function stopRecording() {
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    }
+  }
+
+  function resetVideo() {
+    setVideoBlob(null);
+    if (videoPreviewRef.current) {
+      videoPreviewRef.current.pause();
+      videoPreviewRef.current.src = "";
+    }
+  }
+
+  // UI
   return (
-    <div dir={t.dir}>
-      {/* NAVBAR */}
-      <header className="topbar">
-        <div className="container row">
-          <a className="brand" href="/">{t.brand}</a>
-          <nav className="navlinks">
-            <a href="/about">{t.nav_about}</a>
-            <a href="/support">{t.nav_support}</a>
-            <a href="/login">{t.nav_login}</a>
-            <a href="/chat">{t.nav_chat}</a>
-            <button
-              className="lang"
-              onClick={() => setLocale(locale === "en" ? "ar" : "en")}
-              aria-label="toggle language"
-            >
-              {t.langToggle}
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      {/* HERO */}
-      <section className="hero">
-        <div className="container grid2">
-          <div>
-            <h1 className="title">{t.hero_title}</h1>
-            <p className="subtitle">{t.hero_sub}</p>
-            <a href="#onboarding" className="cta">{t.hero_cta}</a>
-          </div>
-          <div className="heroCard" aria-hidden="true" />
+    <main style={styles.main}>
+      {/* STYLE */}
+      <section style={styles.card}>
+        <h2 style={styles.h2}>Your Style</h2>
+        <p style={styles.p}>
+          Write a full page if you want: how you speak, personality, likes/dislikes, habits.
+          Your Twin will mirror this voice.
+        </p>
+        <textarea
+          value={styleText}
+          onChange={(e) => setStyleText(e.target.value)}
+          placeholder="Describe your tone, phrases you use, what you like/dislike, how you reply to people..."
+          rows={10}
+          style={styles.textarea}
+        />
+        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+          <button
+            onClick={handleSave}
+            disabled={isSaving || !styleText.trim()}
+            style={{
+              ...styles.btn,
+              background: isSaving ? "#6b7280" : "#ffd166",
+              color: "#0d1b2a",
+              cursor: isSaving || !styleText.trim() ? "not-allowed" : "pointer",
+            }}
+          >
+            {isSaving ? "Saving…" : "Save"}
+          </button>
+          {savedTick && <span style={{ color: "#9be372" }}>Saved ✓</span>}
         </div>
       </section>
 
-      {/* STEPS (UNCHANGED VISUALS) */}
-      <section id="onboarding" className="section">
-        <div className="container">
-          <h2 className="h2">{t.steps_title}</h2>
-          <div className="cards">
-            <div className="card">
-              <h3 className="h3">{t.step1_title}</h3>
-              <p className="muted">{t.step1_desc}</p>
-              <textarea
-                className="inputArea"
-                placeholder={
-                  locale === "ar"
-                    ? "اكتب كل سطر كجملة قصيرة…"
-                    : "One short line per style cue…"
-                }
-                value={styleSeeds}
-                onChange={(e) => setStyleSeeds(e.target.value)}
-              />
-            </div>
+      {/* VOICE */}
+      <section style={styles.card}>
+        <h2 style={styles.h2}>Voice Sample (optional)</h2>
+        <p style={styles.p}>
+          Upload a 2–5 minute recording. We store raw media internally only. We do not share raw
+          files with third parties. If you opt in, we may send text-only prompts to an AI model.
+        </p>
+        <input
+          type="file"
+          accept="audio/*"
+          onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+        />
+        {audioFile && (
+          <div style={styles.meta}>Selected: {audioFile.name} ({Math.round(audioFile.size / 1024)} KB)</div>
+        )}
+      </section>
 
-            <div className="card">
-              <h3 className="h3">{t.step2_title}</h3>
-              <p className="muted">{t.step2_desc}</p>
-              <label className="fileBox">
+      {/* VIDEO RECORDING */}
+      <section style={styles.card}>
+        <h2 style={styles.h2}>Video Capture (for 3D avatar, optional)</h2>
+        <p style={styles.p}>
+          Record a short 10–20s clip: look left, right, and speak naturally. This will help build
+          a better 3D presence later. Raw video is stored internally only.
+        </p>
+
+        <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+          {!recorder && !recStream && (
+            <button onClick={startRecording} style={styles.btn}>
+              Start Recording
+            </button>
+          )}
+          {(recorder || recStream) && (
+            <button onClick={stopRecording} style={{ ...styles.btn, background: "#ef4444", color: "white" }}>
+              Stop
+            </button>
+          )}
+          {videoBlob && (
+            <button onClick={resetVideo} style={{ ...styles.btn, background: "#334155", color: "white" }}>
+              Remove Video
+            </button>
+          )}
+        </div>
+
+        <video
+          ref={videoPreviewRef}
+          controls
+          playsInline
+          loop
+          muted
+          style={{ width: "100%", maxHeight: 260, borderRadius: 10, background: "#0b1220" }}
+        />
+        {videoBlob && (
+          <div style={styles.meta}>
+            Captured: {(videoBlob.size / (1024 * 1024)).toFixed(2)} MB
+          </div>
+        )}
+      </section>
+
+      {/* ACTIONS */}
+      <section style={styles.card}>
+        <h2 style={styles.h2}>Create Your Twin</h2>
+        {!isAuthed && (
+          <p style={{ ...styles.p, color: "#a3b0bf" }}>
+            Please <a href="/login" style={{ color: "#ffd166" }}>log in</a> first so we can bind this Twin to your account.
+          </p>
+        )}
+        <p style={styles.pSmall}>
+          By creating your Twin, you accept the Terms and the Responsible-Use Policy.
+        </p>
+        <div style={{ display: "flex", gap: 12 }}>
+          <button
+            onClick={() => setShowConsents(true)}
+            style={{ ...styles.btnGhost }}
+          >
+            View / Edit Consents
+          </button>
+          <button
+            onClick={onCreateTwin}
+            disabled={!isAuthed}
+            style={{
+              ...styles.btn,
+              background: isAuthed ? "#ffd166" : "#334155",
+              color: isAuthed ? "#0d1b2a" : "#8aa0b3",
+              cursor: isAuthed ? "pointer" : "not-allowed",
+            }}
+            title={isAuthed ? "" : "Login required"}
+          >
+            Create Twin
+          </button>
+        </div>
+      </section>
+
+      {/* CONSENTS MODAL */}
+      {showConsents && (
+        <div style={styles.modalWrap} onClick={() => setShowConsents(false)}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 style={styles.h3}>Consents</h3>
+            <div style={{ display: "grid", gap: 10 }}>
+              <label style={styles.label}>
                 <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={(e) =>
-                    setVoiceFileName(e.target.files?.[0]?.name || "")
-                  }
+                  type="checkbox"
+                  checked={consentTOS}
+                  onChange={(e) => setConsentTOS(e.target.checked)}
                 />
-                <span>
-                  {voiceFileName
-                    ? (locale === "ar" ? "تم اختيار: " : "Selected: ") +
-                      voiceFileName
-                    : locale === "ar"
-                    ? "اختر ملف صوتي (اختياري للتجربة)"
-                    : "Choose audio file (optional for demo)"}
+                <span style={{ marginLeft: 8 }}>
+                  I accept the Terms of Service & Responsible-Use Policy (required).
+                </span>
+              </label>
+              <label style={styles.label}>
+                <input
+                  type="checkbox"
+                  checked={consentAIText}
+                  onChange={(e) => setConsentAIText(e.target.checked)}
+                />
+                <span style={{ marginLeft: 8 }}>
+                  I allow sending <b>text-only</b> prompts to an AI model to assist responses (optional).
+                </span>
+              </label>
+              <label style={styles.label}>
+                <input
+                  type="checkbox"
+                  checked={consentMarketing}
+                  onChange={(e) => setConsentMarketing(e.target.checked)}
+                />
+                <span style={{ marginLeft: 8 }}>
+                  I agree to receive product updates and marketing (optional).
                 </span>
               </label>
             </div>
 
-            <div className="card">
-              <h3 className="h3">{t.step3_title}</h3>
-              <p className="muted">{t.step3_desc}</p>
-              <button className="cta full" onClick={handleGenerate}>
-                {t.generate_btn}
+            <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+              <button
+                onClick={() => setShowConsents(false)}
+                style={{ ...styles.btnGhost }}
+              >
+                Cancel
               </button>
-              {twinReady && <p className="ok">{t.toast_generated}</p>}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SANDBOX CHAT (same spot) */}
-      <section className="section alt">
-        <div className="container">
-          <h2 className="h2">{t.sandbox_title}</h2>
-          <div className="chatBox">
-            <div className="chatScroll">
-              {chat.map((m, i) => (
-                <div key={i} className={`bubble ${m.role === "user" ? "you" : "bot"}`}>
-                  {m.content}
-                </div>
-              ))}
-            </div>
-            <div className="chatInputRow">
-              <input
-                type="text"
-                className="inputText"
-                placeholder={t.sandbox_placeholder}
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              />
-              <button className="cta small" onClick={handleSend}>
-                {t.sandbox_send}
+              <button
+                onClick={confirmConsents}
+                style={{ ...styles.btn, background: consentTOS ? "#ffd166" : "#334155", color: "#0d1b2a" }}
+                disabled={!consentTOS}
+              >
+                Save Consents
               </button>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* TRUST */}
-      <section className="section">
-        <div className="container">
-          <h2 className="h2">{t.trust_title}</h2>
-          <div className="trustGrid">
-            <div className="trustCard">{t.trust_b1}</div>
-            <div className="trustCard">{t.trust_b2}</div>
-            <div className="trustCard">{t.trust_b3}</div>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER + DISCLAIMER */}
-      <footer className="footer">
-        <div className="container footGrid">
-          <div className="muted">{t.footer_rights}</div>
-          <div className="footLinks">
-            <a href="/about">{t.nav_about}</a>
-            <a href="/support">{t.nav_support}</a>
-            <a onClick={() => setShowDisclaimer(true)} href="#" aria-label="disclaimer">
-              {t.footer_disclaimer}
-            </a>
-            <a href="/privacy">{t.footer_privacy}</a>
-            <a href="/terms">{t.footer_terms}</a>
-          </div>
-        </div>
-      </footer>
-
-      {showDisclaimer && (
-        <div className="modalBackdrop" onClick={() => setShowDisclaimer(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3 className="h3">{t.disclaimer_title}</h3>
-            <p className="muted">{t.disclaimer_text}</p>
-            <button className="cta small" onClick={() => setShowDisclaimer(false)}>
-              {t.disclaimer_close}
-            </button>
+            <p style={{ ...styles.pSmall, marginTop: 10 }}>
+              We store your style, voice, and video <b>internally only</b>. We never share raw media with external providers.
+            </p>
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        :root{
-          --bg:#0b1d3a; --bg2:#0e2140; --panel2:#09162e;
-          --border:rgba(255,255,255,.08); --text:#fff; --muted:rgba(255,255,255,.8);
-          --gold:#ffd54a; --ok:#7dd38c;
-        }
-        *{box-sizing:border-box}
-        html,body{margin:0;background:var(--bg);color:var(--text);
-          font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-        a{text-decoration:none;color:inherit}
-        .container{max-width:1120px;margin:0 auto;padding:0 16px}
-        .row{display:flex;align-items:center;justify-content:space-between}
-        .topbar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 0}
-        .brand{font-weight:800;letter-spacing:.4px}
-        .navlinks{display:flex;gap:14px;align-items:center}
-        .navlinks a{opacity:.9}
-        .navlinks a:hover{opacity:1}
-        .lang{background:#1b2c4d;border:1px solid var(--border);color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer}
-        .hero{background:var(--bg);padding:56px 0}
-        .grid2{display:grid;grid-template-columns:1fr;gap:24px}
-        @media(min-width:900px){.grid2{grid-template-columns:1.2fr .8fr}}
-        .title{font-size:34px;line-height:1.2;font-weight:900}
-        @media(min-width:700px){.title{font-size:48px}}
-        .subtitle{margin-top:12px;font-size:18px;color:var(--muted)}
-        .cta{display:inline-flex;align-items:center;justify-content:center;background:var(--gold);color:#102244;font-weight:700;padding:12px 18px;border-radius:12px;box-shadow:0 6px 20px rgba(255,213,74,.25)}
-        .cta:hover{filter:brightness(.97)}
-        .cta.full{width:100%}.cta.small{padding:10px 14px}
-        .heroCard{height:260px;border-radius:18px;border:1px solid var(--border);
-          background: radial-gradient(60% 100% at 50% 0%, rgba(255,213,74,.25), transparent 60%), linear-gradient(135deg,#0f2447,var(--bg));
-        }
-        .section{padding:56px 0;background:var(--bg2)}
-        .section.alt{background:var(--panel2)}
-        .h2{font-size:26px;font-weight:800}.h3{margin:6px 0 6px;font-size:16px;font-weight:700}
-        .muted{color:var(--muted);font-size:14px}
-        .cards{display:grid;grid-template-columns:1fr;gap:16px;margin-top:18px}
-        @media(min-width:900px){.cards{grid-template-columns:repeat(3,1fr)}}
-        .card{background:rgba(11,29,58,.6);border:1px solid var(--border);border-radius:14px;padding:16px}
-        .inputArea{width:100%;height:140px;border-radius:10px;border:1px solid var(--border);background:#0a1a35;color:#fff;padding:10px;font-size:14px}
-        .fileBox{display:block;border:1px dashed var(--border);background:#0a1a35;color:#fff;border-radius:10px;padding:12px;margin-top:10px;cursor:pointer}
-        .fileBox input{display:none}
-        .ok{margin-top:10px;color:var(--ok);font-size:14px}
-        .chatBox{margin-top:16px;border:1px solid var(--border);border-radius:14px;background:rgba(11,29,58,.6);padding:12px}
-        .chatScroll{height:240px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:10px;background:#0b1d3a}
-        .bubble{max-width:75%;padding:10px 12px;border-radius:12px;margin:6px 0;font-size:14px;line-height:1.35}
-        .you{background:#1b2c4d;margin-inline-start:auto}.bot{background:#11223f;border:1px solid var(--border)}
-        .chatInputRow{display:flex;gap:8px;margin-top:10px}
-        .inputText{flex:1;border:1px solid var(--border);border-radius:10px;background:#0b1d3a;color:#fff;padding:10px;font-size:14px}
-        .trustGrid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
-        @media(min-width:900px){.trustGrid{grid-template-columns:repeat(3,1fr)}}
-        .trustCard{background:rgba(11,29,58,.6);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:14px}
-        .footer{background:var(--bg);padding:18px 0;border-top:1px solid var(--border)}
-        .footGrid{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-        .footLinks{display:flex;gap:14px}
-        .modalBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50}
-        .modal{background:#0b1d3a;border:1px solid var(--border);border-radius:14px;max-width:520px;padding:18px}
-      `}</style>
-    </div>
+    </main>
   );
 }
+
+const styles = {
+  main: { maxWidth: 840, margin: "0 auto", padding: 24 },
+  card: { marginBottom: 32, padding: 16, borderRadius: 12, background: "#0f2030" },
+  h2: { color: "white", marginBottom: 8 },
+  h3: { color: "white", margin: 0, marginBottom: 8 },
+  p: { color: "#c9d6e2", marginTop: 0 },
+  pSmall: { color: "#9fb4c6", fontSize: 12, marginTop: 8 },
+  textarea: {
+    width: "100%",
+    borderRadius: 10,
+    border: "1px solid #2b3c4a",
+    background: "#13283a",
+    color: "white",
+    padding: 14,
+    outline: "none",
+  },
+  btn: {
+    padding: "10px 14px",
+    borderRadius: 10,
+    border: 0,
+    background: "#1f6feb",
+    color: "white",
+    fontWeight: 700,
+  },
+  btnGhost: {
+    padding: "10px 14px",
+    borderRadius: 10,
+    border: "1px solid #334155",
+    background: "#0f2030",
+    color: "#c9d6e2",
+    fontWeight: 600,
+  },
+  meta: { color: "#9fb4c6", fontSize: 12, marginTop: 8 },
+  label: { display: "flex", alignItems: "center", color: "#c9d6e2", userSelect: "none" },
+  modalWrap: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    zIndex: 50,
+  },
+  modal: {
+    width: "100%",
+    maxWidth: 560,
+    borderRadius: 12,
+    background: "#0f2030",
+    padding: 16,
+    boxShadow: "0 10px 35px rgba(0,0,0,0.4)",
+  },
+};
