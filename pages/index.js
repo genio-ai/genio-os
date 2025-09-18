@@ -1,20 +1,20 @@
+// pages/index.js
 import Head from "next/head";
-import Hero from "../components/home/Hero";
-import Features from "../components/home/Features";
+import Hero from "../components/home/hero";
+import Features from "../components/home/features";
 
-export default function HomePage() {
+export default function Home() {
   return (
     <>
       <Head>
-        <title>Genio — Create your smart twin</title>
-        <meta
-          name="description"
-          content="Build your smart twin that writes, speaks, appears, and responds for you — 24/7."
-        />
+        <title>Genio Twin Studio</title>
+        <meta name="description" content="Create your smart AI Twin" />
       </Head>
 
-      <Hero />
-      <Features />
+      <main>
+        <Hero />
+        <Features />
+      </main>
     </>
   );
 }
