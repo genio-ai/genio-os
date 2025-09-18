@@ -1,7 +1,7 @@
 // pages/index.js
 import { useState, useEffect } from "react";
-import Header from "../components/Header";
-import Hero from "../components/Hero";
+import Header from "../components/header";
+import Hero from "../components/hero";
 import siteConfig from "../config/site";
 
 export default function Home() {
