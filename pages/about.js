@@ -1,80 +1,83 @@
-// pages/about.js
-export default function About() {
+import Head from "next/head";
+import Link from "next/link";
+
+export default function AboutPage() {
   return (
-    <div style={styles.page}>
-      <header style={styles.header}>
-        <h1 style={styles.title}>About Genio Twin Studio</h1>
-      </header>
+    <>
+      <Head>
+        <title>About · Genio</title>
+        <meta name="description" content="About Genio and the AI Twin vision." />
+      </Head>
 
-      <main style={styles.main}>
-        <section style={styles.section}>
-          <h2 style={styles.subtitle}>Who we are</h2>
-          <p style={styles.text}>
-            Genio Twin Studio builds AI twins that act as your smarter, faster,
-            tireless version. Your twin communicates in your style, respects your
-            rules, and never publishes without your approval.
+      <main className="wrap">
+        {/* Header */}
+        <header className="header">
+          <Link href="/" className="brand">Genio</Link>
+          <nav className="nav">
+            <Link href="/support" className="navLink">Support</Link>
+            <Link href="/auth/login" className="btn ghost">Log in</Link>
+            <Link href="/auth/signup" className="btn primary">Sign up</Link>
+          </nav>
+        </header>
+
+        {/* Hero */}
+        <section className="hero">
+          <h1>About Genio</h1>
+          <p>
+            Genio helps you build an AI Twin that mirrors your tone, habits, and preferences.
+            Your Twin handles replies, drafts, scheduling, and research — in your style, 24/7.
           </p>
         </section>
 
-        <section style={styles.section}>
-          <h2 style={styles.subtitle}>Our Vision</h2>
-          <p style={styles.text}>
-            We believe AI should amplify your voice, not replace it. Our system is
-            designed with “Review-First” so you are always in control.
-          </p>
+        {/* Pillars */}
+        <section className="pillars">
+          <div className="card">
+            <h3>Private by default</h3>
+            <p>Raw media (voice/video) is stored internally. Text-only prompts may be sent to AI if you opt in.</p>
+          </div>
+          <div className="card">
+            <h3>Realistic presence</h3>
+            <p>Optional voice and short video help the Twin capture your tone and presence more accurately.</p>
+          </div>
+          <div className="card">
+            <h3>Works for you</h3>
+            <p>From customer replies to summaries and scheduling, your Twin saves hours every week.</p>
+          </div>
         </section>
 
-        <section style={styles.section}>
-          <h2 style={styles.subtitle}>Why Trust Us</h2>
-          <ul style={styles.list}>
-            <li>No stock faces, no generic posts — your voice, your rules.</li>
-            <li>Review-First workflow: nothing is published without approval.</li>
-            <li>Brand guardrails to protect tone, style, and visual identity.</li>
-          </ul>
+        {/* CTA */}
+        <section className="ctaRow">
+          <Link href="/auth/signup" className="btn primary big">Create My Twin</Link>
         </section>
+
+        <footer className="footer">
+          <p>© {new Date().getFullYear()} Genio · All rights reserved.</p>
+        </footer>
       </main>
 
-      <footer style={styles.footer}>
-        <p style={styles.footerText}>
-          © 2025 Genio Systems. All rights reserved.
-        </p>
-      </footer>
-    </div>
+      <style jsx>{`
+        .wrap { min-height: 100vh; display: flex; flex-direction: column; background:#0a1730; color:#e6eef8; }
+        .header { max-width:1200px; margin:0 auto; padding:20px 24px; display:flex; align-items:center; justify-content:space-between; }
+        .brand { font-size:22px; font-weight:800; color:#fff; text-decoration:none; }
+        .nav { display:flex; gap:14px; align-items:center; }
+        .navLink { color:#c9d6e5; text-decoration:none; font-size:15px; }
+        .btn { border-radius:10px; padding:8px 16px; font-weight:600; text-decoration:none; }
+        .btn.ghost { border:1px solid #ffd54d; color:#ffd54d; }
+        .btn.ghost:hover { background:#ffd54d22; }
+        .btn.primary { background:#ffd54d; color:#0a1730; }
+        .btn.primary:hover { filter:brightness(0.95); }
+        .btn.big { font-size:18px; padding:12px 24px; }
+        .hero { max-width:900px; margin:0 auto; padding:64px 20px 16px; text-align:center; }
+        .hero h1 { font-size:42px; margin-bottom:16px; background:linear-gradient(90deg,#ffd54d,#ffae00); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .hero p { color:#c9d6e5; font-size:18px; }
+        .pillars { max-width:1100px; margin:24px auto; padding:0 20px; display:grid; gap:16px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+        @media (max-width:900px){ .pillars{ grid-template-columns:1fr; } }
+        .card { background:#0f1b33; border:1px solid #22304a; border-radius:14px; padding:18px; }
+        .card h3 { margin:0 0 6px; }
+        .card p { margin:0; color:#b8c8df; }
+        .ctaRow { display:flex; justify-content:center; padding:24px 20px 8px; }
+        .footer { border-top:1px solid #22304a; padding:20px; text-align:center; color:#93a7c4; font-size:14px; margin-top:auto; }
+      `}</style>
+    </>
   );
 }
-
-const styles = {
-  page: {
-    fontFamily:
-      "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif",
-    margin: 0,
-    padding: 0,
-    background: "#0B1D3A",
-    color: "#fff",
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-  },
-  header: {
-    padding: "24px 16px",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-  },
-  title: { margin: 0, fontSize: "28px", fontWeight: "bold" },
-  main: { flex: 1, padding: "24px 16px", maxWidth: "800px", margin: "0 auto" },
-  section: { marginBottom: "32px" },
-  subtitle: { fontSize: "20px", marginBottom: "8px" },
-  text: { fontSize: "16px", lineHeight: 1.5, color: "rgba(255,255,255,0.85)" },
-  list: {
-    margin: "12px 0 0",
-    padding: "0 0 0 20px",
-    color: "rgba(255,255,255,0.85)",
-    fontSize: "16px",
-    lineHeight: 1.6,
-  },
-  footer: {
-    padding: "16px",
-    borderTop: "1px solid rgba(255,255,255,0.1)",
-    textAlign: "center",
-  },
-  footerText: { fontSize: "14px", color: "rgba(255,255,255,0.7)" },
-};
