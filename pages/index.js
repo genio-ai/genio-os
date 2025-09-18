@@ -1,5 +1,6 @@
 import Head from "next/head";
 import Hero from "../components/home/Hero";
+import Features from "../components/home/Features";
 
 export default function HomePage() {
   return (
@@ -13,6 +14,7 @@ export default function HomePage() {
       </Head>
 
       <Hero />
+      <Features />
     </>
   );
 }
