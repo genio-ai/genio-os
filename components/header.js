@@ -38,23 +38,21 @@ export default function Header({ lang = "en", toggleLang }) {
           </span>
         </div>
 
-        {/* Nav Links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+        {/* Nav Links + Language Switch */}
+        <div className="flex items-center gap-6 text-sm font-medium">
           <Link href="/">{t.home}</Link>
           <Link href="/about">{t.about}</Link>
           <Link href="/support">{t.support}</Link>
           <Link href="/chat">{t.chat}</Link>
           <Link href="/login">{t.login}</Link>
           <Link href="/signup">{t.signup}</Link>
-        </nav>
-
-        {/* Language Toggle */}
-        <button
-          onClick={toggleLang}
-          className="ml-4 rounded-md border border-white/20 px-3 py-1.5 text-xs hover:bg-white/10 transition"
-        >
-          {t.switch}
-        </button>
+          <button
+            onClick={toggleLang}
+            className="rounded-md border border-white/20 px-3 py-1.5 text-xs hover:bg-white/10 transition"
+          >
+            {t.switch}
+          </button>
+        </div>
       </div>
     </header>
   );
