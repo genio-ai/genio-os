@@ -1,96 +1,63 @@
 // pages/api/chat.js
-/**
- * Genio Twin Studio — Chat API (Next.js)
- * Expects:  POST { message: string, locale?: "en" | "ar", style?: string }
- * Returns:  { reply: string }
- *
- * Notes:
- * - Uses OpenAI Chat Completions (no extra deps).
- * - Set OPENAI_API_KEY in Vercel → Project → Settings → Environment Variables.
- */
-
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: "Missing OPENAI_API_KEY" });
-  }
+  // CORS (optional if you'll call it from a browser/frontend)
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") return res.status(200).end();
 
   try {
-    const { message, locale = "en", style = "" } = req.body || {};
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({ error: "message is required" });
+    // 1) Read user message: GET ?msg=... or POST { "message": "..." }
+    const message =
+      (req.method === "GET" ? req.query.msg : req.body?.message) || "";
+
+    if (!message || typeof message !== "string" || !message.trim()) {
+      return res
+        .status(400)
+        .json({ error: "Missing 'message'. Use ?msg=... or POST {message}." });
+    }
+    if (message.length > 1000) {
+      return res.status(413).json({ error: "Message too long (max 1000 chars)." });
     }
 
-    // System guardrails + language & style control
-    const lang = locale === "ar" ? "Arabic" : "English";
-    const styleNote = style
-      ? `Write in the user's style cues:\n${style}\n\n`
-      : "";
-    const systemPrompt = `
-You are "Genio Twin" — a trustworthy AI twin.
-- Language: ${lang}.
-- Review-First: do not promise actions; say "I'll route this for review" for any sensitive requests.
-- Brand guardrails: be clear, helpful, and concise.
-${styleNote}If user asks general questions, answer briefly and to the point.
-    `.trim();
-
-    // Call OpenAI Chat Completions (stable endpoint)
-    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+    // 2) Call OpenAI
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini", // fast & affordable. You can change later.
+        model: "gpt-4o-mini", // fast & cost-effective
         temperature: 0.7,
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
+          {
+            role: "system",
+            content:
+              "You are a helpful, concise assistant. Answer professionally and clearly.",
+          },
+          { role: "user", content: message.trim() },
         ],
       }),
     });
 
-    if (!resp.ok) {
-      const text = await safeText(resp);
-      return res.status(resp.status).json({ error: `OpenAI error: ${text}` });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      return res.status(502).json({ error: "OpenAI request failed", details: err });
     }
 
-    const data = await resp.json();
-    const reply =
-      data?.choices?.[0]?.message?.content?.toString().trim() || "";
+    const data = await r.json();
+    const reply = data?.choices?.[0]?.message?.content?.trim() || "";
 
-    if (!reply) {
-      return res.status(200).json({
-        reply:
-          locale === "ar"
-            ? "تعذر توليد ردّ. حاول مرة أخرى."
-            : "I couldn’t generate a reply. Please try again.",
-      });
-    }
+    if (!reply) return res.status(500).json({ error: "Empty reply from model." });
 
-    return res.status(200).json({ reply });
-  } catch (err) {
-    console.error("Chat API error:", err);
-    return res.status(500).json({
-      error: "Server error",
-      reply:
-        (req.body?.locale === "ar"
-          ? "حدث خطأ غير متوقع. حاول لاحقًا."
-          : "Unexpected error. Please try again later."),
+    // 3) Respond
+    return res.status(200).json({
+      reply,
+      model: data?.model,
+      usage: data?.usage,
     });
-  }
-}
-
-async function safeText(resp) {
-  try {
-    return await resp.text();
-  } catch {
-    return "<no body>";
+  } catch (e) {
+    return res.status(500).json({ error: e.message || "Server error" });
   }
 }
