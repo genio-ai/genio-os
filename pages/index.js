@@ -6,7 +6,7 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // لماذا: إضافة ظل للهيدر عند التمرير
+  // Header shadow
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 6);
     onScroll();
@@ -14,7 +14,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // لماذا: تمرير سلس + إغلاق قائمة الجوال
+  // Smooth scroll + close mobile menu
   const handleAnchorClick = useCallback((e) => {
     const href = e.currentTarget.getAttribute("href");
     if (!href || !href.startsWith("#")) return;
@@ -27,27 +27,31 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>genio ai studio — توين ذكي ينجز شغلك</title>
+        <title>genio ai studio — Your personal AI twin</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"
-          content="genio ai studio: أنشئ توين AI بصوتك وأسلوبك لينفّذ مهامك: رسائل واتساب، إيميلات، بوستات سوشال، تقارير... بكبسة زر."
+          content="Build your AI twin that sounds like you and gets work done across WhatsApp, email, and social — with one click."
         />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Web font for cleaner English UI */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
       </Head>
 
       {/* Header */}
-      <header id="hdr" className={scrolled ? "scrolled" : ""} aria-label="رأس الصفحة">
+      <header id="hdr" className={scrolled ? "scrolled" : ""} aria-label="site header">
         <div className="container nav">
-          <a href="#home" className="brand" aria-label="الانتقال إلى البداية" onClick={handleAnchorClick}>
+          <a href="#home" className="brand" onClick={handleAnchorClick} aria-label="Go to start">
             <span className="brand-badge" aria-hidden="true">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="#071018" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 12h2m2-3v6m3-9v12m3-7v2m3-9v22M21 12h0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M3 12h2m2-3v6m3-9v12m3-7v2m3-9v22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </span>
             <span>genio ai studio</span>
           </a>
 
-          <nav id="nav" aria-label="التنقل الرئيسي" className={menuOpen ? "open" : ""}>
+          <nav id="nav" aria-label="primary" className={menuOpen ? "open" : ""}>
             <button
               className="menu-toggle btn"
               aria-expanded={menuOpen}
@@ -58,11 +62,11 @@ export default function Home() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#a9b4c2" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
-              <span className="visually-hidden">قائمة</span>
+              <span className="visually-hidden">Menu</span>
             </button>
             <ul id="menu" role="menubar">
               <li role="none"><a role="menuitem" href="#home" onClick={handleAnchorClick}>Home</a></li>
-              <li role="none"><a role="menuitem" href="#how" onClick={handleAnchorClick}>كيف يعمل؟</a></li>
+              <li role="none"><a role="menuitem" href="#how" onClick={handleAnchorClick}>How it works</a></li>
               <li role="none"><a role="menuitem" href="#support" onClick={handleAnchorClick}>Support</a></li>
               <li role="none"><a role="menuitem" href="#chat" onClick={handleAnchorClick}>Chat</a></li>
               <li role="none"><a role="menuitem" href="#about" onClick={handleAnchorClick}>About</a></li>
@@ -70,38 +74,37 @@ export default function Home() {
           </nav>
 
           <div className="nav-cta">
-            <a className="btn" href="#login" aria-label="تسجيل الدخول" onClick={handleAnchorClick}>Login</a>
-            <a className="btn btn-primary" href="#signup" aria-label="إنشاء حساب" onClick={handleAnchorClick}>Signup</a>
+            <a className="btn" href="#login" onClick={handleAnchorClick}>Login</a>
+            <a className="btn btn-primary" href="#signup" onClick={handleAnchorClick}>Signup</a>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <main id="home" className="container hero" aria-label="القسم التعريفي">
+      <main id="home" className="container hero" aria-label="hero">
         <div>
-          <div className="kicker">توينك الذكي، على أسلوبك وصوتك</div>
-          <h1>كبسة زر — والتوين <span aria-hidden="true">يفتح واتساب</span>، يكتب إيميل، وينشر بوستات عنك</h1>
-          <p>صمّم توين AI يشتغل بدلِك: يرد، ي schedul-e، يرسل، ويحلّل. أنت تعطي الهدف، وهو ينفّذ بطريقة تشبهك.</p>
+          <div className="kicker">Your AI twin, your tone</div>
+          <h1>One click — your twin sends WhatsApp, writes email, and posts for you</h1>
+          <p>Design an AI twin that answers, schedules, sends, and analyzes — in your voice and style.</p>
 
-          <div className="points" aria-label="قدرات سريعة">
-            <span className="chip">رسائل واتساب</span>
-            <span className="chip">إيميلات احترافية</span>
-            <span className="chip">بوستات سوشال</span>
-            <span className="chip">تقارير ومتابعة</span>
-            <span className="chip">أوامر صوتية</span>
+          <div className="points" aria-label="capabilities">
+            <span className="chip">WhatsApp messages</span>
+            <span className="chip">Professional emails</span>
+            <span className="chip">Social posts</span>
+            <span className="chip">Reports & follow-ups</span>
+            <span className="chip">Voice commands</span>
           </div>
 
-          <form className="form" onSubmit={(e)=>e.preventDefault()} aria-label="إنشاء توين">
-            <input className="input" name="twin_name" placeholder="اختر اسم للتوين… مثال: سامر بوت" aria-label="اسم التوين" />
-            <button className="btn btn-primary" type="submit">جرّب التوين الآن</button>
-            <button className="btn" type="button" onClick={()=>alert("ديمو واجهة فقط")}>مشاهدة ديمو</button>
+          <form className="form" onSubmit={(e)=>e.preventDefault()} aria-label="create twin">
+            <input className="input" name="twin_name" placeholder="Give your twin a name… e.g., Samer Bot" aria-label="Twin name" />
+            <button className="btn btn-primary" type="submit">Try it now</button>
+            <button className="btn" type="button" onClick={()=>alert("Demo only")}>Watch demo</button>
           </form>
         </div>
 
-        <figure className="hero-visual" aria-label="صورة توضيحية للتوين">
+        <figure className="hero-visual" aria-label="twin illustration">
           <div className="blob" aria-hidden="true" />
-          {/* SVG توين */}
-          <svg className="twin" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="توأم ذكاء اصطناعي">
+          <svg className="twin" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AI twin">
             <defs>
               <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0" stopColor="#6fc3ff" /><stop offset="1" stopColor="#5ee1a1"/>
@@ -119,26 +122,26 @@ export default function Home() {
             <path d="M370 140 q44 52 0 104" stroke="url(#g1)" strokeWidth="2" fill="none" opacity=".5"/>
           </svg>
           <figcaption className="hero-badges">
-            <span className="tag">يشبه نبرة صوتك</span>
-            <span className="tag">ينفّذ تلقائياً</span>
-            <span className="tag">خصوصية عالية</span>
+            <span className="tag">Your tone</span>
+            <span className="tag">Auto actions</span>
+            <span className="tag">Private by default</span>
           </figcaption>
         </figure>
       </main>
 
       {/* HOW IT WORKS */}
-      <section id="how" className="container" aria-label="كيف يعمل">
-        <h2 style={{marginTop:0}}>كيف يعمل؟</h2>
-        <p style={{marginTop:-6, color:"#b7c4d4"}}>ثلاث خطوات سهلة لتحويل مهامك إلى أتمتة ذكية بأسلوبك.</p>
+      <section id="how" className="container" aria-label="how it works">
+        <h2 style={{marginTop:0}}>How it works</h2>
+        <p style={{marginTop:-6, color:"#b7c4d4"}}>Three simple steps to automate your day.</p>
         <div className="steps" role="list">
           <article className="step" role="listitem">
             <span className="num" aria-hidden="true">1</span>
             <svg className="step-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 3l3 3-3 3-3-3 3-3Zm0 6v12M6 12l-3 3 3 3 3-3-3-3Zm12 0l-3 3 3 3 3-3-3-3Z" stroke="url(#g1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <h3>أنشئ التوين</h3>
-            <p>سمِّه، حمّل عيّنة صوت، وحدد أسلوب الكتابة (رسمي/ودّي/مختصر).</p>
-            <div className="cta"><a className="btn" href="#signup" onClick={handleAnchorClick}>ابدأ الآن</a></div>
+            <h3>Create your twin</h3>
+            <p>Name it, add a short voice sample, pick a writing style (formal/casual/brief).</p>
+            <div className="cta"><a className="btn" href="#signup" onClick={handleAnchorClick}>Get started</a></div>
           </article>
 
           <article className="step" role="listitem">
@@ -146,9 +149,9 @@ export default function Home() {
             <svg className="step-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M4 7h16v10H4zM8 7V5a4 4 0 0 1 8 0v2" stroke="url(#g1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <h3>وصّل قنواتك</h3>
-            <p>اربط واتساب، الإيميل، وحسابات السوشال. إدارة صلاحيات وموافقات قبل الإرسال.</p>
-            <div className="cta"><button className="btn" type="button" onClick={()=>alert("تكاملات تجريبية")}>استعراض التكاملات</button></div>
+            <h3>Connect channels</h3>
+            <p>Link WhatsApp, email, and social. Optional approvals before sending.</p>
+            <div className="cta"><button className="btn" type="button" onClick={()=>alert("Integrations preview")}>View integrations</button></div>
           </article>
 
           <article className="step" role="listitem">
@@ -156,9 +159,9 @@ export default function Home() {
             <svg className="step-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M3 12h8l2-3 2 6 2-3h4" stroke="url(#g1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <h3>نفّذ وتابع</h3>
-            <p>أعطِ الهدف؛ التوين ينفّذ تلقائياً ويعرض لك تقارير وأثر كل نشاط.</p>
-            <div className="cta"><a className="btn btn-primary" href="#chat" onClick={handleAnchorClick}>جرّب مهمة الآن</a></div>
+            <h3>Execute & track</h3>
+            <p>Give a goal; your twin completes it and shows clear impact reports.</p>
+            <div className="cta"><a className="btn btn-primary" href="#chat" onClick={handleAnchorClick}>Run a task</a></div>
           </article>
         </div>
       </section>
@@ -167,39 +170,39 @@ export default function Home() {
       <section id="support" className="container">
         <h2>Support</h2>
         <div className="grid">
-          <div className="card">قاعدة معرفة</div>
-          <div className="card">مركز المساعدة</div>
-          <div className="card">تواصل مباشر</div>
+          <div className="card">Knowledge base</div>
+          <div className="card">Help center</div>
+          <div className="card">Direct contact</div>
         </div>
       </section>
 
       <section id="chat" className="container">
         <h2>Chat</h2>
-        <div className="card">دردشة مع التوين — API وواجهة جاهزة للدمج.</div>
+        <div className="card">Chat with your twin — simple API & embeddable UI.</div>
       </section>
 
       <section id="about" className="container">
         <h2>About</h2>
-        <div className="card">genio ai studio: اصنع توين يعمل مكانك — رسائل، بريد، سوشال، أتمتة مهام.</div>
+        <div className="card">genio ai studio: build an AI twin that works like you — messaging, email, socials, automation.</div>
       </section>
 
       <div className="container sep" role="separator"></div>
       <footer className="container">
-        <div id="login"><strong>Login:</strong> قريباً.</div>
-        <div id="signup" style={{marginTop:6}}><strong>Signup:</strong> قريباً.</div>
+        <div id="login"><strong>Login:</strong> coming soon.</div>
+        <div id="signup" style={{marginTop:6}}><strong>Signup:</strong> coming soon.</div>
       </footer>
 
-      {/* Global CSS (يشمل RTL) */}
+      {/* Global CSS */}
       <style jsx global>{`
         :root{
-          --bg:#0b0f14; --card:#0f1620; --muted:#a9b4c2; --text:#e9eef5; --brand:#5ee1a1; --brand-2:#6fc3ff; --danger:#ff6b6b;
-          --radius:14px; --radius-sm:10px; --shadow:0 10px 30px rgba(0,0,0,.35);
+          --bg:#0b0f14; --card:#0f1620; --muted:#a9b4c2; --text:#e9eef5; --brand:#5ee1a1; --brand-2:#6fc3ff;
+          --radius:14px; --shadow:0 10px 30px rgba(0,0,0,.35);
         }
         *{box-sizing:border-box}
         html,body{height:100%}
         body{
-          direction: rtl; /* بديل _document.js */
-          margin:0; font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans Arabic",Tahoma,Arial;
+          direction: ltr;
+          margin:0; font:16px/1.55 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
           color:var(--text); background:radial-gradient(1200px 600px at 80% -10%, #142132 0%, #0b0f14 60%);
           -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
         }
@@ -212,7 +215,7 @@ export default function Home() {
         }
         header.scrolled{box-shadow:0 6px 18px rgba(0,0,0,.35); background:#0b0f14e6}
         .nav{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0}
-        .brand{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.4px}
+        .brand{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.2px}
         .brand-badge{
           width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
           background:conic-gradient(from 220deg, var(--brand), var(--brand-2)); box-shadow:var(--shadow);
@@ -247,12 +250,12 @@ export default function Home() {
           display:grid; grid-template-columns:1.2fr .8fr; gap:28px; align-items:center;
         }
         @media (max-width: 940px){ .hero{grid-template-columns:1fr; padding-top:38px} }
-        .kicker{color:var(--brand-2); font-weight:700; letter-spacing:.6px; font-size:.95rem}
+        .kicker{color:var(--brand-2); font-weight:700; letter-spacing:.3px; font-size:.95rem}
         .hero h1{
-          margin:8px 0 10px; font-size:clamp(28px, 4.8vw, 50px); line-height:1.15;
+          margin:8px 0 10px; font-size:clamp(28px, 4.6vw, 50px); line-height:1.15;
           background:linear-gradient(180deg, #e9eef5 0%, #bcd2ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
         }
-        .hero p{color:var(--muted); margin:0 0 18px}
+        .hero p{color:var(--muted); margin:0 0 18px; max-width:52ch}
         .points{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 18px}
         .chip{font-size:.92rem; color:#b7c4d4; padding:8px 12px; border-radius:999px; border:1px dashed #2a3950; background:#0e1724}
         .form{display:flex; gap:10px; flex-wrap:wrap; align-items:center; background:#0f1620; border:1px solid #1f2a3a; border-radius:14px; padding:10px}
@@ -285,7 +288,7 @@ export default function Home() {
         }
         .step h3{margin:8px 0 6px; font-size:1.15rem}
         .step p{margin:0; color:#b5c2d2}
-        .step .num{position:absolute; top:12px; inset-inline-start:12px; width:28px; height:28px; border-radius:999px; background:#0c1522; border:1px solid #22324a;
+        .step .num{position:absolute; top:12px; left:12px; width:28px; height:28px; border-radius:999px; background:#0c1522; border:1px solid #22324a;
           display:grid; place-items:center; font-weight:700; color:#a9c8ff; font-size:.9rem}
         .step .cta{margin-top:12px}
         .step-icon{width:36px; height:36px}
