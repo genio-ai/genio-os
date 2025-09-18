@@ -1,228 +1,298 @@
-// pages/index.js
-import { useEffect, useState } from "react";
-import Head from "next/head";
-import Link from "next/link";
+<!-- File: /landing/genio-ai-studio/index.html -->
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>genio ai studio — توين ذكي ينجز شغلك</title>
+  <meta name="description" content="genio ai studio: أنشئ توين AI بصوتك وأسلوبك لينفّذ مهامك: رسائل واتساب، إيميلات، بوستات سوشال، تقارير... بكبسة زر." />
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#0f1620; --muted:#a9b4c2; --text:#e9eef5; --brand:#5ee1a1; --brand-2:#6fc3ff; --danger:#ff6b6b;
+      --radius:14px; --radius-sm:10px; --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans Arabic",Tahoma,Arial;
+      color:var(--text); background:radial-gradient(1200px 600px at 80% -10%, #142132 0%, #0b0f14 60%);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    a{color:inherit; text-decoration:none}
+    .container{width:min(1200px,92%); margin-inline:auto}
 
-/**
- * Genio AI Studio — Single-file Landing (Enterprise-grade)
- * - English only, LTR
- * - Responsive header with mobile menu
- * - Hero with human-like twin SVG (no childish circles)
- * - Value strip + Trust bar + Features grid + Footer
- * - Primary CTA → /signup
- * Requires TailwindCSS (globals already in your project)
- */
+    /* Header */
+    header{
+      position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(10px);
+      background:color-mix(in oklab, #0b0f14 85%, #0b0f14 0%); transition:box-shadow .2s ease, background .2s ease;
+    }
+    header.scrolled{box-shadow:0 6px 18px rgba(0,0,0,.35); background:#0b0f14e6}
+    .nav{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0}
+    .brand{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.4px}
+    .brand-badge{
+      width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
+      background:conic-gradient(from 220deg, var(--brand), var(--brand-2)); box-shadow:var(--shadow);
+    }
+    .brand-badge svg{filter:drop-shadow(0 4px 10px rgba(0,0,0,.4))}
+    nav ul{display:flex; gap:20px; list-style:none; padding:0; margin:0; align-items:center}
+    nav a{padding:10px 12px; border-radius:10px; color:var(--muted)}
+    nav a:hover, nav a:focus-visible{outline:none; background:#101826; color:var(--text)}
+    .nav-cta{display:flex; gap:10px; align-items:center}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:10px 14px; border-radius:12px; border:1px solid #233043;
+      background:#111a27; color:var(--text); cursor:pointer; transition:transform .08s ease, background .2s ease, border-color .2s ease;
+    }
+    .btn:hover{transform:translateY(-1px); background:#132035; border-color:#2b3b53}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-2)); border:none; color:#071018; font-weight:700}
+    .btn-primary:hover{filter:saturate(110%) brightness(1.04)}
+    .menu-toggle{display:none; background:transparent; border:1px solid #233043; border-radius:10px; padding:10px}
+    .menu-toggle svg{display:block}
 
-export default function Home() {
-  const [menuOpen, setMenuOpen] = useState(false);
+    /* Mobile nav */
+    @media (max-width: 940px){
+      nav ul{display:none}
+      nav.open ul{
+        display:flex; position:absolute; inset-inline:4%; top:64px; flex-direction:column; gap:8px; padding:10px;
+        background:#0f1620; border:1px solid #1f2a3a; border-radius:14px; box-shadow:var(--shadow)
+      }
+      .menu-toggle{display:inline-flex}
+      .nav-cta{margin-inline-start:auto}
+    }
 
-  // lock to LTR always
-  useEffect(() => {
-    if (typeof document !== "undefined") document.documentElement.dir = "ltr";
-  }, []);
+    /* Hero */
+    .hero{
+      position:relative; padding:72px 0 38px; overflow:hidden;
+      display:grid; grid-template-columns:1.2fr .8fr; gap:28px; align-items:center;
+    }
+    @media (max-width: 940px){ .hero{grid-template-columns:1fr; padding-top:38px} }
+    .kicker{color:var(--brand-2); font-weight:700; letter-spacing:.6px; font-size:.95rem}
+    .hero h1{
+      margin:8px 0 10px; font-size:clamp(28px, 4.8vw, 50px); line-height:1.15;
+      background:linear-gradient(180deg, #e9eef5 0%, #bcd2ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .hero p{color:var(--muted); margin:0 0 18px}
+    .points{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 18px}
+    .chip{font-size:.92rem; color:#b7c4d4; padding:8px 12px; border-radius:999px; border:1px dashed #2a3950; background:#0e1724}
+    .form{display:flex; gap:10px; flex-wrap:wrap; align-items:center; background:#0f1620; border:1px solid #1f2a3a; border-radius:14px; padding:10px}
+    .input{flex:1; min-width:200px; padding:12px 14px; border-radius:10px; border:1px solid #1f2a3a; background:#0b0f14; color:var(--text)}
+    .hero-visual{
+      position:relative; aspect-ratio:1/1; min-height:340px; border-radius:20px; background:radial-gradient(120px 100px at 65% 30%, #1b2a40 0%, transparent 60%);
+      display:grid; place-items:center; isolation:isolate;
+    }
+    .blob{
+      position:absolute; inset:auto; width:560px; height:560px; border-radius:50%;
+      background:radial-gradient(circle at 30% 30%, var(--brand), transparent 60%),
+                  radial-gradient(circle at 70% 70%, var(--brand-2), transparent 60%);
+      filter:blur(40px) saturate(140%); opacity:.35; animation:float 9s ease-in-out infinite alternate; z-index:0;
+    }
+    @keyframes float{from{transform:translate(10px,0) scale(1)} to{transform:translate(-10px,-20px) scale(1.05)}}
+    .twin{position:relative; z-index:1; width:min(420px,86%); filter:drop-shadow(0 10px 30px rgba(0,0,0,.45))}
+    .hero-badges{position:absolute; bottom:10px; inset-inline:10px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+    .hero-badges .tag{background:#0f1726; border:1px solid #22324a; padding:6px 10px; border-radius:999px; font-size:.85rem; color:#b7c4d4}
 
-  return (
-    <>
-      <Head>
-        <title>Genio AI Studio — Create Your AI Twin</title>
-        <meta
-          name="description"
-          content="Create your AI twin — your higher self, faster. Always-on voice control like Siri, runs your socials, manages your accounts, and works 24/7 so you enjoy life."
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {/* <link rel="icon" href="/favicon.ico" /> */}
-        <meta property="og:title" content="Genio AI Studio — Create Your AI Twin" />
-        <meta
-          property="og:description"
-          content="Scale your life with an AI twin that handles media, messages, and ops—so you focus on living."
-        />
-        <meta property="og:type" content="website" />
-      </Head>
+    /* Generic sections */
+    section{padding:64px 0}
+    .card{background:linear-gradient(180deg,#0e1622,#0b1017); border:1px solid #1a283c; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow)}
+    .grid{display:grid; gap:16px; grid-template-columns:repeat(3,1fr)}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
 
-      <main className="min-h-screen bg-[#0A0F1F] text-white">
-        {/* ===== Header ===== */}
-        <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0A0F1F]/80 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-            {/* Brand */}
-            <div className="flex items-center gap-3">
-              <div className="h-7 w-7 rounded-full bg-gradient-to-br from-indigo-400 to-teal-300" aria-hidden="true" />
-              <span className="text-base font-semibold tracking-tight">Genio AI Studio</span>
-            </div>
+    /* HOW IT WORKS */
+    #how .steps{display:grid; gap:16px; grid-template-columns:repeat(3,1fr); align-items:stretch}
+    @media (max-width: 900px){ #how .steps{grid-template-columns:1fr} }
+    .step{
+      position:relative; background:linear-gradient(180deg,#0e1623,#0b1118); border:1px solid #1b2940;
+      border-radius:16px; padding:18px; box-shadow:var(--shadow); overflow:hidden;
+    }
+    .step h3{margin:8px 0 6px; font-size:1.15rem}
+    .step p{margin:0; color:#b5c2d2}
+    .step .num{position:absolute; top:12px; inset-inline-start:12px; width:28px; height:28px; border-radius:999px; background:#0c1522; border:1px solid #22324a;
+      display:grid; place-items:center; font-weight:700; color:#a9c8ff; font-size:.9rem}
+    .step .cta{margin-top:12px}
+    .step-icon{width:36px; height:36px}
 
-            {/* Desktop nav */}
-            <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-              <Link className="hover:opacity-100 opacity-90" href="/">Home</Link>
-              <Link className="hover:opacity-100 opacity-90" href="/about">About</Link>
-              <Link className="hover:opacity-100 opacity-90" href="/support">Support</Link>
-              <Link className="hover:opacity-100 opacity-90" href="/chat">Chat</Link>
-              <Link className="hover:opacity-100 opacity-90" href="/login">Login</Link>
-              <Link className="hover:opacity-100 opacity-90" href="/signup">Signup</Link>
-            </nav>
+    /* Footer/sep */
+    footer{padding:40px 0 60px; color:#7e8b9c}
+    .sep{height:1px; background:#1a2434; margin:24px 0}
+    .visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header id="hdr" aria-label="رأس الصفحة">
+    <div class="container nav">
+      <a href="#home" class="brand" aria-label="الانتقال إلى البداية">
+        <span class="brand-badge" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#071018" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12h2m2-3v6m3-9v12m3-7v2m3-9v22M21 12h0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span>genio ai studio</span>
+      </a>
 
-            {/* Mobile toggle */}
-            <button
-              aria-label="Open menu"
-              className="md:hidden rounded-md border border-white/20 px-3 py-1.5 text-xs hover:bg-white/10 transition"
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              Menu
-            </button>
-          </div>
+      <nav id="nav" aria-label="التنقل الرئيسي">
+        <button class="menu-toggle btn" aria-expanded="false" aria-controls="menu" id="menuBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#a9b4c2" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span class="visually-hidden">قائمة</span>
+        </button>
+        <ul id="menu" role="menubar">
+          <li role="none"><a role="menuitem" href="#home">Home</a></li>
+          <li role="none"><a role="menuitem" href="#how">كيف يعمل؟</a></li>
+          <li role="none"><a role="menuitem" href="#support">Support</a></li>
+          <li role="none"><a role="menuitem" href="#chat">Chat</a></li>
+          <li role="none"><a role="menuitem" href="#about">About</a></li>
+        </ul>
+      </nav>
 
-          {/* Mobile drawer */}
-          {menuOpen && (
-            <div className="border-t border-white/10 bg-[#0A0F1F] md:hidden">
-              <nav className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-4 text-sm font-medium">
-                <Link className="hover:opacity-100 opacity-90" href="/" onClick={() => setMenuOpen(false)}>Home</Link>
-                <Link className="hover:opacity-100 opacity-90" href="/about" onClick={() => setMenuOpen(false)}>About</Link>
-                <Link className="hover:opacity-100 opacity-90" href="/support" onClick={() => setMenuOpen(false)}>Support</Link>
-                <Link className="hover:opacity-100 opacity-90" href="/chat" onClick={() => setMenuOpen(false)}>Chat</Link>
-                <Link className="hover:opacity-100 opacity-90" href="/login" onClick={() => setMenuOpen(false)}>Login</Link>
-                <Link className="hover:opacity-100 opacity-90" href="/signup" onClick={() => setMenuOpen(false)}>Signup</Link>
-              </nav>
-            </div>
-          )}
-        </header>
-
-        {/* ===== Hero ===== */}
-        <section className="relative overflow-hidden">
-          {/* soft radial glow */}
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-1/2 top-1/2 h-[80vmax] w-[80vmax] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(99,102,241,0.16),rgba(45,212,191,0.10),transparent)]" />
-          </div>
-
-          <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
-            {/* Copy */}
-            <div>
-              <h1 className="text-4xl font-bold leading-tight sm:text-5xl md:text-6xl">
-                Create Your AI Twin
-              </h1>
-
-              <p className="mt-4 max-w-xl text-base opacity-80 sm:text-lg">
-                Your higher self—faster. Never tired. Works 24/7. You just enjoy life; it does the job.
-              </p>
-
-              {/* Value strip */}
-              <ul className="mt-6 space-y-2 text-sm opacity-95">
-                <li>• <span className="font-medium">One-tap voice control</span> — talk to it like Siri.</li>
-                <li>• <span className="font-medium">Runs your socials</span> — posts, replies, DMs, scheduling.</li>
-                <li>• <span className="font-medium">Manages your accounts</span> — email, calendar, tasks, follow-ups.</li>
-                <li>• <span className="font-medium">Always on</span> — learns your style and improves daily.</li>
-              </ul>
-
-              {/* CTA */}
-              <div className="mt-8">
-                <Link
-                  href="/signup"
-                  className="inline-block rounded-lg border border-teal-400/30 bg-teal-400/10 px-5 py-2 text-sm font-medium hover:bg-teal-400/20"
-                >
-                  Get Started
-                </Link>
-              </div>
-            </div>
-
-            {/* Human-like twin visual (SVG, clean & professional) */}
-            <div className="relative mx-auto w-full max-w-[560px]">
-              <div className="absolute -inset-6 blur-3xl opacity-60">
-                <div className="h-full w-full rounded-3xl bg-gradient-to-tr from-indigo-500/20 via-sky-400/10 to-emerald-400/10" />
-              </div>
-
-              <div className="relative flex items-end justify-center rounded-2xl border border-white/12 bg-white/[0.03] p-8 shadow-xl backdrop-blur">
-                <TwinSVG className="h-72 w-full max-w-[520px]" />
-              </div>
-              <p className="mt-3 text-center text-xs opacity-60">AI Twin preview</p>
-            </div>
-          </div>
-        </section>
-
-        {/* ===== Trust bar ===== */}
-        <section aria-label="Trusted by" className="border-t border-white/10 bg-white/[0.02]">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-8 px-6 py-8 opacity-70">
-            <span className="text-xs">Trusted by creators and teams</span>
-            <div className="h-5 w-20 rounded-md bg-white/10" />
-            <div className="h-5 w-20 rounded-md bg-white/10" />
-            <div className="h-5 w-20 rounded-md bg-white/10" />
-            <div className="h-5 w-20 rounded-md bg-white/10" />
-          </div>
-        </section>
-
-        {/* ===== Features grid ===== */}
-        <section className="mx-auto max-w-7xl px-6 py-16">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
-            <FeatureCard title="Voice-first Control" desc="One tap to talk. Ask, delegate, and review—hands-free." />
-            <FeatureCard title="Socials Automation" desc="Posts, replies, DMs, scheduling—your tone, your rules." />
-            <FeatureCard title="Ops & Accounts" desc="Email, calendar, tasks, follow-ups—done on time, every time." />
-            <FeatureCard title="Always On" desc="Learns your style, improves daily, and never sleeps." />
-          </div>
-        </section>
-
-        {/* ===== Footer ===== */}
-        <footer className="border-t border-white/10 py-8">
-          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-xs opacity-70 md:flex-row">
-            <div>© {new Date().getFullYear()} Genio — All rights reserved.</div>
-            <div className="flex items-center gap-4">
-              <Link className="hover:opacity-100 opacity-80" href="/support">Support</Link>
-              <Link className="hover:opacity-100 opacity-80" href="/about">About</Link>
-              <Link className="hover:opacity-100 opacity-80" href="/login">Login</Link>
-            </div>
-          </div>
-        </footer>
-      </main>
-    </>
-  );
-}
-
-/* ===== Reusable pieces (kept inline for single-file delivery) ===== */
-
-function FeatureCard({ title, desc }) {
-  return (
-    <div className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-white/20">
-      <div className="text-lg font-semibold">{title}</div>
-      <p className="mt-2 text-sm opacity-75">{desc}</p>
-      <div className="mt-4 text-xs opacity-60">Learn more →</div>
+      <div class="nav-cta">
+        <a class="btn" href="#login" aria-label="تسجيل الدخول">Login</a>
+        <a class="btn btn-primary" href="#signup" aria-label="إنشاء حساب">Signup</a>
+      </div>
     </div>
-  );
-}
+  </header>
 
-/**
- * TwinSVG — human-like mirrored silhouettes with subtle gradients,
- * purposefully abstract but clearly "two human twins" (no childish circles).
- */
-function TwinSVG({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 640 360" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#60A5FA" />
-          <stop offset="100%" stopColor="#34D399" />
-        </linearGradient>
-      </defs>
+  <!-- Hero -->
+  <main id="home" class="container hero" aria-label="القسم التعريفي">
+    <div>
+      <div class="kicker">توينك الذكي، على أسلوبك وصوتك</div>
+      <h1>كبسة زر — والتوين <span aria-hidden="true">يفتح واتساب</span>، يكتب إيميل، وينشر بوستات عنك</h1>
+      <p>صمّم توين AI يشتغل بدلِك: يرد، ي schedul-e، يرسل، ويحلّل. أنت تعطي الهدف، وهو ينفّذ بطريقة تشبهك.</p>
 
-      {/* base glow */}
-      <ellipse cx="320" cy="320" rx="240" ry="20" fill="url(#body)" opacity="0.15" />
+      <div class="points" aria-label="قدرات سريعة">
+        <span class="chip">رسائل واتساب</span>
+        <span class="chip">إيميلات احترافية</span>
+        <span class="chip">بوستات سوشال</span>
+        <span class="chip">تقارير ومتابعة</span>
+        <span class="chip">أوامر صوتية</span>
+      </div>
 
-      {/* left silhouette */}
-      <g opacity="0.95">
-        <circle cx="220" cy="120" r="40" fill="url(#body)" />
-        <rect x="190" y="160" width="60" height="110" rx="28" fill="url(#body)" />
-        <rect x="170" y="200" width="30" height="90" rx="12" fill="url(#body)" />
-        <rect x="250" y="200" width="30" height="90" rx="12" fill="url(#body)" />
-        {/* arm gesture */}
-        <path d="M190 190 C180 180, 160 170, 150 185" stroke="url(#body)" strokeWidth="10" strokeLinecap="round" />
-      </g>
+      <form class="form" onsubmit="event.preventDefault()" aria-label="إنشاء توين">
+        <input class="input" name="twin_name" placeholder="اختر اسم للتوين… مثال: سامر بوت" aria-label="اسم التوين" />
+        <button class="btn btn-primary" type="submit">جرّب التوين الآن</button>
+        <button class="btn" type="button" onclick="alert('ديمو واجهة فقط')">مشاهدة ديمو</button>
+      </form>
+    </div>
 
-      {/* right silhouette (mirrored twin) */}
-      <g opacity="0.95" transform="translate(200,0)">
-        <circle cx="220" cy="120" r="40" fill="url(#body)" />
-        <rect x="190" y="160" width="60" height="110" rx="28" fill="url(#body)" />
-        <rect x="170" y="200" width="30" height="90" rx="12" fill="url(#body)" />
-        <rect x="250" y="200" width="30" height="90" rx="12" fill="url(#body)" />
-        {/* arm gesture (mirrored) */}
-        <path d="M250 190 C260 180, 280 170, 290 185" stroke="url(#body)" strokeWidth="10" strokeLinecap="round" />
-      </g>
+    <figure class="hero-visual" aria-label="صورة توضيحية للتوين">
+      <div class="blob" aria-hidden="true"></div>
+      <svg class="twin" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="توأم ذكاء اصطناعي">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#6fc3ff" /><stop offset="1" stop-color="#5ee1a1"/>
+          </linearGradient>
+          <radialGradient id="g2" cx="50%" cy="10%" r="80%"><stop offset="0" stop-color="#1a2a42"/><stop offset="1" stop-color="#0d1420"/></radialGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <rect x="0" y="0" width="480" height="480" rx="26" fill="url(#g2)"/>
+        <circle cx="240" cy="164" r="74" fill="#0f1726" stroke="url(#g1)" stroke-width="3"/>
+        <ellipse cx="218" cy="160" rx="10" ry="12" fill="#9fd1ff"/><ellipse cx="262" cy="160" rx="10" ry="12" fill="#9fd1ff"/>
+        <path d="M210 188q30 22 60 0" stroke="url(#g1)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <rect x="168" y="230" width="144" height="150" rx="20" fill="#0f1726" stroke="#233043" />
+        <path d="M350 160 q20 20 0 40" stroke="url(#g1)" stroke-width="4" fill="none" filter="url(#glow)"/>
+        <path d="M360 150 q32 36 0 72" stroke="url(#g1)" stroke-width="3" fill="none" opacity=".7"/>
+        <path d="M370 140 q44 52 0 104" stroke="url(#g1)" stroke-width="2" fill="none" opacity=".5"/>
+      </svg>
+      <figcaption class="hero-badges">
+        <span class="tag">يشبه نبرة صوتك</span>
+        <span class="tag">ينفّذ تلقائياً</span>
+        <span class="tag">خصوصية عالية</span>
+      </figcaption>
+    </figure>
+  </main>
 
-      {/* subtle link between twins */}
-      <rect x="300" y="200" width="40" height="16" rx="8" fill="url(#body)" opacity="0.8" />
-    </svg>
-  );
-}
+  <!-- HOW IT WORKS -->
+  <section id="how" class="container" aria-label="كيف يعمل">
+    <h2 style="margin-top:0">كيف يعمل؟</h2>
+    <p style="margin-top:-6px;color:#b7c4d4">ثلاث خطوات سهلة لتحويل مهامك إلى أتمتة ذكية بأسلوبك.</p>
+    <div class="steps" role="list">
+      <!-- Step 1 -->
+      <article class="step" role="listitem">
+        <span class="num" aria-hidden="true">1</span>
+        <svg class="step-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3l3 3-3 3-3-3 3-3Zm0 6v12M6 12l-3 3 3 3 3-3-3-3Zm12 0l-3 3 3 3 3-3-3-3Z" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>أنشئ التوين</h3>
+        <p>سمِّه، حمّل عيّنة صوت، وحدد أسلوب الكتابة (رسمي/ودّي/مختصر).</p>
+        <div class="cta">
+          <a class="btn" href="#signup">ابدأ الآن</a>
+        </div>
+      </article>
+
+      <!-- Step 2 -->
+      <article class="step" role="listitem">
+        <span class="num" aria-hidden="true">2</span>
+        <svg class="step-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h16v10H4zM8 7V5a4 4 0 0 1 8 0v2" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>وصّل قنواتك</h3>
+        <p>اربط واتساب، الإيميل، وحسابات السوشال. إدارة صلاحيات وموافقات قبل الإرسال.</p>
+        <div class="cta">
+          <button class="btn" type="button" onclick="alert('تكاملات تجريبية')">استعراض التكاملات</button>
+        </div>
+      </article>
+
+      <!-- Step 3 -->
+      <article class="step" role="listitem">
+        <span class="num" aria-hidden="true">3</span>
+        <svg class="step-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 12h8l2-3 2 6 2-3h4" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>نفّذ وتابع</h3>
+        <p>أعطِ الهدف؛ التوين ينفّذ تلقائياً ويعرض لك تقارير وأثر كل نشاط.</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="#chat">جرّب مهمة الآن</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Sections -->
+  <section id="support" class="container">
+    <h2>Support</h2>
+    <div class="grid">
+      <div class="card">قاعدة معرفة</div>
+      <div class="card">مركز المساعدة</div>
+      <div class="card">تواصل مباشر</div>
+    </div>
+  </section>
+
+  <section id="chat" class="container">
+    <h2>Chat</h2>
+    <div class="card">دردشة مع التوين — API وواجهة جاهزة للدمج.</div>
+  </section>
+
+  <section id="about" class="container">
+    <h2>About</h2>
+    <div class="card">genio ai studio: اصنع توين يعمل مكانك — رسائل، بريد، سوشال، أتمتة مهام.</div>
+  </section>
+
+  <div class="container sep" role="separator"></div>
+  <footer class="container">
+    <div id="login"><strong>Login:</strong> قريباً.</div>
+    <div id="signup" style="margin-top:6px"><strong>Signup:</strong> قريباً.</div>
+  </footer>
+
+  <script>
+    // لماذا: تحسين قابلية الاستخدام على الجوال + مؤثرات بسيطة
+    const nav = document.getElementById('nav');
+    const btn = document.getElementById('menuBtn');
+    btn.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+    });
+
+    // تمرير سلس
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click', e=>{
+        const id = a.getAttribute('href');
+        const el = document.querySelector(id);
+        if(el){ e.preventDefault(); el.scrollIntoView({behavior:'smooth', block:'start'}); nav.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+      });
+    });
+
+    // ظل للهيدر عند التمرير
+    const hdr = document.getElementById('hdr');
+    const onScroll = () => hdr.classList.toggle('scrolled', window.scrollY > 6);
+    onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
+  </script>
+</body>
+</html>
