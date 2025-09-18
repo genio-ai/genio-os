@@ -5,39 +5,36 @@ export default function Header() {
   return (
     <header className="w-full bg-[#0b1220] text-white shadow-md">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-        
         {/* Logo */}
-        <div className="text-xl font-bold tracking-wide">
-          Genio <span className="text-yellow-400">AI Twin Studio</span>
-        </div>
+        <Link href="/" className="text-xl font-bold text-yellow-400">
+          Genio AI Twin Studio
+        </Link>
 
-        {/* Nav Links */}
-        <nav className="space-x-8 hidden md:flex">
-          <Link href="/about" className="hover:text-yellow-400 transition">
+        {/* Navigation */}
+        <nav className="flex items-center space-x-6">
+          <Link href="/about" className="hover:text-yellow-400">
             About
           </Link>
-          <Link href="/support" className="hover:text-yellow-400 transition">
+          <Link href="/support" className="hover:text-yellow-400">
             Support
           </Link>
-          <Link href="/chat" className="hover:text-yellow-400 transition">
+          <Link href="/chat" className="hover:text-yellow-400">
             Chat
           </Link>
         </nav>
 
-        {/* Buttons */}
+        {/* Actions */}
         <div className="flex items-center space-x-4">
-          <Link
-            href="/auth/login"
-            className="px-4 py-2 border border-gray-400 rounded-md hover:bg-gray-800 transition"
-          >
+          <button className="px-4 py-2 rounded border border-gray-400 hover:bg-gray-800">
             Log in
-          </Link>
-          <Link
-            href="/auth/signup"
-            className="px-4 py-2 bg-yellow-400 text-black font-semibold rounded-md hover:bg-yellow-300 transition"
-          >
+          </button>
+          <button className="px-4 py-2 rounded bg-yellow-400 text-black font-semibold hover:bg-yellow-300">
             Sign up
-          </Link>
+          </button>
+          {/* Language Toggle */}
+          <button className="ml-4 px-3 py-1 rounded bg-gray-700 hover:bg-gray-600">
+            العربية / EN
+          </button>
         </div>
       </div>
     </header>
