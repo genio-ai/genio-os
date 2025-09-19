@@ -15,21 +15,19 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // CTA routing without backend
   const isAuth = useMemo(() => {
     if (typeof window === "undefined") return false;
-    const cookieHasAuth =
-      document.cookie.includes("auth=") || document.cookie.includes("token=");
-    const lsHasAuth =
-      !!localStorage.getItem("auth") || !!localStorage.getItem("token");
+    const cookieHasAuth = document.cookie.includes("auth=") || document.cookie.includes("token=");
+    const lsHasAuth = !!localStorage.getItem("auth") || !!localStorage.getItem("token");
     return cookieHasAuth || lsHasAuth;
   }, []);
-
   const goCreateTwin = () => router.push(isAuth ? "/onboarding" : "/signup");
 
   return (
     <>
       <Head>
-        <title>genio twins — Create your digital twin</title>
+        <title>genio os — Create your digital twin</title>
         <meta
           name="description"
           content="Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks."
@@ -37,41 +35,48 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
-          rel="stylesheet"
-        />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
       </Head>
 
       {/* Header */}
       <header className={scrolled ? "hdr scrolled" : "hdr"} aria-label="Site header">
         <div className="container nav">
-          {/* Brand: explicit name = genio twins */}
-          <a className="brand" href="/" aria-label="genio twins">
+          {/* Brand: logo + explicit name = genio os */}
+          <a className="brand" href="/" aria-label="genio os">
             <span className="brand-logo" aria-hidden="true">
-              {/* Logo: rounded capsule + equalizer bars (matches your screenshot) */}
-              <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true" focusable="false">
+              {/* NEW Neon Circular Logo (gradient + equalizer + waves) */}
+              <svg width="28" height="28" viewBox="0 0 28 28" role="img" aria-label="genio os logo">
                 <defs>
-                  <linearGradient id="gt-grad" x1="0" y1="0" x2="1" y2="1">
+                  <linearGradient id="gt-circ" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stopColor="#20E3B2" />
                     <stop offset="1" stopColor="#6FC3FF" />
                   </linearGradient>
+                  <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="1.8" result="b" />
+                    <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+                  </filter>
                 </defs>
-                <rect x="0" y="0" width="28" height="28" rx="9" fill="url(#gt-grad)"/>
-                {/* why: bars suggest voice/activity; stroke same dark ink as UI */}
-                <path d="M7 16V12M12 20V8M17 15V13M22 22V6" stroke="#071018" strokeWidth="2.4" strokeLinecap="round"/>
+                {/* circular badge */}
+                <circle cx="14" cy="14" r="12" fill="url(#gt-circ)" filter="url(#soft-glow)" />
+                {/* equalizer bars (centered) */}
+                <g stroke="#071018" strokeLinecap="round" strokeWidth="2.2">
+                  <line x1="9" y1="17" x2="9" y2="11" />
+                  <line x1="13.5" y1="20" x2="13.5" y2="8" />
+                  <line x1="18" y1="16" x2="18" y2="12" />
+                </g>
+                {/* subtle waves (right) */}
+                <g fill="none" stroke="#071018" strokeWidth="1.6" strokeLinecap="round" opacity="0.85">
+                  <path d="M21.5 11.2c2 2.2 2 3.6 0 5.8" />
+                  <path d="M23.5 9.8c3.1 3.2 3.1 5.8 0 9" opacity="0.65" />
+                </g>
               </svg>
             </span>
-            <span className="brand-name">genio twins</span>
+            <span className="brand-name">genio os</span>
           </a>
 
           {/* Right actions */}
           <div className="actions">
-            <button
-              className="menu-chip"
-              aria-label="Open menu"
-              onClick={() => setMenuOpen(true)}
-            >
+            <button className="menu-chip" aria-label="Open menu" onClick={() => setMenuOpen(true)}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M4 6h16M7 12h13M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
@@ -91,18 +96,28 @@ export default function Home() {
             <div className="panel-head">
               <div className="brand mini">
                 <span className="brand-logo" aria-hidden="true">
+                  {/* same logo mini */}
                   <svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true">
+                    <use href="#logo-def" />
                     <defs>
-                      <linearGradient id="gt-grad-2" x1="0" y1="0" x2="1" y2="1">
+                      <linearGradient id="gt-circ-2" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0" stopColor="#20E3B2" />
                         <stop offset="1" stopColor="#6FC3FF" />
                       </linearGradient>
                     </defs>
-                    <rect x="0" y="0" width="28" height="28" rx="9" fill="url(#gt-grad-2)"/>
-                    <path d="M7 16V12M12 20V8M17 15V13M22 22V6" stroke="#071018" strokeWidth="2.4" strokeLinecap="round"/>
+                    <circle cx="14" cy="14" r="12" fill="url(#gt-circ-2)" />
+                    <g stroke="#071018" strokeLinecap="round" strokeWidth="2.2">
+                      <line x1="9" y1="17" x2="9" y2="11" />
+                      <line x1="13.5" y1="20" x2="13.5" y2="8" />
+                      <line x1="18" y1="16" x2="18" y2="12" />
+                    </g>
+                    <g fill="none" stroke="#071018" strokeWidth="1.6" strokeLinecap="round" opacity="0.85">
+                      <path d="M21.5 11.2c2 2.2 2 3.6 0 5.8" />
+                      <path d="M23.5 9.8c3.1 3.2 3.1 5.8 0 9" opacity="0.65" />
+                    </g>
                   </svg>
                 </span>
-                <span className="brand-name">genio twins</span>
+                <span className="brand-name">genio os</span>
               </div>
               <button className="close" aria-label="Close menu" onClick={() => setMenuOpen(false)}>✕</button>
             </div>
