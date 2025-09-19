@@ -15,7 +15,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // CTA routing without backend
+  // Decide CTA dest without backend
   const isAuth = useMemo(() => {
     if (typeof window === "undefined") return false;
     const cookieHasAuth = document.cookie.includes("auth=") || document.cookie.includes("token=");
@@ -28,10 +28,7 @@ export default function Home() {
     <>
       <Head>
         <title>genio os — Create your digital twin</title>
-        <meta
-          name="description"
-          content="Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks."
-        />
+        <meta name="description" content="Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -41,40 +38,38 @@ export default function Home() {
       {/* Header */}
       <header className={scrolled ? "hdr scrolled" : "hdr"} aria-label="Site header">
         <div className="container nav">
-          {/* Brand: logo + explicit name = genio os */}
           <a className="brand" href="/" aria-label="genio os">
             <span className="brand-logo" aria-hidden="true">
-              {/* NEW Neon Circular Logo (gradient + equalizer + waves) */}
+              {/* Neon circular logo: smile face + waves */}
               <svg width="28" height="28" viewBox="0 0 28 28" role="img" aria-label="genio os logo">
                 <defs>
-                  <linearGradient id="gt-circ" x1="0" y1="0" x2="1" y2="1">
+                  <linearGradient id="gradBadge" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stopColor="#20E3B2" />
                     <stop offset="1" stopColor="#6FC3FF" />
                   </linearGradient>
-                  <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <filter id="glowSoft" x="-50%" y="-50%" width="200%" height="200%">
                     <feGaussianBlur stdDeviation="1.8" result="b" />
                     <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
                   </filter>
                 </defs>
-                {/* circular badge */}
-                <circle cx="14" cy="14" r="12" fill="url(#gt-circ)" filter="url(#soft-glow)" />
-                {/* equalizer bars (centered) */}
-                <g stroke="#071018" strokeLinecap="round" strokeWidth="2.2">
-                  <line x1="9" y1="17" x2="9" y2="11" />
-                  <line x1="13.5" y1="20" x2="13.5" y2="8" />
-                  <line x1="18" y1="16" x2="18" y2="12" />
+                {/* badge */}
+                <circle cx="14" cy="14" r="12" fill="url(#gradBadge)" filter="url(#glowSoft)"/>
+                {/* face */}
+                <g fill="#E7FAFF" stroke="none" transform="translate(0,0)">
+                  <circle cx="11.5" cy="12" r="1.4" />
+                  <circle cx="16.5" cy="12" r="1.4" />
                 </g>
-                {/* subtle waves (right) */}
-                <g fill="none" stroke="#071018" strokeWidth="1.6" strokeLinecap="round" opacity="0.85">
-                  <path d="M21.5 11.2c2 2.2 2 3.6 0 5.8" />
-                  <path d="M23.5 9.8c3.1 3.2 3.1 5.8 0 9" opacity="0.65" />
+                <path d="M10.4 15.2q3.6 2.8 7.2 0" fill="none" stroke="#071018" strokeWidth="1.9" strokeLinecap="round"/>
+                {/* waves (right) */}
+                <g fill="none" stroke="#071018" strokeLinecap="round">
+                  <path d="M21.5 11.4c2.1 2.2 2.1 3.6 0 5.8" strokeWidth="1.7" />
+                  <path d="M23.6 9.9c3.2 3.3 3.2 6 0 9.3" strokeWidth="1.3" opacity=".7" />
                 </g>
               </svg>
             </span>
             <span className="brand-name">genio os</span>
           </a>
 
-          {/* Right actions */}
           <div className="actions">
             <button className="menu-chip" aria-label="Open menu" onClick={() => setMenuOpen(true)}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -83,7 +78,7 @@ export default function Home() {
               <span className="menu-text">Menu</span>
             </button>
             <a className="btn btn-outline" href="/login">Login</a>
-            <a className="btn btn-neon" href="/signup">Signup</a>
+            {/* Signup removed from header as requested */}
           </div>
         </div>
       </header>
@@ -96,24 +91,19 @@ export default function Home() {
             <div className="panel-head">
               <div className="brand mini">
                 <span className="brand-logo" aria-hidden="true">
-                  {/* same logo mini */}
                   <svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true">
-                    <use href="#logo-def" />
                     <defs>
-                      <linearGradient id="gt-circ-2" x1="0" y1="0" x2="1" y2="1">
+                      <linearGradient id="gradBadge2" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0" stopColor="#20E3B2" />
                         <stop offset="1" stopColor="#6FC3FF" />
                       </linearGradient>
                     </defs>
-                    <circle cx="14" cy="14" r="12" fill="url(#gt-circ-2)" />
-                    <g stroke="#071018" strokeLinecap="round" strokeWidth="2.2">
-                      <line x1="9" y1="17" x2="9" y2="11" />
-                      <line x1="13.5" y1="20" x2="13.5" y2="8" />
-                      <line x1="18" y1="16" x2="18" y2="12" />
-                    </g>
-                    <g fill="none" stroke="#071018" strokeWidth="1.6" strokeLinecap="round" opacity="0.85">
-                      <path d="M21.5 11.2c2 2.2 2 3.6 0 5.8" />
-                      <path d="M23.5 9.8c3.1 3.2 3.1 5.8 0 9" opacity="0.65" />
+                    <circle cx="14" cy="14" r="12" fill="url(#gradBadge2)"/>
+                    <g fill="#E7FAFF"><circle cx="11.5" cy="12" r="1.3"/><circle cx="16.5" cy="12" r="1.3"/></g>
+                    <path d="M10.4 15.2q3.6 2.8 7.2 0" fill="none" stroke="#071018" strokeWidth="1.8" strokeLinecap="round"/>
+                    <g fill="none" stroke="#071018" strokeLinecap="round">
+                      <path d="M21.5 11.4c2.1 2.2 2.1 3.6 0 5.8" strokeWidth="1.6"/>
+                      <path d="M23.6 9.9c3.2 3.3 3.2 6 0 9.3" strokeWidth="1.2" opacity=".7"/>
                     </g>
                   </svg>
                 </span>
@@ -140,6 +130,9 @@ export default function Home() {
             pages: replying in your tone and voice, posting content, sending WhatsApp & emails, even dropping TikToks.
             It’s your personal assistant on call — one click, by the name you choose.
           </p>
+
+          {/* NEW: Signup button above CTA, same size/style */}
+          <a className="btn btn-neon cta" href="/signup" style={{marginBottom:12}}>Signup</a>
           <button className="btn btn-neon cta" onClick={goCreateTwin}>Create your twin</button>
         </div>
 
@@ -187,7 +180,7 @@ export default function Home() {
         a{color:inherit; text-decoration:none}
 
         /* Header */
-        .hdr{position:sticky; top:0; z-index:50; backdrop-filter:saturate(150%) blur(10px); background:#0b111add; transition:box-shadow .2s ease, background .2s ease}
+        .hdr{position:sticky; top:0; z-index:50; backdrop-filter:saturate(150%) blur(10px); background:#0b111add; transition:box-shadow .2s ease}
         .hdr.scrolled{box-shadow:0 8px 28px rgba(0,0,0,.5)}
         .nav{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0}
         .brand{display:inline-flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto; white-space:nowrap}
@@ -195,9 +188,9 @@ export default function Home() {
         .brand-name{font-weight:800; letter-spacing:.2px}
         .actions{display:flex; align-items:center; gap:8px; flex:0 1 auto; min-width:0}
         .menu-chip{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; background:#0e1a2a; border:1px solid #1e2b41; color:#cfe6ff}
-        .btn{display:inline-flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; padding:8px 12px; font-weight:600; border:1px solid #223145; background:#0f1828; color:var(--text)}
+        .btn{display:inline-flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; padding:10px 14px; font-weight:700; border:1px solid #223145; background:#0f1828; color:var(--text)}
         .btn-neon{border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink)}
-        .btn-outline{background:#0f1828}
+        .btn-outline{background:#0f1828; font-weight:600}
         @media (max-width:360px){
           .menu-text{display:none}
           .menu-chip{padding:6px 8px}
@@ -218,12 +211,17 @@ export default function Home() {
         .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:32px; align-items:center; padding:84px 0}
         .hero-text h1{
           margin:0 0 14px; font-size:clamp(32px,5vw,56px); line-height:1.05;
-          background:linear-gradient(180deg, #f4f8ff 0%, #cfe0ff 100%); -webkit-background-clip:text; color:transparent; text-shadow:0 0 18px rgba(111,195,255,.15);
+          background:linear-gradient(180deg, #f4f8ff 0%, #cfe0ff 100%); -webkit-background-clip:text; color:transparent;
+          text-shadow:0 0 18px rgba(111,195,255,.15);
         }
-        .hero-text .hook{color:#c0d0e2; margin:0 0 24px; max-width:58ch}
-        .cta{min-width:180px}
+        .hero-text .hook{color:#c0d0e2; margin:0 0 18px; max-width:58ch}
+        .cta{min-width:220px} /* big buttons */
         .hero-visual{position:relative; aspect-ratio:1/1; min-height:320px; display:grid; place-items:center}
-        .blob{position:absolute; width:560px; height:560px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--neon1), transparent 60%), radial-gradient(circle at 70% 70%, var(--neon2), transparent 60%); filter:blur(44px) saturate(160%); opacity:.35}
+        .blob{
+          position:absolute; width:560px; height:560px; border-radius:50%;
+          background:radial-gradient(circle at 30% 30%, var(--neon1), transparent 60%), radial-gradient(circle at 70% 70%, var(--neon2), transparent 60%);
+          filter:blur(44px) saturate(160%); opacity:.35;
+        }
         .twin{width:min(440px,90%); filter:drop-shadow(0 10px 40px rgba(0,0,0,.5))}
         @media (max-width:940px){ .hero{grid-template-columns:1fr; text-align:center} .hero-visual{margin-top:16px} }
       `}</style>
