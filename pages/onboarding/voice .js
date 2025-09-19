@@ -1,225 +1,163 @@
-// File: pages/onboarding/voice.js
 import { useEffect, useMemo, useRef, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
+const AUTH_KEY = "auth_user";
 const DRAFT_KEY = "twin_ob_draft";
-const MIN_SEC = 60;
-const MAX_SEC = 90;
-const ACCEPT = ["audio/webm", "audio/wav", "audio/ogg"];
 
 export default function Voice() {
   const router = useRouter();
 
-  const [vBlob, setVBlob] = useState(null);
-  const [vUrl, setVUrl] = useState("");
-  const [sec, setSec] = useState(0);
-  const [recording, setRecording] = useState(false);
+  // draft
+  const [voiceUrl, setVoiceUrl] = useState("");
+  const [voiceSec, setVoiceSec] = useState(0);
+
+  // recording
+  const [supported, setSupported] = useState(false);
+  const [perm, setPerm] = useState("unknown"); // "unknown" | "granted" | "denied"
+  const [recState, setRecState] = useState("idle"); // "idle" | "recording" | "stopped"
   const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const recRef = useRef(null);
-  const streamRef = useRef(null);
-  const t0Ref = useRef(0);
+  const mrRef = useRef(null);
+  const chunksRef = useRef([]);
+  const startAtRef = useRef(0);
+  const timerRef = useRef(null);
+  const audioRef = useRef(null);
 
-  const vuCanvas = useRef(null);
-  const rafRef = useRef(0);
-  const analyserRef = useRef(null);
-  const audioCtxRef = useRef(null);
-
-  // Load draft
+  // auth guard + load draft
   useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
+      if (!u) {
+        router.replace("/login");
+        return;
+      }
+    } catch {}
     try {
       const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
-      if (d.voiceUrl) setVUrl(d.voiceUrl);
-      if (d.voiceSec) setSec(d.voiceSec);
+      if (d.voiceUrl) setVoiceUrl(d.voiceUrl);
+      if (d.voiceSec) setVoiceSec(d.voiceSec);
     } catch {}
+  }, [router]);
+
+  // feature support
+  useEffect(() => {
+    const ok = typeof window !== "undefined" && !!navigator.mediaDevices && !!window.MediaRecorder;
+    setSupported(ok);
   }, []);
 
-  // Autosave meta (not the blob)
-  useEffect(() => {
+  // request mic permission lazily
+  const askPermission = async () => {
+    setErr("");
+    if (perm === "granted") return true;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop());
+      setPerm("granted");
+      return true;
+    } catch {
+      setPerm("denied");
+      setErr("Microphone permission denied. Enable it from browser settings.");
+      return false;
+    }
+  };
+
+  // start recording
+  const startRec = async () => {
+    setErr("");
+    if (!supported) return setErr("Recording is not supported on this device/browser.");
+    const ok = await askPermission();
+    if (!ok) return;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      mrRef.current = mr;
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
+      mr.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const url = URL.createObjectURL(blob);
+        setVoiceUrl((old) => {
+          if (old) URL.revokeObjectURL(old);
+          return url;
+        });
+        setRecState("stopped");
+        saveDraft({ voiceUrl: url, voiceSec });
+      };
+      mr.start(50);
+      startAtRef.current = Date.now();
+      setRecState("recording");
+      timerRef.current = setInterval(() => {
+        const s = Math.floor((Date.now() - startAtRef.current) / 1000);
+        setVoiceSec(s);
+      }, 250);
+    } catch {
+      setErr("Cannot start recording. Please try again.");
+    }
+  };
+
+  // stop recording
+  const stopRec = () => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    try { mrRef.current?.stop(); } catch {}
+  };
+
+  // delete current take
+  const deleteTake = () => {
+    if (!voiceUrl) return;
+    if (!confirm("Delete this voice sample?")) return;
+    try { URL.revokeObjectURL(voiceUrl); } catch {}
+    setVoiceUrl("");
+    setVoiceSec(0);
+    saveDraft({ voiceUrl: "", voiceSec: 0 });
+  };
+
+  // save draft merged
+  const saveDraft = (patch) => {
     try {
       const cur = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({
-        ...cur,
-        voiceReady: !!(vUrl && sec),
-        voiceUrl: vUrl || "",
-        voiceSec: sec || 0
-      }));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...cur, ...patch }));
     } catch {}
-  }, [vUrl, sec]);
-
-  // VU visualizer
-  const drawVU = (level = 0) => {
-    const c = vuCanvas.current; if (!c) return;
-    const ctx = c.getContext("2d");
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const { width } = c.getBoundingClientRect();
-    const h = 44;
-    c.width = Math.floor(width * dpr);
-    c.height = Math.floor(h * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, width, h);
-
-    // bg
-    ctx.fillStyle = "#0c1421";
-    ctx.fillRect(0, 0, width, h);
-    ctx.strokeStyle = "#21314a";
-    ctx.strokeRect(0.5, 0.5, width - 1, h - 1);
-
-    // bars
-    const bars = 24;
-    const gap = 4;
-    const bw = (width - gap * (bars + 1)) / bars;
-    for (let i = 0; i < bars; i++) {
-      const x = gap + i * (bw + gap);
-      const t = i / (bars - 1);
-      const amp = Math.max(0.08, level * (0.5 + 0.5 * Math.sin((Date.now() / 200) + i)));
-      const bh = 8 + amp * (h - 16) * (0.6 + 0.4 * t);
-      const y = (h - bh) / 2;
-      const g = ctx.createLinearGradient(0, y, 0, y + bh);
-      g.addColorStop(0, "#6FC3FF");
-      g.addColorStop(1, "#20E3B2");
-      ctx.fillStyle = g;
-      ctx.fillRect(x, y, bw, bh);
-    }
   };
 
-  const startVisualizer = (sourceNode) => {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    const actx = new AC();
-    audioCtxRef.current = actx;
-    const analyser = actx.createAnalyser();
-    analyser.fftSize = 2048;
-    analyserRef.current = analyser;
-    sourceNode.connect(analyser);
-
-    const data = new Uint8Array(analyser.fftSize);
-    const loop = () => {
-      analyser.getByteTimeDomainData(data);
-      let sum = 0;
-      for (let i = 0; i < data.length; i++) {
-        const v = (data[i] - 128) / 128;
-        sum += v * v;
-      }
-      const rms = Math.sqrt(sum / data.length); // 0..~0.5
-      const level = Math.min(1, Math.max(0, rms * 3));
-      drawVU(level);
-      rafRef.current = requestAnimationFrame(loop);
-    };
-    rafRef.current = requestAnimationFrame(loop);
-  };
-
-  const stopVisualizer = () => {
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = 0;
-    try { audioCtxRef.current?.close(); } catch {}
-    analyserRef.current = null;
-    drawVU(0);
-  };
-
-  const startRecord = async () => {
-    setErr("");
-    if (recording) return;
+  // save & continue
+  const saveAndNext = async () => {
+    setBusy(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true }, video: false
-      });
-      streamRef.current = stream;
-
-      // visualizer from mic
-      const AC = window.AudioContext || window.webkitAudioContext;
-      const actx = new AC();
-      audioCtxRef.current = actx;
-      const micSrc = actx.createMediaStreamSource(stream);
-      startVisualizer(micSrc);
-
-      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "";
-      const rec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
-      recRef.current = rec;
-      const chunks = [];
-      rec.ondataavailable = (e) => e.data && chunks.push(e.data);
-      rec.onstop = () => {
-        stream.getTracks().forEach(t => t.stop());
-        stopVisualizer();
-        const blob = new Blob(chunks, { type: rec.mimeType || "audio/webm" });
-        const url = URL.createObjectURL(blob);
-        setVBlob(blob);
-        setVUrl(url);
-        setSec(Math.round((Date.now() - t0Ref.current) / 1000));
-        setRecording(false);
-      };
-      t0Ref.current = Date.now();
-      rec.start();
-      setRecording(true);
-    } catch {
-      setErr("Mic permission denied. You can upload an audio file instead.");
+      saveDraft({ voiceUrl, voiceSec });
+      router.push("/onboarding/video");
+    } finally {
+      setBusy(false);
     }
   };
 
-  const stopRecord = () => {
-    if (!recRef.current || recRef.current.state === "inactive") return;
-    recRef.current.stop();
-  };
+  // display helpers
+  const durLabel = useMemo(() => {
+    const s = Math.max(0, Number(voiceSec) || 0);
+    const m = Math.floor(s / 60).toString().padStart(1, "0");
+    const r = (s % 60).toString().padStart(2, "0");
+    return `${m}:${r}`;
+  }, [voiceSec]);
 
-  const onUpload = (file) => {
-    setErr("");
-    if (!file) return;
-    if (!ACCEPT.includes(file.type)) return setErr("Unsupported audio format.");
-    if (file.size > 20 * 1024 * 1024) return setErr("Audio file too large (max 20MB).");
-    setVBlob(file);
-    const url = URL.createObjectURL(file);
-    setVUrl(url);
-    const a = document.createElement("audio");
-    a.src = url;
-    a.onloadedmetadata = () => setSec(Math.round(a.duration || 0));
-    // visualizer from playback
-    a.onplay = () => {
-      try {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        const actx = new AC();
-        audioCtxRef.current = actx;
-        const src = actx.createMediaElementSource(a);
-        startVisualizer(src);
-      } catch {}
-    };
-    a.onpause = () => stopVisualizer();
-  };
-
-  const good = sec >= MIN_SEC && sec <= MAX_SEC;
-
-  const quests = useMemo(() => ([
-    { key: "perm", label: "Microphone allowed or file uploaded", done: !!(recording || vUrl) },
-    { key: "dur", label: `Record at least ${MIN_SEC}s`, done: sec >= MIN_SEC },
-    { key: "cap", label: "Avoid clipping (keep level moderate)", done: true }, // hint only
-  ]), [recording, vUrl, sec]);
-
-  const next = () => {
-    if (!good) return;
-    router.push("/onboarding/video");
-  };
-
-  useEffect(() => {
-    drawVU(0);
-    const onResize = () => drawVU(0);
-    window.addEventListener("resize", onResize);
-    return () => { window.removeEventListener("resize", onResize); stopVisualizer(); streamRef.current?.getTracks().forEach(t=>t.stop()); };
-  }, []);
+  const canSave = useMemo(() => voiceSec >= 10 || !!voiceUrl, [voiceSec, voiceUrl]);
 
   return (
     <>
       <Head>
-        <title>AI Lab — Voice</title>
-        <meta name="description" content="Step 2 — Record your voice for your digital twin." />
+        <title>AI Lab — Voice (Step 2)</title>
+        <meta name="description" content="Record your voice so your Twin can learn your tone and cadence." />
       </Head>
 
+      {/* Header */}
       <header className="hdr">
         <div className="container nav">
-          <Link href="/" className="brand" aria-label="genio os">
-            <span className="brand-name brand-neon">genio os</span>
-          </Link>
+          <Link href="/" className="brand"><span className="brand-neon">genio os</span></Link>
           <div className="stepper" aria-label="Progress">
-            <span className="dot on" />
+            <span className="dot ok" />
             <span className="dot on" />
             <span className="dot" />
             <span className="dot" />
@@ -227,112 +165,124 @@ export default function Voice() {
         </div>
       </header>
 
-      <main className="container grid">
+      {/* Lab stage */}
+      <section className="lab">
+        <div className="grid-bg" aria-hidden="true" />
+        <div className={`holo ${recState === "recording" ? "live" : ""}`}>
+          <div className="ring r1" /><div className="ring r2" /><div className="ring r3" />
+          <div className="core" />
+        </div>
+      </section>
+
+      {/* Content */}
+      <main className="container">
         <section className="card form">
-          <h1>Step 2 — Voice</h1>
-          <p className="muted">Speak naturally for {MIN_SEC}–{MAX_SEC} seconds. Keep the mic ~20cm away.</p>
+          <h1>Record your voice</h1>
+          <p className="sub">
+            Speak for 30–60 seconds as you normally would. This helps your Twin learn your tone, pace, and pronunciation.
+          </p>
 
-          <div className="vu-wrap">
-            <canvas ref={vuCanvas} className="vu" />
-            <div className="timer">{sec}s</div>
-          </div>
+          {err && <div className="alert">{err}</div>}
+          {!supported && <div className="note">Recording is not supported on this device. You can upload audio in the next build.</div>}
 
-          <div className="row">
-            {!recording ? (
-              <button className="btn" onClick={startRecord}>Start recording</button>
+          <div className="rec-wrap">
+            <div className="timer" aria-live="polite">{durLabel}</div>
+
+            {recState !== "recording" ? (
+              <button className="btn btn-neon big" disabled={!supported} onClick={startRec}>
+                Start recording
+              </button>
             ) : (
-              <button className="btn btn-neon" onClick={stopRecord}>Stop</button>
+              <button className="btn danger big" onClick={stopRec}>
+                Stop
+              </button>
             )}
-            <label className="file">
-              <input type="file" accept={ACCEPT.join(",")} onChange={(e)=>onUpload(e.target.files?.[0])} />
-              <span>Upload audio</span>
-            </label>
-            {vUrl && <audio controls src={vUrl} className="player" />}
-          </div>
 
-          <div className="quests">
-            <h3>Quests</h3>
-            <ul>
-              {quests.map(q => (
-                <li key={q.key} className={q.done ? "done" : ""}>
-                  <span className="chk">{q.done ? "✓" : ""}</span>{q.label}
-                </li>
-              ))}
-            </ul>
-          </div>
+            <div className="row">
+              <button className="btn ghost" onClick={askPermission} type="button">Check mic</button>
+              <button className="btn ghost" onClick={deleteTake} type="button" disabled={!voiceUrl && voiceSec === 0}>
+                Delete take
+              </button>
+            </div>
 
-          {err && <div className="toast err">{err}</div>}
+            <div className="player">
+              <audio ref={audioRef} src={voiceUrl || undefined} controls preload="metadata" />
+              <small className="hint">{voiceUrl ? "Preview your sample." : "No sample yet."}</small>
+            </div>
+          </div>
 
           <div className="actions">
-            <Link className="btn ghost" href="/onboarding/personality">Back</Link>
-            <button className="btn btn-neon" onClick={next} disabled={!good}>Next — Video</button>
+            <Link className="btn" href="/onboarding/personality">Back</Link>
+            <div className="spacer" />
+            <button className="btn btn-neon" disabled={!canSave || busy} onClick={saveAndNext}>
+              {busy ? "Saving…" : "Save & Continue — Video"}
+            </button>
           </div>
         </section>
-
-        <aside className="card tips">
-          <h3>Tips</h3>
-          <ul>
-            <li>Quiet room, steady tone.</li>
-            <li>Don’t whisper or shout; aim for consistent levels.</li>
-            <li>If you prefer, upload a clear recording instead.</li>
-          </ul>
-        </aside>
       </main>
 
+      {/* Styles */}
       <style jsx>{`
         :root{
           --bg:#0a1018; --card:#0f1725; --muted:#a7b7c8; --text:#edf3ff;
           --neon1:#20E3B2; --neon2:#6FC3FF; --ink:#071018;
         }
-        .container{width:min(1200px,92%); margin-inline:auto}
+        .container{width:min(860px,92%); margin-inline:auto}
         a{color:inherit; text-decoration:none}
 
         /* Header */
-        .hdr{position:sticky; top:0; z-index:50; backdrop-filter:saturate(150%) blur(10px); background:#0b111add; border-bottom:1px solid #1b2840}
+        .hdr{position:sticky; top:0; z-index:40; backdrop-filter:saturate(150%) blur(10px); background:#0b111add; border-bottom:1px solid #1b2840}
         .nav{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0}
-        .brand-name{font-weight:800; letter-spacing:.2px}
         .brand-neon{
           background:linear-gradient(135deg, var(--neon1), var(--neon2));
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           text-shadow:0 0 8px rgba(111,195,255,.35),0 0 18px rgba(32,227,178,.22);
+          font-weight:800;
         }
         .stepper{display:flex; gap:8px; align-items:center}
         .dot{width:8px; height:8px; border-radius:50%; background:#263a59; opacity:.5}
         .dot.on{opacity:1; background:linear-gradient(135deg, var(--neon1), var(--neon2))}
+        .dot.ok{opacity:1; background:#2b8a57}
 
-        /* Layout */
-        main.container.grid{display:grid; grid-template-columns:1.1fr .9fr; gap:22px; padding:22px 0 56px}
-        @media (max-width:980px){ main.container.grid{grid-template-columns:1fr} }
+        /* Lab */
+        .lab{position:relative; height:260px; display:grid; place-items:center; overflow:hidden; border-block:1px solid #132238; background:#091119}
+        .grid-bg{position:absolute; inset:0; background:
+          linear-gradient(#0f2138 1px, transparent 1px) 0 0/40px 40px,
+          linear-gradient(90deg,#0f2138 1px, transparent 1px) 0 0/40px 40px; opacity:.25}
+        .holo{position:relative; width:220px; height:220px; border-radius:50%; filter:drop-shadow(0 8px 40px rgba(0,0,0,.6))}
+        .holo.live .core{animation:pulse 0.9s ease-in-out infinite}
+        .ring{position:absolute; inset:0; border:2px solid rgba(140,200,255,.18); border-radius:50%}
+        .r2{transform:scale(1.25)} .r3{transform:scale(1.5)}
+        .core{position:absolute; top:50%; left:50%; width:80px; height:80px; margin:-40px; border-radius:50%;
+          background:radial-gradient(circle at 30% 30%, var(--neon2), transparent 60%), radial-gradient(circle at 70% 70%, var(--neon1), transparent 60%);
+          filter:blur(2px) saturate(160%); animation:pulse 3s ease-in-out infinite}
+        @keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}}
 
-        .card{border:1px solid #20304a; background:linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92)); border-radius:14px; padding:16px}
-        .form h1{margin:0 0 8px; font-size:clamp(22px,4vw,30px); background:linear-gradient(180deg,#f4f8ff 0%, #cfe0ff 100%); -webkit-background-clip:text; color:transparent;}
-        .muted{color:#c0d0e2; font-size:14px}
+        /* Card */
+        main{padding:22px 0 56px}
+        .card{border:1px solid #20304a; background:linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92)); border-radius:16px; padding:16px}
+        .form h1{margin:0 0 6px; font-size:clamp(22px,4.8vw,32px); background:linear-gradient(180deg,#f4f8ff 0%, #cfe0ff 100%); -webkit-background-clip:text; color:transparent}
+        .sub{color:#c0d0e2; margin:0 0 12px}
+        .alert{border:1px solid #5b2330; background:#1a0f14; color:#ffd6df; padding:10px 12px; border-radius:10px; margin:8px 0}
+        .note{border:1px solid #23485b; background:#0f1a20; color:#d6f2ff; padding:10px 12px; border-radius:10px; margin:8px 0}
 
-        .vu-wrap{position:relative; margin:12px 0}
-        .vu{width:100%; height:44px; display:block; border-radius:10px; box-shadow:inset 0 0 0 1px #1a2942; background:#0c1421}
-        .timer{position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:12px; color:#cfe0ff; opacity:.8}
+        .rec-wrap{display:flex; flex-direction:column; gap:10px; align-items:center; padding:6px}
+        .timer{font-size:28px; letter-spacing:1px; color:#cfe6ff}
+        .row{display:flex; gap:8px; flex-wrap:wrap}
+        .player{width:100%; display:flex; flex-direction:column; gap:4px; align-items:center}
+        .hint{color:#9fb5d1; font-size:12px}
 
-        .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:8px 0}
-        .player{flex:1 1 100%; margin-top:8px}
-        .file input{display:none}
-        .file span{border:1px dashed #2a3a56; border-radius:10px; padding:10px 12px; cursor:pointer}
+        .actions{display:flex; gap:10px; align-items:center; margin-top:14px}
+        .spacer{flex:1}
 
-        .quests{margin:12px 0 2px}
-        .quests h3{margin:0 0 8px; font-size:14px; color:#cfe0ff}
-        .quests ul{list-style:none; padding:0; margin:0; display:grid; gap:8px}
-        .quests li{display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px dashed #2a3a56; border-radius:10px; color:#cfe0ff}
-        .quests li.done{border-style:solid; background:#0f1b2d}
-        .chk{display:inline-grid; place-items:center; width:18px; height:18px; border-radius:999px; border:1px solid #2a3a56}
-
-        .actions{display:flex; gap:10px; justify-content:flex-end; margin-top:12px}
         .btn{display:inline-flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; padding:10px 14px; font-weight:700; border:1px solid #223145; background:#0f1828; color:#edf3ff}
+        .btn.big{padding:14px 18px; font-size:16px}
         .btn.btn-neon{border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink)}
         .btn.ghost{background:#0f1828; border-style:dashed}
-
-        .tips h3{margin:0 0 8px; font-size:14px; color:#cfe0ff}
-        .tips ul{margin:0; padding-left:18px; color:#c0d0e2}
-        .toast.err{border:1px solid #5b2330; background:#1a0f14; color:#ffd6df; padding:10px 12px; border-radius:10px; margin:10px 0}
+        .btn.danger{border-color:#4a2130; background:#1a0f14; color:#ffd6df}
+        .btn[disabled]{opacity:.6; cursor:not-allowed}
       `}</style>
+
       <style jsx global>{`
         body{
           margin:0; font:16px/1.55 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
