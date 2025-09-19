@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 
 export default function Reset() {
   const r = useRouter();
-  const [mode, setMode] = useState("request"); // 'request' | 'reset'
+  const [mode, setMode] = useState("request"); // "request" | "reset"
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
   const [password, setPassword] = useState("");
@@ -32,8 +32,8 @@ export default function Reset() {
     if (!validateEmail(email)) return setErr("Enter a valid email.");
     try {
       setBusy(true);
-      // TODO: call your API: POST /api/auth/reset/request { email }
-      await new Promise((res) => setTimeout(res, 700)); // mock
+      // TODO: call API: POST /api/auth/reset/request
+      await new Promise((res) => setTimeout(res, 600)); // mock
       setMsg("If this email exists, a reset link has been sent.");
     } catch {
       setErr("Could not send reset email. Try again.");
@@ -50,10 +50,10 @@ export default function Reset() {
     if (password !== confirm) return setErr("Passwords do not match.");
     try {
       setBusy(true);
-      // TODO: call your API: POST /api/auth/reset/confirm { token, password }
-      await new Promise((res) => setTimeout(res, 700)); // mock
+      // TODO: call API: POST /api/auth/reset/confirm
+      await new Promise((res) => setTimeout(res, 600)); // mock
       setMsg("Password updated. Redirecting to login…");
-      setTimeout(() => (window.location.href = "/login"), 900);
+      setTimeout(() => (window.location.href = "/login"), 1000);
     } catch {
       setErr("Reset failed. Request a new link.");
     } finally {
@@ -152,8 +152,6 @@ export default function Reset() {
         }
         .container{width:min(640px,92%); margin-inline:auto}
         a{color:inherit; text-decoration:none}
-
-        /* Header */
         .hdr{position:sticky; top:0; z-index:50; backdrop-filter:saturate(150%) blur(10px); background:#0b111add; border-bottom:1px solid #1b2840}
         .nav{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0}
         .brand-neon{
@@ -162,22 +160,15 @@ export default function Reset() {
           text-shadow:0 0 8px rgba(111,195,255,.35),0 0 18px rgba(32,227,178,.22);
           font-weight:800;
         }
-        .links a{opacity:.9}
-        .links a:hover{opacity:1}
-
-        /* Main */
-        main{padding:24px 0 56px}
-        .card{border:1px solid #20304a; background:linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92)); border-radius:14px; padding:16px}
         .form h1{margin:0 0 6px; font-size:clamp(24px,5vw,32px); background:linear-gradient(180deg,#f4f8ff 0%, #cfe0ff 100%); -webkit-background-clip:text; color:transparent;}
         .sub{color:#c0d0e2; margin:0 0 12px}
+        .card{border:1px solid #20304a; background:linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92)); border-radius:14px; padding:16px}
         .field{display:flex; flex-direction:column; gap:6px; margin:10px 0}
         input{background:#0f1828; color:#edf3ff; border:1px solid #223145; border-radius:10px; padding:10px 12px; width:100%}
-
         .actions{display:flex; gap:10px; justify-content:flex-end; margin-top:12px}
         .btn{display:inline-flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; padding:10px 14px; font-weight:700; border:1px solid #223145; background:#0f1828; color:#edf3ff}
         .btn.btn-neon{border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink)}
         .btn.ghost{background:#0f1828; border-style:dashed}
-
         .alert{border:1px solid #5b2330; background:#1a0f14; color:#ffd6df; padding:10px 12px; border-radius:10px; margin:8px 0}
         .note{border:1px solid #23485b; background:#0f1a20; color:#d6f2ff; padding:10px 12px; border-radius:10px; margin:8px 0}
       `}</style>
