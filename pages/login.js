@@ -1,5 +1,4 @@
-// File: pages/login.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Head from "next/head";
 import Link from "next/link";
 
@@ -10,6 +9,13 @@ export default function Login() {
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+
+  useEffect(() => {
+    try {
+      const hint = JSON.parse(localStorage.getItem("auth_hint") || "{}");
+      if (hint.email) setEmail(hint.email);
+    } catch {}
+  }, []);
 
   const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
@@ -22,8 +28,8 @@ export default function Login() {
 
     try {
       setBusy(true);
-      // TODO: replace with your real API call
-      await new Promise((r) => setTimeout(r, 550));
+      // TODO: replace with real API call (POST /api/auth/login)
+      await new Promise((r) => setTimeout(r, 600));
       if (remember) {
         try { localStorage.setItem("auth_hint", JSON.stringify({ email })); } catch {}
       }
@@ -45,9 +51,7 @@ export default function Login() {
       <header className="hdr">
         <div className="container nav">
           <Link href="/" className="brand"><span className="brand-neon">genio os</span></Link>
-          <nav className="links">
-            <Link href="/signup">Create account</Link>
-          </nav>
+          <nav className="links"><Link href="/signup">Create account</Link></nav>
         </div>
       </header>
 
@@ -82,7 +86,6 @@ export default function Login() {
               <button
                 type="button"
                 className="toggle"
-                aria-label={show ? "Hide password" : "Show password"}
                 onClick={()=>setShow(s=>!s)}
               >
                 {show ? "Hide" : "Show"}
@@ -107,9 +110,7 @@ export default function Login() {
             </button>
           </div>
 
-          <p className="tos">
-            New here? <Link href="/signup">Create an account</Link>.
-          </p>
+          <p className="tos">New here? <Link href="/signup">Create an account</Link>.</p>
         </form>
       </main>
 
@@ -120,8 +121,6 @@ export default function Login() {
         }
         .container{width:min(640px,92%); margin-inline:auto}
         a{color:inherit; text-decoration:none}
-
-        /* Header */
         .hdr{position:sticky; top:0; z-index:50; backdrop-filter:saturate(150%) blur(10px); background:#0b111add; border-bottom:1px solid #1b2840}
         .nav{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0}
         .brand-neon{
@@ -130,15 +129,9 @@ export default function Login() {
           text-shadow:0 0 8px rgba(111,195,255,.35),0 0 18px rgba(32,227,178,.22);
           font-weight:800;
         }
-        .links a{opacity:.9}
-        .links a:hover{opacity:1}
-
-        /* Main */
-        main{padding:24px 0 56px}
-        .card{border:1px solid #20304a; background:linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92)); border-radius:14px; padding:16px}
         .form h1{margin:0 0 6px; font-size:clamp(24px,5vw,32px); background:linear-gradient(180deg,#f4f8ff 0%, #cfe0ff 100%); -webkit-background-clip:text; color:transparent;}
         .sub{color:#c0d0e2; margin:0 0 12px}
-
+        .card{border:1px solid #20304a; background:linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92)); border-radius:14px; padding:16px}
         .field{display:flex; flex-direction:column; gap:6px; margin:10px 0}
         input{background:#0f1828; color:#edf3ff; border:1px solid #223145; border-radius:10px; padding:10px 12px; width:100%}
         .pw{display:flex; align-items:stretch; gap:8px}
@@ -147,7 +140,6 @@ export default function Login() {
         .row{display:flex; justify-content:space-between; align-items:center; margin:6px 0}
         .check{display:flex; align-items:center; gap:10px}
         .forgot{color:#cfe0ff}
-
         .actions{display:flex; gap:10px; justify-content:flex-end; margin-top:12px}
         .btn{display:inline-flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; padding:10px 14px; font-weight:700; border:1px solid #223145; background:#0f1828; color:#edf3ff}
         .btn.btn-neon{border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink)}
