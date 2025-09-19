@@ -14,7 +14,7 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // لماذا: لا نعتمد على باكند الآن؛ فحص بسيط يكفي للـCTA
+  // Why: only to decide CTA target without backend hookup
   const isAuth = useMemo(() => {
     if (typeof window === "undefined") return false;
     const cookieHasAuth = document.cookie.includes("auth=") || document.cookie.includes("token=");
@@ -39,27 +39,28 @@ export default function Home() {
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
       </Head>
 
-      {/* Header */}
+      {/* Header — step #1 only */}
       <header className={scrolled ? "hdr scrolled" : "hdr"} aria-label="Site header">
         <div className="container nav">
-          {/* Brand (inline SVG + text on one line) */}
+          {/* Brand lockup: logo + name (never wraps, always aligned) */}
           <a className="brand" href="/" aria-label="genio ai studio">
-            <span className="brand-badge" aria-hidden="true">
-              {/* Minimal mark: audio bars inside gradient pill */}
-              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <span className="brand-logo" aria-hidden="true">
+              {/* Minimal mark resembling genio: gradient pill + bars */}
+              <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <defs>
                   <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stopColor="#5ee1a1" />
-                    <stop offset="1" stopColor="#6fc3ff" />
+                    <stop offset="0" stopColor="#5EE1A1" />
+                    <stop offset="1" stopColor="#6FC3FF" />
                   </linearGradient>
                 </defs>
                 <rect x="0" y="0" width="24" height="24" rx="7" fill="url(#lg)"></rect>
                 <path d="M6 14V10M10 18V6M14 13V11M18 20V4" stroke="#071018" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </span>
-            <span className="brand-text">genio ai studio</span>
+            <span className="brand-name">genio ai studio</span>
           </a>
 
+          {/* Keep links; mobile handling comes next step */}
           <nav className="nav-links" aria-label="Primary">
             <a href="/support">Support</a>
             <a href="/chat">Chat</a>
@@ -82,7 +83,7 @@ export default function Home() {
           <button className="btn btn-primary cta" onClick={goCreateTwin}>Create your twin</button>
         </div>
 
-        {/* Twin visual (inline SVG) */}
+        {/* Twin visual */}
         <figure className="hero-visual" aria-label="Digital twin preview">
           <div className="blob" aria-hidden="true" />
           <svg className="twin" viewBox="0 0 480 480" role="img" aria-label="AI twin">
@@ -96,15 +97,10 @@ export default function Home() {
               <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             </defs>
             <rect x="0" y="0" width="480" height="480" rx="26" fill="url(#g2)"/>
-            {/* head */}
             <circle cx="240" cy="164" r="74" fill="#0f1726" stroke="url(#g1)" strokeWidth="3"/>
-            {/* eyes */}
             <ellipse cx="218" cy="160" rx="10" ry="12" fill="#9fd1ff"/><ellipse cx="262" cy="160" rx="10" ry="12" fill="#9fd1ff"/>
-            {/* smile */}
             <path d="M210 188q30 22 60 0" stroke="url(#g1)" strokeWidth="4" fill="none" strokeLinecap="round"/>
-            {/* body */}
             <rect x="168" y="230" width="144" height="150" rx="20" fill="#0f1726" stroke="#233043" />
-            {/* voice waves */}
             <path d="M350 160 q20 20 0 40" stroke="url(#g1)" strokeWidth="4" fill="none" filter="url(#glow)"/>
             <path d="M360 150 q32 36 0 72" stroke="url(#g1)" strokeWidth="3" fill="none" opacity=".7"/>
             <path d="M370 140 q44 52 0 104" stroke="url(#g1)" strokeWidth="2" fill="none" opacity=".5"/>
@@ -126,13 +122,13 @@ export default function Home() {
         }
         .container{width:min(1200px,92%); margin-inline:auto}
 
-        /* Header */
+        /* Header — company-grade brand lockup */
         .hdr{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(10px); background:#0b0f14e6; transition:box-shadow .2s ease}
         .hdr.scrolled{box-shadow:0 6px 18px rgba(0,0,0,.35)}
         .nav{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0}
-        .brand{display:inline-flex; align-items:center; gap:10px}
-        .brand-badge{display:inline-grid; place-items:center; width:32px; height:32px}
-        .brand-text{font-weight:800; letter-spacing:.2px; white-space:nowrap}
+        .brand{display:inline-flex; align-items:center; gap:10px; white-space:nowrap} /* Why: prevent wrapping between logo & name */
+        .brand-logo{display:inline-grid; place-items:center; width:32px; height:32px; flex:0 0 auto}
+        .brand-name{font-weight:800; letter-spacing:.2px; color:#f2f6ff}
         .nav-links{display:flex; gap:18px; align-items:center}
         .nav-links a{padding:10px 12px; border-radius:10px; color:var(--muted); text-decoration:none}
         .nav-links a:hover,.nav-links a:focus-visible{background:#101826; color:var(--text); outline:none}
@@ -154,10 +150,9 @@ export default function Home() {
         .twin{position:relative; z-index:1; width:min(440px,90%); filter:drop-shadow(0 10px 30px rgba(0,0,0,.45))}
 
         @media (max-width: 940px){
-          .nav-links{gap:10px}
           .hero{grid-template-columns:1fr; text-align:center}
           .hero-visual{margin-top:14px}
-          .brand-text{font-size:18px}
+          .brand-name{font-size:18px}
         }
       `}</style>
     </>
