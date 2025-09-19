@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
+
+const USERS_KEY = "users_db";   // mock DB local
+const AUTH_KEY  = "auth_user";  // mock session
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -9,6 +12,7 @@ export default function Login() {
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [msg, setMsg] = useState("");
 
   useEffect(() => {
     try {
@@ -19,20 +23,56 @@ export default function Login() {
 
   const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
+  function getUsers() {
+    try { return JSON.parse(localStorage.getItem(USERS_KEY) || "[]"); } catch { return []; }
+  }
+  function setUsers(arr) {
+    try { localStorage.setItem(USERS_KEY, JSON.stringify(arr)); } catch {}
+  }
+
+  async function sha256(text) {
+    // why: we store only a hash for password (mock security)
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest("SHA-256", enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+  }
+
   const onSubmit = async (e) => {
     e.preventDefault();
-    setErr("");
+    setErr(""); setMsg("");
 
     if (!validateEmail(email)) return setErr("Enter a valid email.");
     if (password.length < 8) return setErr("Password must be at least 8 characters.");
 
+    setBusy(true);
     try {
-      setBusy(true);
-      // TODO: replace with real API call (POST /api/auth/login)
-      await new Promise((r) => setTimeout(r, 600));
-      if (remember) {
-        try { localStorage.setItem("auth_hint", JSON.stringify({ email })); } catch {}
+      const users = getUsers();
+      const lower = email.trim().toLowerCase();
+      const idx = users.findIndex(u => u.email === lower);
+
+      if (idx === -1) {
+        setErr("Account not found. Create an account first.");
+        return;
       }
+
+      const u = users[idx];
+      const ph = await sha256(password);
+
+      if (!u.pwd) {
+        // First login for legacy users: set password now.
+        users[idx] = { ...u, pwd: ph, pwdSetAt: Date.now() };
+        setUsers(users);
+        setMsg("Password set for this account.");
+      } else if (u.pwd !== ph) {
+        setErr("Incorrect email or password.");
+        return;
+      }
+
+      try {
+        localStorage.setItem(AUTH_KEY, JSON.stringify({ id: u.id, email: u.email, name: u.name }));
+        if (remember) localStorage.setItem("auth_hint", JSON.stringify({ email: u.email }));
+      } catch {}
+
       window.location.href = "/dashboard";
     } catch {
       setErr("Login failed. Please try again.");
@@ -60,6 +100,9 @@ export default function Login() {
           <h1>Welcome back</h1>
           <p className="sub">Sign in to access your twin and dashboard.</p>
 
+          {msg && <div className="note">{msg}</div>}
+          {err && <div className="alert">{err}</div>}
+
           <label className="field">
             <span>Email</span>
             <input
@@ -83,11 +126,7 @@ export default function Login() {
                 autoComplete="current-password"
                 required
               />
-              <button
-                type="button"
-                className="toggle"
-                onClick={()=>setShow(s=>!s)}
-              >
+              <button type="button" className="toggle" onClick={()=>setShow(s=>!s)}>
                 {show ? "Hide" : "Show"}
               </button>
             </div>
@@ -100,8 +139,6 @@ export default function Login() {
             </label>
             <Link className="forgot" href="/reset">Forgot password?</Link>
           </div>
-
-          {err && <div className="alert">{err}</div>}
 
           <div className="actions">
             <Link className="btn ghost" href="/">Cancel</Link>
@@ -145,6 +182,7 @@ export default function Login() {
         .btn.btn-neon{border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink)}
         .btn.ghost{background:#0f1828; border-style:dashed}
         .alert{border:1px solid #5b2330; background:#1a0f14; color:#ffd6df; padding:10px 12px; border-radius:10px; margin:8px 0}
+        .note{border:1px solid #23485b; background:#0f1a20; color:#d6f2ff; padding:10px 12px; border-radius:10px; margin:8px 0}
         .tos{color:#9fb5d1; font-size:12px; margin-top:10px}
       `}</style>
 
