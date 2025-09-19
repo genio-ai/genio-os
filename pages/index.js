@@ -17,8 +17,10 @@ export default function Home() {
 
   const isAuth = useMemo(() => {
     if (typeof window === "undefined") return false;
-    const cookieHasAuth = document.cookie.includes("auth=") || document.cookie.includes("token=");
-    const lsHasAuth = !!localStorage.getItem("auth") || !!localStorage.getItem("token");
+    const cookieHasAuth =
+      document.cookie.includes("auth=") || document.cookie.includes("token=");
+    const lsHasAuth =
+      !!localStorage.getItem("auth") || !!localStorage.getItem("token");
     return cookieHasAuth || lsHasAuth;
   }, []);
 
@@ -27,38 +29,49 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>genio ai studio — Create your digital twin</title>
-        <meta name="description" content="Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks." />
+        <title>genio twins — Create your digital twin</title>
+        <meta
+          name="description"
+          content="Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks."
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+          rel="stylesheet"
+        />
       </Head>
 
       {/* Header */}
       <header className={scrolled ? "hdr scrolled" : "hdr"} aria-label="Site header">
         <div className="container nav">
-          {/* Brand (shrinks on small screens) */}
-          <a className="brand" href="/" aria-label="genio ai studio">
+          {/* Brand: explicit name = genio twins */}
+          <a className="brand" href="/" aria-label="genio twins">
             <span className="brand-logo" aria-hidden="true">
-              {/* Neon logo (fixed size, always visible) */}
-              <svg width="24" height="24" viewBox="0 0 28 28" aria-hidden="true" focusable="false">
+              {/* Logo: rounded capsule + equalizer bars (matches your screenshot) */}
+              <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true" focusable="false">
                 <defs>
-                  <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+                  <linearGradient id="gt-grad" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stopColor="#20E3B2" />
                     <stop offset="1" stopColor="#6FC3FF" />
                   </linearGradient>
                 </defs>
-                <rect x="1" y="1" width="26" height="26" rx="9" fill="url(#lg)"></rect>
-                <path d="M8 16V12M13 20V8M18 15V13M23 22V6" stroke="#071018" strokeWidth="2.4" strokeLinecap="round"/>
+                <rect x="0" y="0" width="28" height="28" rx="9" fill="url(#gt-grad)"/>
+                {/* why: bars suggest voice/activity; stroke same dark ink as UI */}
+                <path d="M7 16V12M12 20V8M17 15V13M22 22V6" stroke="#071018" strokeWidth="2.4" strokeLinecap="round"/>
               </svg>
             </span>
-            <span className="brand-name">genio ai studio</span>
+            <span className="brand-name">genio twins</span>
           </a>
 
-          {/* Right actions (no overflow on mobile) */}
+          {/* Right actions */}
           <div className="actions">
-            <button className="menu-chip" aria-label="Open menu" onClick={() => setMenuOpen(true)}>
+            <button
+              className="menu-chip"
+              aria-label="Open menu"
+              onClick={() => setMenuOpen(true)}
+            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M4 6h16M7 12h13M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
@@ -78,18 +91,18 @@ export default function Home() {
             <div className="panel-head">
               <div className="brand mini">
                 <span className="brand-logo" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 28 28" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true">
                     <defs>
-                      <linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1">
+                      <linearGradient id="gt-grad-2" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0" stopColor="#20E3B2" />
                         <stop offset="1" stopColor="#6FC3FF" />
                       </linearGradient>
                     </defs>
-                    <rect x="1" y="1" width="26" height="26" rx="9" fill="url(#lg2)"></rect>
-                    <path d="M8 16V12M13 20V8M18 15V13M23 22V6" stroke="#071018" strokeWidth="2.4" strokeLinecap="round"/>
+                    <rect x="0" y="0" width="28" height="28" rx="9" fill="url(#gt-grad-2)"/>
+                    <path d="M7 16V12M12 20V8M17 15V13M22 22V6" stroke="#071018" strokeWidth="2.4" strokeLinecap="round"/>
                   </svg>
                 </span>
-                <span className="brand-name">genio</span>
+                <span className="brand-name">genio twins</span>
               </div>
               <button className="close" aria-label="Close menu" onClick={() => setMenuOpen(false)}>✕</button>
             </div>
@@ -153,45 +166,25 @@ export default function Home() {
           margin:0; font:16px/1.55 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
           color:var(--text);
           background:radial-gradient(1200px 600px at 80% -10%, #14263d 0%, var(--bg) 60%), #0b111a;
-          max-width:100vw; overflow-x:hidden; /* prevent horizontal scroll/zoom feel */
+          max-width:100vw; overflow-x:hidden;
         }
-        @media (max-width:390px){ body{ font-size:15px; } } /* avoid “zoomed” feel */
-
         .container{width:min(1200px,92%); margin-inline:auto}
         a{color:inherit; text-decoration:none}
 
         /* Header */
         .hdr{position:sticky; top:0; z-index:50; backdrop-filter:saturate(150%) blur(10px); background:#0b111add; transition:box-shadow .2s ease, background .2s ease}
         .hdr.scrolled{box-shadow:0 8px 28px rgba(0,0,0,.5)}
-        .nav{
-          display:flex; align-items:center; justify-content:space-between; gap:10px;
-          padding:10px 0; /* tighter to fit mobile */
-        }
-        .brand{
-          display:inline-flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto; /* allow shrink */
-          white-space:nowrap;
-        }
+        .nav{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0}
+        .brand{display:inline-flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto; white-space:nowrap}
         .brand-logo{display:inline-grid; place-items:center; width:28px; height:28px; flex:0 0 auto}
         .brand-name{font-weight:800; letter-spacing:.2px}
-        @media (max-width:390px){ .brand-name{font-size:17px} }
-
-        .actions{
-          display:flex; align-items:center; gap:8px; flex:0 1 auto; min-width:0; /* prevent overflow */
-        }
-        .menu-chip{
-          display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px;
-          background:#0e1a2a; border:1px solid #1e2b41; color:#cfe6ff;
-        }
-        .btn{
-          display:inline-flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer;
-          padding:8px 12px; font-weight:600; border:1px solid #223145; background:#0f1828; color:var(--text);
-        }
-        .btn-neon{ border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink) }
-        .btn-outline{ background:#0f1828 }
-
-        /* Ultra-small phones: compress more, keep Signup visible */
+        .actions{display:flex; align-items:center; gap:8px; flex:0 1 auto; min-width:0}
+        .menu-chip{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; background:#0e1a2a; border:1px solid #1e2b41; color:#cfe6ff}
+        .btn{display:inline-flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; padding:8px 12px; font-weight:600; border:1px solid #223145; background:#0f1828; color:var(--text)}
+        .btn-neon{border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink)}
+        .btn-outline{background:#0f1828}
         @media (max-width:360px){
-          .menu-text{display:none}          /* icon only */
+          .menu-text{display:none}
           .menu-chip{padding:6px 8px}
           .btn{padding:6px 10px; font-size:13px}
           .brand-name{font-size:16px}
@@ -200,11 +193,7 @@ export default function Home() {
         /* Drawer */
         .sheet{position:fixed; inset:0; z-index:60}
         .backdrop{position:absolute; inset:0; background:rgba(0,0,0,.6)}
-        .panel{
-          position:absolute; right:0; top:0; height:100%; width:min(86%, 340px);
-          background:var(--card); border-left:1px solid #20304a; display:flex; flex-direction:column; padding:16px;
-          box-shadow:-10px 0 40px rgba(0,0,0,.45);
-        }
+        .panel{position:absolute; right:0; top:0; height:100%; width:min(86%, 340px); background:var(--card); border-left:1px solid #20304a; display:flex; flex-direction:column; padding:16px; box-shadow:-10px 0 40px rgba(0,0,0,.45)}
         .panel-head{display:flex; align-items:center; justify-content:space-between}
         .close{background:none; border:none; color:var(--text); font-size:20px}
         .panel-links{display:flex; flex-direction:column; gap:10px; margin-top:18px}
@@ -214,23 +203,14 @@ export default function Home() {
         .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:32px; align-items:center; padding:84px 0}
         .hero-text h1{
           margin:0 0 14px; font-size:clamp(32px,5vw,56px); line-height:1.05;
-          background:linear-gradient(180deg, #f4f8ff 0%, #cfe0ff 100%);
-          -webkit-background-clip:text; color:transparent; text-shadow:0 0 18px rgba(111,195,255,.15);
+          background:linear-gradient(180deg, #f4f8ff 0%, #cfe0ff 100%); -webkit-background-clip:text; color:transparent; text-shadow:0 0 18px rgba(111,195,255,.15);
         }
         .hero-text .hook{color:#c0d0e2; margin:0 0 24px; max-width:58ch}
         .cta{min-width:180px}
         .hero-visual{position:relative; aspect-ratio:1/1; min-height:320px; display:grid; place-items:center}
-        .blob{
-          position:absolute; width:560px; height:560px; border-radius:50%;
-          background:radial-gradient(circle at 30% 30%, var(--neon1), transparent 60%),
-                     radial-gradient(circle at 70% 70%, var(--neon2), transparent 60%);
-          filter:blur(44px) saturate(160%); opacity:.35;
-        }
+        .blob{position:absolute; width:560px; height:560px; border-radius:50%; background:radial-gradient(circle at 30% 30%, var(--neon1), transparent 60%), radial-gradient(circle at 70% 70%, var(--neon2), transparent 60%); filter:blur(44px) saturate(160%); opacity:.35}
         .twin{width:min(440px,90%); filter:drop-shadow(0 10px 40px rgba(0,0,0,.5))}
-        @media (max-width:940px){
-          .hero{grid-template-columns:1fr; text-align:center}
-          .hero-visual{margin-top:16px}
-        }
+        @media (max-width:940px){ .hero{grid-template-columns:1fr; text-align:center} .hero-visual{margin-top:16px} }
       `}</style>
     </>
   );
