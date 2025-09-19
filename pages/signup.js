@@ -2,12 +2,12 @@ import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
-import "react-phone-number-input/style.css"; // why: brings minimal default styles for the input only
+import "react-phone-number-input/style.css";
 
 export default function Signup() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState(""); // E.164 e.g. +905464210740
+  const [phone, setPhone] = useState(""); // E.164, e.g. +905464210740
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [useWA, setUseWA] = useState(true);
@@ -18,7 +18,6 @@ export default function Signup() {
     e.preventDefault();
     setErr("");
 
-    // simple client validation
     if (!fullName.trim()) return setErr("Full name is required.");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setErr("Valid email is required.");
     if (!phone || !isValidPhoneNumber(phone)) return setErr("Valid phone number is required.");
@@ -27,11 +26,10 @@ export default function Signup() {
 
     try {
       setBusy(true);
-      // TODO: replace with your real API
+      // TODO: replace with real API call (POST /api/auth/signup)
       await new Promise((r) => setTimeout(r, 600));
-      // mock success -> go onboarding
       window.location.href = "/onboarding/personality";
-    } catch (e) {
+    } catch {
       setErr("Signup failed. Please try again.");
     } finally {
       setBusy(false);
@@ -48,9 +46,7 @@ export default function Signup() {
       <header className="hdr">
         <div className="container nav">
           <Link href="/" className="brand"><span className="brand-neon">genio os</span></Link>
-          <nav className="links">
-            <Link href="/login">Login</Link>
-          </nav>
+          <nav className="links"><Link href="/login">Login</Link></nav>
         </div>
       </header>
 
@@ -67,12 +63,11 @@ export default function Signup() {
           <label className="field">
             <span>Email <b>*</b></span>
             <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="you@example.com" required />
-            <small className="hint">Optional for WhatsApp-only users, but recommended for receipts and recovery.</small>
+            <small className="hint">Used for receipts and account recovery.</small>
           </label>
 
           <label className="field">
             <span>Phone (for OTP & WhatsApp) <b>*</b></span>
-            {/* Why: PhoneInput covers ALL countries with their calling codes; no manual list */}
             <div className="phone-wrap">
               <PhoneInput
                 placeholder="Enter phone number"
@@ -83,7 +78,7 @@ export default function Signup() {
                 withCountryCallingCode
               />
             </div>
-            <small className="hint">Stored securely. We never share raw numbers with third parties.</small>
+            <small className="hint">Stored securely. Never shared with third parties.</small>
           </label>
 
           <div className="grid">
@@ -111,9 +106,7 @@ export default function Signup() {
             </button>
           </div>
 
-          <p className="tos">
-            By continuing, you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
-          </p>
+          <p className="tos">By continuing, you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.</p>
         </form>
       </main>
 
@@ -148,12 +141,13 @@ export default function Signup() {
         .btn.ghost{background:#0f1828; border-style:dashed}
         .alert{border:1px solid #5b2330; background:#1a0f14; color:#ffd6df; padding:10px 12px; border-radius:10px; margin:8px 0}
         .tos{color:#9fb5d1; font-size:12px; margin-top:10px}
-        /* react-phone-number-input minimal tune */
+        /* phone input minimal theming */
         .phone-wrap :global(.PhoneInput){background:#0f1828;border:1px solid #223145;border-radius:10px;padding:4px 8px}
         .phone-wrap :global(.PhoneInput input){background:transparent;border:none;outline:none;color:#edf3ff;padding:8px}
         .phone-wrap :global(.PhoneInputCountry){margin:4px 6px 4px 4px}
         .phone-wrap :global(.PhoneInputCountrySelect){background:#0f1828;color:#edf3ff}
       `}</style>
+
       <style jsx global>{`
         body{
           margin:0; font:16px/1.55 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
