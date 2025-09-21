@@ -7,15 +7,21 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+  try {
+    if (req.method !== "GET") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    const { data, error } = await supabase.from("profiles").select("*");
+
+    if (error) {
+      console.error("Supabase error:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("Server error:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
-
-  const { data, error } = await supabase.from("profiles").select("*");
-
-  if (error) {
-    return res.status(500).json({ error: error.message });
-  }
-
-  return res.status(200).json(data);
 }
