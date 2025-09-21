@@ -1,5 +1,5 @@
 // pages/_app.js
-import "../globals.css";
+import 'react-phone-number-input/style.css';
 
 export default function App({ Component, pageProps }) {
   return <Component {...pageProps} />;
