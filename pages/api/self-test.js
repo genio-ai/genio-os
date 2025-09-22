@@ -23,10 +23,11 @@ export default async function handler(req, res) {
       supabase: { reachable: true, rows: data?.length || 0 }
     });
   } catch (e) {
+    console.error("Supabase error:", e);
     return res.status(500).json({
       ok: false,
       step: "supabase",
-      error: e.message || String(e)
+      error: e.message || JSON.stringify(e)
     });
   }
 }
