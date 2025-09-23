@@ -10,8 +10,8 @@ export function getSupabaseServer() {
       cookies: {
         get(name) {
           return cookieStore.get(name)?.value;
-        },
-      },
+        }
+      }
     }
   );
 }
