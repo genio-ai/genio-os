@@ -1,4 +1,3 @@
-import "../globals.css";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import { assertAdmin } from "./lib/guard";
@@ -11,7 +10,7 @@ export default async function AdminLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen grid grid-cols-[260px_1fr] bg-gray-50">
+        <div className="min-h-screen grid grid-cols-[260px_1fr]">
           <Sidebar />
           <div className="flex flex-col">
             <Topbar />
