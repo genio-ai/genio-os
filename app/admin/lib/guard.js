@@ -5,12 +5,12 @@ export async function assertAdmin() {
   const { supabase, accessToken } = getSupabaseServer();
 
   if (!accessToken) {
-    redirect("/login?next=/admin");
+    redirect("/admin/login?next=/admin");
   }
 
   const { data: auth, error: authErr } = await supabase.auth.getUser(accessToken);
   if (authErr || !auth?.user) {
-    redirect("/login?next=/admin");
+    redirect("/admin/login?next=/admin");
   }
 
   const { data: profile, error: profileErr } = await supabase
@@ -19,11 +19,7 @@ export async function assertAdmin() {
     .eq("id", auth.user.id)
     .single();
 
-  if (profileErr || !profile) {
-    redirect("/login");
-  }
-
-  if (profile.role !== "admin") {
+  if (profileErr || !profile || profile.role !== "admin") {
     redirect("/");
   }
 
