@@ -5,12 +5,12 @@ export async function assertAdmin() {
   const { supabase, accessToken } = getSupabaseServer();
 
   if (!accessToken) {
-    redirect("/admin/login?next=/admin");
+    redirect("/admin/signin?next=/admin");
   }
 
   const { data: auth, error: authErr } = await supabase.auth.getUser(accessToken);
   if (authErr || !auth?.user) {
-    redirect("/admin/login?next=/admin");
+    redirect("/admin/signin?next=/admin");
   }
 
   const { data: profile, error: profileErr } = await supabase
