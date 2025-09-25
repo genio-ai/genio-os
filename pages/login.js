@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
-
-const USERS_KEY = "users_db";   // mock DB local
-const AUTH_KEY  = "auth_user";  // mock session
+import { useRouter } from "next/router";
+import { supabase } from "@/lib/supabase"; // make sure this path matches your project
 
 export default function Login() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
@@ -23,57 +23,53 @@ export default function Login() {
 
   const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-  function getUsers() {
-    try { return JSON.parse(localStorage.getItem(USERS_KEY) || "[]"); } catch { return []; }
-  }
-  function setUsers(arr) {
-    try { localStorage.setItem(USERS_KEY, JSON.stringify(arr)); } catch {}
-  }
-
-  async function sha256(text) {
-    // why: we store only a hash for password (mock security)
-    const enc = new TextEncoder().encode(text);
-    const buf = await crypto.subtle.digest("SHA-256", enc);
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
-  }
-
   const onSubmit = async (e) => {
     e.preventDefault();
-    setErr(""); setMsg("");
+    setErr("");
+    setMsg("");
 
     if (!validateEmail(email)) return setErr("Enter a valid email.");
     if (password.length < 8) return setErr("Password must be at least 8 characters.");
 
     setBusy(true);
     try {
-      const users = getUsers();
-      const lower = email.trim().toLowerCase();
-      const idx = users.findIndex(u => u.email === lower);
-
-      if (idx === -1) {
-        setErr("Account not found. Create an account first.");
-        return;
-      }
-
-      const u = users[idx];
-      const ph = await sha256(password);
-
-      if (!u.pwd) {
-        // First login for legacy users: set password now.
-        users[idx] = { ...u, pwd: ph, pwdSetAt: Date.now() };
-        setUsers(users);
-        setMsg("Password set for this account.");
-      } else if (u.pwd !== ph) {
+      // 1) Sign in with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password
+      });
+      if (error || !data?.user) {
         setErr("Incorrect email or password.");
         return;
       }
+      const user = data.user;
 
+      // remember email hint only
       try {
-        localStorage.setItem(AUTH_KEY, JSON.stringify({ id: u.id, email: u.email, name: u.name }));
-        if (remember) localStorage.setItem("auth_hint", JSON.stringify({ email: u.email }));
+        if (remember && user.email) {
+          localStorage.setItem("auth_hint", JSON.stringify({ email: user.email }));
+        }
       } catch {}
 
-      window.location.href = "/dashboard";
+      // 2) If came with ?next=... go there
+      const nextUrl = typeof router.query.next === "string" ? router.query.next : "";
+      if (nextUrl) {
+        router.replace(nextUrl);
+        return;
+      }
+
+      // 3) Otherwise, route by role in app_users
+      const { data: row } = await supabase
+        .from("app_users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (row?.role === "admin") {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard"); // change if your user home is different
+      }
     } catch {
       setErr("Login failed. Please try again.");
     } finally {
