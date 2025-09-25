@@ -21,11 +21,9 @@ export default function AdminLoginPage() {
 
     if (error) {
       setError(error.message);
-      return;
+    } else {
+      router.push("/admin");
     }
-
-    // redirect to admin dashboard
-    router.push("/admin");
   };
 
   return (
@@ -38,16 +36,16 @@ export default function AdminLoginPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ display: "block", marginBottom: "10px", width: "100%" }}
         />
+        <br />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ display: "block", marginBottom: "10px", width: "100%" }}
         />
+        <br />
         <button type="submit">Login</button>
       </form>
       {error && <p style={{ color: "red" }}>{error}</p>}
