@@ -1,134 +1,124 @@
-import { useState } from "react";
-import { useRouter } from "next/router";
-import { createClient } from "@supabase/supabase-js";
+"use client";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
-export default function AdminLogin() {
+export default function LoginPage() {
+  const router = useRouter();
+  const search = useSearchParams();
+  const nextParam = search.get("next");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
 
-  const handleSubmit = async (e) => {
+  // If already signed in, route by role
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const user = data?.user;
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("app_users")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role === "admin") {
+        router.replace("/admin");
+      } else {
+        router.replace("/");
+      }
+    })();
+  }, [router]);
+
+  async function onSubmit(e) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setErr("");
+    setBusy(true);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
-      setError("Invalid credentials.");
-      setLoading(false);
+    if (error || !data?.user) {
+      setErr("Invalid email or password.");
+      setBusy(false);
       return;
     }
 
-    const { data: rows, error: qErr } = await supabase
+    // Fetch role
+    const { data: profile, error: pErr } = await supabase
       .from("app_users")
       .select("role")
       .eq("id", data.user.id)
       .single();
 
-    if (qErr || !rows || rows.role !== "admin") {
-      setError("Not authorized.");
-      setLoading(false);
+    if (pErr) {
+      setErr("Unable to load profile.");
+      setBusy(false);
       return;
     }
 
-    router.push("/admin");
-  };
+    // Route by role
+    if (profile?.role === "admin") {
+      router.replace("/admin");
+    } else {
+      // prevent non-admin from being redirected into /admin even if next=/admin
+      const safeNext = nextParam && nextParam !== "/admin" ? nextParam : "/";
+      router.replace(safeNext);
+    }
+  }
 
   return (
-    <main className="container">
-      <form onSubmit={handleSubmit} className="card form">
-        <h1>Admin Login</h1>
-        {error && <div className="alert">{error}</div>}
-
-        <label>
-          <span>Email</span>
+    <div style={{ maxWidth: 420, margin: "72px auto", padding: 24 }}>
+      <h1 style={{ marginBottom: 16 }}>Sign in</h1>
+      <form onSubmit={onSubmit}>
+        <label style={{ display: "block", marginBottom: 8 }}>
+          Email
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            style={{ width: "100%", padding: 10, marginTop: 6 }}
+            autoComplete="email"
           />
         </label>
 
-        <label>
-          <span>Password</span>
+        <label style={{ display: "block", marginBottom: 8 }}>
+          Password
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            style={{ width: "100%", padding: 10, marginTop: 6 }}
+            autoComplete="current-password"
           />
         </label>
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Signing in..." : "Login"}
+        {err && (
+          <div style={{ color: "crimson", marginBottom: 10 }}>{err}</div>
+        )}
+
+        <button
+          type="submit"
+          disabled={busy}
+          style={{
+            width: "100%",
+            padding: 12,
+            fontWeight: 600,
+            cursor: busy ? "not-allowed" : "pointer",
+          }}
+        >
+          {busy ? "Signing in..." : "Sign in"}
         </button>
       </form>
-
-      <style jsx>{`
-        .container {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 100vh;
-          background: #0b111a;
-        }
-        .card {
-          background: #0f1725;
-          padding: 2rem;
-          border-radius: 12px;
-          width: 100%;
-          max-width: 400px;
-          box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        }
-        h1 {
-          margin-bottom: 1rem;
-          color: #edf3ff;
-          text-align: center;
-        }
-        label {
-          display: block;
-          margin-bottom: 1rem;
-          color: #c0d0e2;
-        }
-        input {
-          width: 100%;
-          padding: 0.75rem;
-          border: 1px solid #223145;
-          border-radius: 8px;
-          background: #0f1828;
-          color: #edf3ff;
-        }
-        button {
-          width: 100%;
-          padding: 0.75rem;
-          border: none;
-          border-radius: 8px;
-          background: linear-gradient(135deg, #20e3b2, #6fc3ff);
-          color: #071018;
-          font-weight: 700;
-          cursor: pointer;
-        }
-        .alert {
-          background: #1a0f14;
-          color: #ffd6df;
-          border: 1px solid #5b2330;
-          padding: 0.75rem;
-          border-radius: 8px;
-          margin-bottom: 1rem;
-        }
-      `}</style>
-    </main>
+    </div>
   );
 }
