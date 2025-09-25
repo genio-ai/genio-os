@@ -8,55 +8,45 @@ export default function AdminSigninPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  async function onSubmit(e) {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setErr("");
-    setBusy(true);
+    setError("");
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error || !data?.user) {
-      setErr("Invalid email or password.");
-      setBusy(false);
-      return;
-    }
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    const { data: profile, error: pErr } = await supabase
-      .from("app_users").select("role").eq("id", data.user.id).single();
-
-    if (pErr) {
-      setErr("Unable to load profile.");
-      setBusy(false);
-      return;
-    }
-
-    if (profile?.role === "admin") {
-      router.replace("/admin");
+    if (error) {
+      setError(error.message);
     } else {
-      setErr("Not authorized.");
-      await supabase.auth.signOut();
-      setBusy(false);
+      router.push("/admin");
     }
-  }
+  };
 
   return (
-    <div style={{ maxWidth: 420, margin: "72px auto", padding: 24 }}>
-      <h1 style={{ marginBottom: 16 }}>Admin Sign in</h1>
-      <form onSubmit={onSubmit}>
-        <input type="email" placeholder="Email" value={email}
-               onChange={(e) => setEmail(e.target.value)} required
-               style={{ width:"100%", padding:10, marginBottom:12 }} />
-        <input type="password" placeholder="Password" value={password}
-               onChange={(e) => setPassword(e.target.value)} required
-               style={{ width:"100%", padding:10, marginBottom:12 }} />
-        {err && <div style={{ color:"crimson", marginBottom:10 }}>{err}</div>}
-        <button type="submit" disabled={busy}
-                style={{ width:"100%", padding:12, fontWeight:600 }}>
-          {busy ? "Signing in..." : "Sign in"}
-        </button>
+    <div style={{ maxWidth: "400px", margin: "50px auto" }}>
+      <h2>Admin Sign In</h2>
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">Sign In</button>
       </form>
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }
