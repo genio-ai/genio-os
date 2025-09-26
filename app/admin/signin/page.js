@@ -1,8 +1,7 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../../lib/supabase"; // ← مهم: مسار صحيح (طلوع مستويين)
+import { supabase } from "../lib/supabase";
 
 export default function Page() {
   const router = useRouter();
@@ -14,11 +13,11 @@ export default function Page() {
     e.preventDefault();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setError(error.message);
-    else router.push("/admin");
+    else router.push("/admin/(protected)");
   }
 
   return (
-    <main style={{ maxWidth: 420, margin: "60px auto", padding: 16 }}>
+    <main style={{ maxWidth: 400, margin: "50px auto" }}>
       <h1>Admin Sign In</h1>
       <form onSubmit={handleSignin}>
         <input
@@ -37,7 +36,7 @@ export default function Page() {
         />
         <button type="submit">Sign In</button>
       </form>
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </main>
   );
 }
