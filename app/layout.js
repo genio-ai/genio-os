@@ -1,11 +1,11 @@
-import './globals.css';
+"use client";
+import Topbar from "../../components/Topbar";
 
-export default function RootLayout({ children }) {
+export default function AdminLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-[#0b0f17] text-[#e5e7eb]">
-        {children}
-      </body>
-    </html>
+    <div className="bg-[#0a0a0a] text-white min-h-screen flex flex-col">
+      <Topbar />
+      <main className="flex-1">{children}</main>
+    </div>
   );
 }
