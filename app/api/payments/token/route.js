@@ -1,35 +1,48 @@
 import { NextResponse } from "next/server";
-import { getBraintreeGateway } from "../../../../lib/braintree";
+import { gateway } from "../../../../../lib/braintree";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req) {
   try {
-    const { amount, nonce } = await req.json();
+    const { nonce, amount } = await req.json();
 
-    if (!amount || !nonce) {
+    if (!nonce) {
       return NextResponse.json(
-        { ok: false, error: "Missing amount or nonce" },
+        { ok: false, error: "Missing payment nonce" },
         { status: 400 }
       );
     }
 
-    const gateway = getBraintreeGateway();
-
-    const sale = await gateway.transaction.sale({
-      amount: String(amount),
-      paymentMethodNonce: nonce,
-      options: { submitForSettlement: true }
-    });
-
-    if (!sale?.success) {
+    const amt = String(amount || "").trim();
+    if (!/^\d+(\.\d{1,2})?$/.test(amt)) {
       return NextResponse.json(
-        { ok: false, error: sale?.message || "Payment failed", details: sale },
-        { status: 402 }
+        { ok: false, error: "Invalid amount format" },
+        { status: 400 }
       );
     }
 
-    return NextResponse.json({ ok: true, transaction: sale.transaction });
+    const result = await gateway.transaction.sale({
+      amount: amt,
+      paymentMethodNonce: nonce,
+      options: { submitForSettlement: true },
+    });
+
+    if (result?.success && result?.transaction) {
+      const t = result.transaction;
+      return NextResponse.json({
+        ok: true,
+        txn: { id: t.id, status: t.status, amount: t.amount },
+      });
+    }
+
+    const deepErrors =
+      typeof result?.errors?.deepErrors === "function"
+        ? result.errors.deepErrors().map((e) => e.message).join("; ")
+        : "";
+    const message = result?.message || deepErrors || "Transaction failed";
+
+    return NextResponse.json({ ok: false, error: message }, { status: 400 });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err?.message || "Checkout error" },
