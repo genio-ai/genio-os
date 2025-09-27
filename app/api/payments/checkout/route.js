@@ -7,21 +7,47 @@ export async function POST(req) {
   try {
     const { nonce, amount } = await req.json();
 
+    if (!nonce) {
+      return NextResponse.json(
+        { ok: false, error: "Missing payment nonce" },
+        { status: 400 }
+      );
+    }
+
+    const amt = String(amount || "").trim();
+    if (!/^\d+(\.\d{1,2})?$/.test(amt)) {
+      return NextResponse.json(
+        { ok: false, error: "Invalid amount format" },
+        { status: 400 }
+      );
+    }
+
     const gateway = getBraintreeGateway();
+
     const result = await gateway.transaction.sale({
-      amount, // e.g. "10.00"
+      amount: amt,
       paymentMethodNonce: nonce,
       options: { submitForSettlement: true },
     });
 
-    if (!result.success) {
-      throw new Error(result.message || "Transaction failed");
+    if (result?.success && result?.transaction) {
+      const t = result.transaction;
+      return NextResponse.json({
+        ok: true,
+        txn: { id: t.id, status: t.status, amount: t.amount },
+      });
     }
 
-    return NextResponse.json({ ok: true, txn: result.transaction });
+    const deepErrors =
+      typeof result?.errors?.deepErrors === "function"
+        ? result.errors.deepErrors().map((e) => e.message).join("; ")
+        : "";
+    const message = result?.message || deepErrors || "Transaction failed";
+
+    return NextResponse.json({ ok: false, error: message }, { status: 400 });
   } catch (err) {
     return NextResponse.json(
-      { ok: false, error: err?.message || "Checkout failed" },
+      { ok: false, error: err?.message || "Checkout error" },
       { status: 500 }
     );
   }
