@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { gateway } from "../../../../lib/braintree";
+import { getBraintreeGateway } from "../../../../lib/braintree";
 
 export const dynamic = "force-dynamic";
 
@@ -7,25 +7,15 @@ export async function POST(req) {
   try {
     const { nonce, amount } = await req.json();
 
-    if (!nonce) {
-      return NextResponse.json({ ok: false, error: "Missing nonce" }, { status: 400 });
-    }
-
-    // Braintree expects amount as a string like "100.00"
-    const num = Number(amount);
-    if (!Number.isFinite(num) || num <= 0) {
-      return NextResponse.json({ ok: false, error: "Invalid amount" }, { status: 400 });
-    }
-    const formatted = num.toFixed(2);
-
+    const gateway = getBraintreeGateway();
     const result = await gateway.transaction.sale({
-      amount: formatted,
+      amount, // e.g. "10.00"
       paymentMethodNonce: nonce,
       options: { submitForSettlement: true },
     });
 
     if (!result.success) {
-      return NextResponse.json({ ok: false, error: result.message || "Charge failed" }, { status: 400 });
+      throw new Error(result.message || "Transaction failed");
     }
 
     return NextResponse.json({ ok: true, txn: result.transaction });
