@@ -1,12 +1,13 @@
 "use client";
 
-export default function AdminPage() {
+export default function HomePage() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <main className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="opacity-75 mt-2">Skeleton is ready.</p>
+        <h1 className="text-3xl font-bold">Genio OS Home</h1>
+        <p className="opacity-75 mt-2">App Router is active.</p>
+        <a href="/admin" className="inline-block mt-6 underline">Go to Admin</a>
       </div>
-    </div>
+    </main>
   );
 }
