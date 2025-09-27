@@ -1,13 +1,12 @@
 "use client";
 
-// super-visible Topbar (no imports)
 function Topbar() {
   return (
     <header
       className="w-full h-16 flex items-center justify-between px-4"
-      style={{ background: "#16a34a", color: "#0b0f17" }} // GREEN bar so it's obvious
+      style={{ background: "#16a34a", color: "#0b0f17" }} // أخضر فاقع
     >
-      <strong style={{ letterSpacing: 0.4 }}>GENIO ADMIN</strong>
+      <strong>GENIO ADMIN</strong>
       <nav className="flex items-center gap-4 text-sm">
         <a href="/" style={{ textDecoration: "underline" }}>Home</a>
         <a href="/admin" style={{ textDecoration: "underline" }}>Dashboard</a>
@@ -16,15 +15,16 @@ function Topbar() {
   );
 }
 
-// super-visible Sidebar (no imports)
 function Sidebar() {
   return (
     <aside
-      className="h-[calc(100vh-4rem)] p-4"
+      className="p-4"
       style={{
         width: 240,
-        background: "#111827",      // dark slate
-        borderRight: "3px solid #16a34a"
+        height: "calc(100vh - 4rem)",
+        background: "#111827",
+        borderRight: "3px solid #16a34a",
+        color: "white"
       }}
     >
       <h2 className="text-lg font-semibold mb-4" style={{ color: "#a7f3d0" }}>
@@ -43,13 +43,11 @@ function Sidebar() {
 
 export default function AdminLayout({ children }) {
   return (
-    <div className="min-h-screen" style={{ background: "#0b0f17", color: "white" }}>
+    <div style={{ background: "#0b0f17", color: "white", minHeight: "100vh" }}>
       <Topbar />
-      <div className="flex">
+      <div style={{ display: "flex" }}>
         <Sidebar />
-        <main className="p-6 flex-1">
-          {children}
-        </main>
+        <main style={{ padding: 24, flex: 1 }}>{children}</main>
       </div>
     </div>
   );
