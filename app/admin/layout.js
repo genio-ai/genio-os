@@ -4,7 +4,7 @@ function Topbar() {
   return (
     <header
       className="w-full h-16 flex items-center justify-between px-4"
-      style={{ background: "#16a34a", color: "#0b0f17" }} // أخضر فاقع
+      style={{ background: "#16a34a", color: "#0b0f17" }}
     >
       <strong>GENIO ADMIN</strong>
       <nav className="flex items-center gap-4 text-sm">
