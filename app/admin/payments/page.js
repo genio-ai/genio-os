@@ -1,171 +1,105 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dropin from "braintree-web-drop-in";
 
 export default function PaymentsPage() {
   const containerRef = useRef(null);
   const instanceRef = useRef(null);
-  const [clientToken, setClientToken] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [amount, setAmount] = useState("10.00");
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
+  const [amount, setAmount] = useState("100.00");
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
 
-  // Load Braintree Drop-in script from CDN once
-  async function loadDropinScript() {
-    const src = "https://js.braintreegateway.com/web/dropin/1.43.0/js/dropin.min.js";
-    if (document.querySelector(`script[src="${src}"]`)) return;
-    await new Promise((resolve, reject) => {
-      const s = document.createElement("script");
-      s.src = src;
-      s.async = true;
-      s.onload = resolve;
-      s.onerror = () => reject(new Error("Failed to load Braintree Drop-in script"));
-      document.head.appendChild(s);
-    });
-  }
-
-  // Initialize: fetch client token and create drop-in
   useEffect(() => {
-    let active = true;
+    let mounted = true;
 
-    (async () => {
+    async function setupDropin() {
       try {
-        setLoading(true);
-        setError(null);
-
-        await loadDropinScript();
-
-        const res = await fetch("/api/payments/token", { cache: "no-store" });
-        const json = await res.json();
-        if (!json.ok || !json.clientToken) {
-          throw new Error(json.error || "No client token");
-        }
-        if (!active) return;
-
-        setClientToken(json.clientToken);
-
-        // @ts-ignore
-        const dropin = await window.braintree.dropin.create({
-          authorization: json.clientToken,
-          container: containerRef.current,
-          paypal: {
-            flow: "checkout"
-          },
-          card: {
-            cardholderName: true
-          }
-        });
-
-        if (!active) {
-          dropin.teardown?.();
+        const res = await fetch("/api/payments/token");
+        const data = await res.json();
+        if (!data?.clientToken) {
+          setMsg("No client token");
           return;
         }
-        instanceRef.current = dropin;
-      } catch (e) {
-        setError(e.message || String(e));
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
 
+        const inst = await dropin.create({
+          authorization: data.clientToken,
+          container: containerRef.current,
+        });
+
+        if (mounted) instanceRef.current = inst;
+      } catch (e) {
+        setMsg(e?.message || "Failed to init drop-in");
+      }
+    }
+
+    setupDropin();
     return () => {
-      active = false;
-      // Teardown drop-in instance on unmount
-      if (instanceRef.current?.teardown) {
-        instanceRef.current.teardown().catch(() => {});
+      mounted = false;
+      if (instanceRef.current) {
+        instanceRef.current.teardown();
+        instanceRef.current = null;
       }
     };
   }, []);
 
-  async function handlePay() {
+  const pay = async () => {
     try {
-      setCreating(true);
-      setResult(null);
-      setError(null);
+      setLoading(true);
+      setMsg("");
 
-      if (!instanceRef.current) throw new Error("Payment UI not ready");
+      if (!instanceRef.current) {
+        setMsg("Drop-in not ready");
+        return;
+      }
 
+      // Get payment nonce from drop-in UI
       const { nonce } = await instanceRef.current.requestPaymentMethod();
 
       const res = await fetch("/api/payments/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, nonce })
+        body: JSON.stringify({ nonce, amount }),
       });
 
-      const json = await res.json();
-      if (!json.ok) {
-        throw new Error(json.error || "Payment failed");
-      }
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Payment failed");
 
-      setResult(json.transaction);
+      setMsg(`Success: ${data.txn.id}`);
     } catch (e) {
-      setError(e.message || String(e));
+      setMsg(e?.message || "Payment error");
     } finally {
-      setCreating(false);
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold mb-4">Payments</h1>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-6">Payments</h1>
 
-      {/* Status line */}
-      {loading && <div className="opacity-70 animate-pulse mb-3">Loading payment UI…</div>}
-      {error && (
-        <div className="mb-3 text-sm text-red-400">
-          {error}
-        </div>
-      )}
-      {clientToken && !loading && (
-        <div className="mb-3 text-sm opacity-80">
-          Client token loaded.
-        </div>
-      )}
-
-      {/* Amount */}
-      <div className="mb-4">
-        <label className="block text-sm mb-1">Amount (USD)</label>
-        <input
-          type="number"
-          min="1"
-          step="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="w-40 bg-transparent border border-white/20 rounded px-3 py-2"
-          placeholder="10.00"
-        />
-      </div>
-
-      {/* Drop-in container */}
-      <div
-        ref={containerRef}
-        className="rounded border border-white/10 p-4 bg-white/5"
+      <label className="block text-sm mb-2">Amount (USD)</label>
+      <input
+        className="w-full max-w-xs rounded bg-black/30 border border-white/10 p-3 mb-4"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        placeholder="100.00"
+        inputMode="decimal"
       />
 
-      {/* Pay button */}
+      <div
+        ref={containerRef}
+        className="w-full max-w-md bg-black/20 border border-white/10 rounded p-3 mb-4"
+      />
+
       <button
-        onClick={handlePay}
-        disabled={creating || loading || !instanceRef.current}
-        className="mt-4 bg-white/10 hover:bg-white/15 border border-white/20 rounded px-4 py-2 text-sm disabled:opacity-50"
+        onClick={pay}
+        disabled={loading}
+        className="px-5 py-2 rounded bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
       >
-        {creating ? "Processing…" : "Pay"}
+        {loading ? "Processing..." : "Pay"}
       </button>
 
-      {/* Result */}
-      {result && (
-        <div className="mt-6 rounded border border-white/10 p-4 bg-white/5 text-sm">
-          <div className="font-semibold mb-1">Payment Success</div>
-          <div><span className="opacity-70">ID:</span> {result.id}</div>
-          <div><span className="opacity-70">Status:</span> {result.status}</div>
-          <div><span className="opacity-70">Amount:</span> {result.amount} {result.currencyIsoCode}</div>
-          {result.createdAt && (
-            <div><span className="opacity-70">Created:</span> {new Date(result.createdAt).toLocaleString()}</div>
-          )}
-        </div>
-      )}
+      {msg && <p className="mt-4 text-sm">{msg}</p>}
     </div>
   );
 }
