@@ -1,12 +1,18 @@
-"use client";
-
-export default function HomePage() {
+export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Genio OS Home</h1>
-        <p className="opacity-75 mt-2">App Router is active.</p>
-        <a href="/admin" className="inline-block mt-6 underline">Go to Admin</a>
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#0b0f14",
+        color: "#e5e7eb",
+      }}
+    >
+      <div style={{ textAlign: "center" }}>
+        <h1 style={{ fontSize: "32px", marginBottom: "8px" }}>Genio OS Home</h1>
+        <p style={{ opacity: 0.8 }}>Welcome to Genio Systems</p>
       </div>
     </main>
   );
