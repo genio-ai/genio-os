@@ -1,3 +1,4 @@
+"use client";
 // File: pages/index.js
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Head from "next/head";
