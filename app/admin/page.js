@@ -1,45 +1,104 @@
-import StatCard from "../../components/overview/StatCard";
+"use client";
 
-export const dynamic = "force-static";
+import { useEffect, useRef, useState } from "react";
+import dropin from "braintree-web-drop-in";
 
-const mock = {
-  metrics: [
-    { label: "Active Users", value: "123", hint: "last 24h" },
-    { label: "Minutes Used", value: "2,145", hint: "current month" },
-    { label: "Errors", value: "3", hint: "last 24h" },
-    { label: "MRR", value: "$1,240", hint: "recurring" },
-  ],
-  activity: [
-    { id: 1, text: "User alice@example.com upgraded to Pro", time: "2h ago" },
-    { id: 2, text: "Created new API key for project X", time: "5h ago" },
-    { id: 3, text: "Payment succeeded: $49", time: "yesterday" },
-  ],
-};
+export default function PaymentsPage() {
+  const containerRef = useRef(null);
+  const instanceRef = useRef(null);
+  const [amount, setAmount] = useState("100.00");
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
 
-export default function AdminOverview() {
+  useEffect(() => {
+    let active = true;
+
+    async function setupDropin() {
+      try {
+        const res = await fetch("/api/payments/token");
+        const data = await res.json();
+        if (!data?.clientToken) {
+          setMsg("No client token");
+          return;
+        }
+
+        const inst = await dropin.create({
+          authorization: data.clientToken,
+          container: containerRef.current,
+        });
+
+        if (active) instanceRef.current = inst;
+      } catch (e) {
+        setMsg(e?.message || "Failed to init drop-in");
+      }
+    }
+
+    setupDropin();
+    return () => {
+      active = false;
+      if (instanceRef.current) {
+        instanceRef.current.teardown();
+        instanceRef.current = null;
+      }
+    };
+  }, []);
+
+  const pay = async () => {
+    try {
+      setLoading(true);
+      setMsg("");
+
+      if (!instanceRef.current) {
+        setMsg("Drop-in not ready");
+        return;
+      }
+
+      const { nonce } = await instanceRef.current.requestPaymentMethod();
+
+      const res = await fetch("/api/payments/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nonce, amount }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Payment failed");
+
+      setMsg(`Success: ${data.txn.id}`);
+    } catch (e) {
+      setMsg(e?.message || "Payment error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Overview</h1>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-6">Payments</h1>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {mock.metrics.map((m) => (
-          <StatCard key={m.label} label={m.label} value={m.value} hint={m.hint} />
-        ))}
-      </div>
+      <label className="block text-sm mb-2">Amount (USD)</label>
+      <input
+        className="w-full max-w-xs rounded bg-black/30 border border-white/10 p-3 mb-4"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        placeholder="100.00"
+        inputMode="decimal"
+      />
 
-      <div className="rounded-lg border border-white/10 bg-black/30">
-        <div className="border-b border-white/10 p-4">
-          <h2 className="text-xl font-semibold">Recent Activity</h2>
-        </div>
-        <ul className="divide-y divide-white/10">
-          {mock.activity.map((a) => (
-            <li key={a.id} className="p-4 flex items-start justify-between gap-4">
-              <p className="text-sm">{a.text}</p>
-              <span className="shrink-0 text-xs text-white/40">{a.time}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <div
+        ref={containerRef}
+        className="w-full max-w-md bg-black/20 border border-white/10 rounded p-3 mb-4"
+      />
+
+      <button
+        onClick={pay}
+        disabled={loading}
+        className="px-5 py-2 rounded bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+      >
+        {loading ? "Processing..." : "Pay"}
+      </button>
+
+      {msg && <p className="mt-4 text-sm">{msg}</p>}
     </div>
   );
 }
