@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const { data, error } = await supabase
-      .from("profiles") // adjust table name if different
+      .from("app_users") // ✅ تعديل اسم الجدول
       .select("*")
       .order("created_at", { ascending: false })
       .limit(50);
