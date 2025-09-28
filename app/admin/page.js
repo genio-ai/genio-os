@@ -1,5 +1,5 @@
 // app/admin/page.js
-import StatCard from "@/components/overview/StatCard";
+import StatCard from "../../components/overview/StatCard";
 
 export const dynamic = "force-static";
 
