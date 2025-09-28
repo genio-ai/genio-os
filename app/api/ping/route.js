@@ -1,3 +1,6 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   return new Response(
     JSON.stringify({
@@ -10,7 +13,6 @@ export async function GET() {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "no-store",
       },
     }
   );
