@@ -1,35 +1,9 @@
-// File: app/page.jsx
-"use client";
-
+// File: pages/index.js
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import Head from "next/head";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { Inter } from "next/font/google";
-
-export const metadata = {
-  title: "genio os — Create your digital twin",
-  description:
-    "Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks.",
-  themeColor: "#0b111a",
-  openGraph: {
-    type: "website",
-    title: "genio os — Create your digital twin",
-    description:
-      "Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks.",
-    images: ["/og-image.png"],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "genio os — Create your digital twin",
-    description:
-      "Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks.",
-    images: ["/og-image.png"],
-  },
-  icons: {
-    icon: ["/favicon.ico"],
-    apple: ["/apple-touch-icon.png"],
-  },
-};
 
 const inter = Inter({
   subsets: ["latin"],
@@ -160,10 +134,35 @@ export default function Home() {
   }, [menuOpen]);
 
   const canonicalHref = useMemo(() => (origin ? origin + "/" : null), [origin]);
+  const ogTitle = "genio os — Create your digital twin";
+  const ogDesc =
+    "Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks.";
 
   return (
     <div className={inter.className}>
-      <link rel="canonical" href={canonicalHref ?? ""} />
+      <Head>
+        <title>{ogTitle}</title>
+        <meta name="description" content={ogDesc} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {canonicalHref && <link rel="canonical" href={canonicalHref} />}
+        <meta name="theme-color" content="#0b111a" />
+
+        {/* Open Graph / Twitter (use a real file in /public) */}
+        <meta property="og:type" content="website" />
+        {canonicalHref && <meta property="og:url" content={canonicalHref} />}
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDesc} />
+        <meta property="og:image" content="/og-image.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" content={ogDesc} />
+        <meta name="twitter:image" content="/og-image.png" />
+
+        {/* Icons (optional files in /public) */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+      </Head>
 
       {/* Header */}
       <header
