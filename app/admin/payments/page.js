@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import dropin from "braintree-web-drop-in";
+
+let dropin; // lazy import on client
 
 export default function PaymentsPage() {
   const containerRef = useRef(null);
@@ -15,6 +16,10 @@ export default function PaymentsPage() {
 
     async function setupDropin() {
       try {
+        if (!dropin) {
+          dropin = (await import("braintree-web-drop-in")).default;
+        }
+
         const res = await fetch("/api/payments/token");
         const data = await res.json();
         if (!data?.clientToken) {
@@ -34,6 +39,7 @@ export default function PaymentsPage() {
     }
 
     setupDropin();
+
     return () => {
       mounted = false;
       if (instanceRef.current) {
@@ -53,7 +59,6 @@ export default function PaymentsPage() {
         return;
       }
 
-      // Get payment nonce from drop-in UI
       const { nonce } = await instanceRef.current.requestPaymentMethod();
 
       const res = await fetch("/api/payments/checkout", {
