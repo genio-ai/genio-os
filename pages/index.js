@@ -11,11 +11,15 @@ const inter = Inter({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://genio.systems";
+const OG_TITLE = "Genio OS — Create your digital twin";
+const OG_DESC =
+  "Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks.";
+
 export default function Home() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [origin, setOrigin] = useState("");
 
   const menuBtnRef = useRef(null);
   const closeBtnRef = useRef(null);
@@ -23,7 +27,6 @@ export default function Home() {
   const headerRef = useRef(null);
   const mainRef = useRef(null);
 
-  // shadow on scroll
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 6);
     onScroll();
@@ -31,12 +34,6 @@ export default function Home() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // safe origin
-  useEffect(() => {
-    if (typeof window !== "undefined") setOrigin(window.location.origin);
-  }, []);
-
-  // auth check
   const hasAuth = useCallback(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -50,45 +47,27 @@ export default function Home() {
     }
   }, []);
 
-  const goCreateTwin = () =>
-    router.push(hasAuth() ? "/onboarding" : "/signup");
-
-  const ogTitle = "Genio OS — Create your digital twin";
-  const ogDesc =
-    "Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks.";
-
-  // fallback inline SVG (safe, no Buffer)
-  const ogFallbackSvg = `
-<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='630'>
-  <rect width='100%' height='100%' fill='#0b111a'/>
-  <text x='60' y='360' font-family='Inter, Arial' font-size='96' font-weight='800' fill='#6FC3FF'>Genio OS</text>
-  <text x='60' y='440' font-family='Inter, Arial' font-size='44' fill='#cfe0ff'>Create your digital twin</text>
-</svg>`;
-  const ogFallbackDataUri = `data:image/svg+xml;utf8,${encodeURIComponent(
-    ogFallbackSvg
-  )}`;
+  const goCreateTwin = () => router.push(hasAuth() ? "/onboarding" : "/signup");
 
   return (
     <div className={inter.className}>
       <Head>
-        <title>{ogTitle}</title>
-        <meta name="description" content={ogDesc} />
+        <title>{OG_TITLE}</title>
+        <meta name="description" content={OG_DESC} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {origin && <link rel="canonical" href={origin + "/"} />}
+        <link rel="canonical" href={`${SITE_URL}/`} />
         <meta name="theme-color" content="#0b111a" />
 
         <meta property="og:type" content="website" />
-        {origin && <meta property="og:url" content={origin + "/"} />}
-        <meta property="og:title" content={ogTitle} />
-        <meta property="og:description" content={ogDesc} />
-        <meta property="og:image" content="/og-image.png" />
-        <meta property="og:image" content={ogFallbackDataUri} />
+        <meta property="og:url" content={`${SITE_URL}/`} />
+        <meta property="og:title" content={OG_TITLE} />
+        <meta property="og:description" content={OG_DESC} />
+        <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
 
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={ogTitle} />
-        <meta name="twitter:description" content={ogDesc} />
-        <meta name="twitter:image" content="/og-image.png" />
-        <meta name="twitter:image" content={ogFallbackDataUri} />
+        <meta name="twitter:title" content={OG_TITLE} />
+        <meta name="twitter:description" content={OG_DESC} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-image.png`} />
       </Head>
 
       <header
@@ -142,7 +121,7 @@ export default function Home() {
       <main ref={mainRef} className="container hero">
         <div className="hero-text">
           <h1>Create your digital twin</h1>
-          <p className="hook">{ogDesc}</p>
+          <p className="hook">{OG_DESC}</p>
           <Link className="btn btn-neon cta" href="/signup">
             Signup
           </Link>
