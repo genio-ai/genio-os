@@ -3,12 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 
 const USERS_KEY = "users_db";
 const AUTH_KEY = "auth_user";
 const DRAFT_KEY = "signup_draft";
 const TWIN_DRAFT_KEY = "twin_ob_draft";
+
+// simple E.164-ish validator to avoid external deps
+function isValidPhone(p) {
+  if (!p) return false;
+  const v = String(p).trim();
+  return /^\+?[1-9]\d{7,14}$/.test(v);
+}
 
 function safeGet(key, fallback) {
   try {
@@ -110,7 +116,7 @@ export default function Page() {
     if (!fullName.trim()) return setErr("Full name is required.");
     const lower = (email || "").trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lower)) return setErr("Valid email is required.");
-    if (!phone || !isValidPhoneNumber(phone)) return setErr("Valid phone number is required.");
+    if (!isValidPhone(phone)) return setErr("Valid phone number is required. Use international format, e.g. +27123456789");
     if (password.length < 8) return setErr("Password must be at least 8 characters.");
     if (password !== confirm) return setErr("Passwords do not match.");
 
@@ -245,16 +251,16 @@ export default function Page() {
             <span>
               Phone (for OTP & WhatsApp) <b>*</b>
             </span>
-            <div className="phone-wrap">
-              <PhoneInput
-                placeholder="Enter phone number"
-                value={phone}
-                onChange={setPhone}
-                international
-                withCountryCallingCode
-              />
-            </div>
-            <small className="hint">Stored securely. Never shared with third parties.</small>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+27 123 456 789"
+              required
+              autoComplete="tel"
+              inputMode="tel"
+            />
+            <small className="hint">Use international format with country code.</small>
           </label>
 
           <div className="grid">
@@ -498,27 +504,6 @@ export default function Page() {
           color: #9fb5d1;
           font-size: 12px;
           margin-top: 10px;
-        }
-
-        .phone-wrap :global(.PhoneInput) {
-          background: #0f1828;
-          border: 1px solid var(--stroke);
-          border-radius: 10px;
-          padding: 4px 8px;
-        }
-        .phone-wrap :global(.PhoneInput input) {
-          background: transparent;
-          border: none;
-          outline: none;
-          color: #edf3ff;
-          padding: 8px;
-        }
-        .phone-wrap :global(.PhoneInputCountry) {
-          margin: 4px 6px 4px 4px;
-        }
-        .phone-wrap :global(.PhoneInputCountrySelect) {
-          background: #0f1828;
-          color: #edf3ff;
         }
       `}</style>
 
