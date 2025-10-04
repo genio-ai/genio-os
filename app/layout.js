@@ -18,7 +18,7 @@ export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: OG_TITLE,
   description: OG_DESC,
-  themeColor: "#0b111a",
+  // themeColor removed (unsupported in current metadata API)
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
