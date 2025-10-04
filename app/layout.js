@@ -2,6 +2,12 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 
+// ↓↓↓ add these three lines
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+// ↑↑↑
+
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "600", "700", "800"],
