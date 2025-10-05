@@ -1,7 +1,7 @@
 // File: app/page.js
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -22,6 +22,20 @@ export default function Home() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const hasAuth = useCallback(() => {
+    try {
+      const cookieHasAuth =
+        document.cookie.includes("auth=") || document.cookie.includes("token=");
+      const lsHasAuth =
+        !!localStorage.getItem("auth") || !!localStorage.getItem("token");
+      return cookieHasAuth || lsHasAuth;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const goCreateTwin = () => router.push(hasAuth() ? "/onboarding" : "/signup");
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -160,7 +174,8 @@ export default function Home() {
 
             <nav className="panel-links">
               <Link href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
-              <Link href="/support" onClick={() => setMenuOpen(false)}>Support</Link>
+              {/* Support removed */}
+              <a href="mailto:hello@genio.systems" onClick={() => setMenuOpen(false)}>Contact us</a>
               <Link href="/chat" onClick={() => setMenuOpen(false)}>Chat</Link>
             </nav>
           </aside>
@@ -170,19 +185,21 @@ export default function Home() {
       {/* Hero */}
       <main ref={mainRef} className="container hero" aria-label="Hero">
         <div className="hero-text">
-          <h1>Create your digital twin</h1>
+          <h1>Meet Nio — your Genio assistant</h1>
           <p className="hook">
-            Imagine having another you — working 24/7, even while you sleep. Your twin lives as a digital bot on your
-            pages: replying in your tone and voice, posting content, sending WhatsApp & emails, even dropping TikToks.
-            It’s your personal assistant on call — one click, by the name you choose.
+            Nio is your built-in assistant across Genio OS. Ask anything about your Twin, onboarding,
+            or account — Nio guides you, fixes issues, and helps you move faster.
           </p>
 
-          {/* Single CTA */}
-          <div className="hero-ctas">
-            <button className="btn btn-neon cta" onClick={() => router.push("/signup")}>
-              Create your twin
-            </button>
-          </div>
+          {/* Keep only one CTA -> goes to /signup */}
+          <button className="btn btn-neon cta" onClick={goCreateTwin}>
+            Create your twin
+          </button>
+
+          {/* Simple contact email */}
+          <p className="contact">
+            Contact us: <a href="mailto:hello@genio.systems">hello@genio.systems</a>
+          </p>
         </div>
 
         <figure className="hero-visual" aria-hidden="true">
@@ -229,34 +246,33 @@ export default function Home() {
         .container{width:min(1200px,92%); margin-inline:auto}
         a{color:inherit; text-decoration:none}
 
-        /* Header */
         .hdr{position:sticky; top:0; z-index:50; backdrop-filter:saturate(150%) blur(10px); background:#0b111add; transition:box-shadow .2s}
         .hdr.scrolled{box-shadow:0 8px 28px rgba(0,0,0,.5)}
-        .nav{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0}
+        .nav{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0}
 
         .brand{display:inline-flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto; white-space:nowrap}
-        .brand-name{font-weight:900; letter-spacing:.3px; font-size:22px;}
+        .brand-name{font-weight:800; letter-spacing:.2px; font-size:clamp(18px, 2.2vw, 24px);}
         .brand-name--neon{
           background:linear-gradient(135deg, var(--neon1), var(--neon2));
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           text-shadow:0 0 8px rgba(111,195,255,.4), 0 0 18px rgba(32,227,178,.25);
           transition:text-shadow .2s ease, filter .2s ease;
         }
+        .brand:hover .brand-name--neon,
+        .brand:focus-visible .brand-name--neon{ text-shadow:0 0 10px rgba(111,195,255,.55), 0 0 26px rgba(32,227,178,.35); filter:drop-shadow(0 0 8px rgba(111,195,255,.15)); }
 
-        .actions{display:flex; align-items:center; gap:10px}
+        .actions{display:flex; align-items:center; gap:8px}
         .menu-chip{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; background:#0e1a2a; border:1px solid #1e2b41; color:#cfe6ff}
         .btn{display:inline-flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; padding:10px 14px; font-weight:700; border:1px solid #223145; background:#0f1828; color:var(--text)}
         .btn-neon{border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink)}
         .btn-outline{background:#0f1828; font-weight:600}
-
         @media (max-width:360px){
           .menu-text{display:none}
           .menu-chip{padding:6px 8px}
           .btn{padding:6px 10px; font-size:13px}
-          .brand-name{font-size:18px}
+          .brand-name{font-size:16px}
         }
 
-        /* Drawer */
         .sheet{position:fixed; inset:0; z-index:60}
         .backdrop{position:absolute; inset:0; background:rgba(0,0,0,.6)}
         .panel{position:absolute; right:0; top:0; height:100%; width:min(86%, 340px); background:var(--card); border-left:1px solid #20304a; display:flex; flex-direction:column; padding:16px; box-shadow:-10px 0 40px rgba(0,0,0,.45)}
@@ -265,31 +281,15 @@ export default function Home() {
         .panel-links{display:flex; flex-direction:column; gap:10px; margin-top:18px}
         .panel-links a{padding:12px 14px; border-radius:12px; background:#0f1b2d; color:#e7f0ff; border:1px solid #1f2c44}
 
-        /* Hero */
-        .hero{
-          display:grid; grid-template-columns:1.1fr .9fr; gap:32px; align-items:center;
-          padding:84px 0; min-height:80vh;
-        }
+        .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:32px; align-items:center; padding:84px 0}
         .hero-text h1{
           margin:0 0 14px; font-size:clamp(32px,5vw,56px); line-height:1.05;
           background:linear-gradient(180deg, #f4f8ff 0%, #cfe0ff 100%); -webkit-background-clip:text; color:transparent;
           text-shadow:0 0 18px rgba(111,195,255,.15);
         }
         .hero-text .hook{color:#c0d0e2; margin:0 0 18px; max-width:58ch}
+        .contact{margin-top:10px; color:#a7b7c8; font-size:14px}
         .cta{min-width:220px}
-
-        /* Single CTA layout */
-        .hero-ctas{display:flex; justify-content:center}
-        @media (max-width:940px){
-          .hero{grid-template-columns:1fr; text-align:center; padding:60px 0; min-height:90dvh; place-items:center}
-          .hero-ctas{justify-content:center}
-          .cta{width:100%; max-width:340px}
-          .hero-text .hook{
-            margin-inline:auto; max-width:46ch;
-            display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
-          }
-        }
-
         .hero-visual{position:relative; aspect-ratio:1/1; min-height:320px; display:grid; place-items:center}
         .blob{
           position:absolute; width:560px; height:560px; border-radius:50%;
@@ -297,6 +297,7 @@ export default function Home() {
           filter:blur(44px) saturate(160%); opacity:.35;
         }
         .twin{width:min(440px,90%); filter:drop-shadow(0 10px 40px rgba(0,0,0,.5))}
+        @media (max-width:940px){ .hero{grid-template-columns:1fr; text-align:center} .hero-visual{margin-top:16px} }
       `}</style>
     </div>
   );
