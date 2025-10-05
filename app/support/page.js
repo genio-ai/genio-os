@@ -14,7 +14,7 @@ export default function Page() {
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
-    document.title = "Support · Genio";
+    document.title = "Support — genio os";
   }, []);
 
   async function submit(e) {
@@ -39,33 +39,30 @@ export default function Page() {
 
   return (
     <>
-      <main className="wrap">
+      <main className="support-wrap">
         {/* Header */}
-        <header className="header">
-          <Link href="/" className="brand">
-            Genio
-          </Link>
-          <nav className="nav">
-            <Link href="/about" className="navLink">
-              About
+        <header className="support-hdr">
+          <div className="support-container support-nav">
+            <Link href="/" className="support-brand" aria-label="genio os">
+              <span className="brand-neon">genio os</span>
             </Link>
-            <Link href="/login" className="btn ghost">
-              Log in
-            </Link>
-            <Link href="/signup" className="btn primary">
-              Sign up
-            </Link>
-          </nav>
+            <nav className="support-links">
+              <Link href="/" className="btn ghost">Go Back</Link>
+              <Link href="/login" className="btn outline">Login</Link>
+            </nav>
+          </div>
         </header>
 
         {/* Hero */}
-        <section className="hero">
+        <section className="support-container support-hero">
           <h1>Support</h1>
-          <p>We’re here to help. Browse quick answers or contact us.</p>
+          <p className="support-sub">
+            We’re here to help. Browse quick answers or contact us.
+          </p>
         </section>
 
         {/* Quick FAQ */}
-        <section className="grid">
+        <section className="support-container support-grid">
           <div className="faq">
             <h3>How is my data handled?</h3>
             <p>
@@ -74,42 +71,48 @@ export default function Page() {
           </div>
           <div className="faq">
             <h3>Do I need phone verification?</h3>
-            <p>Yes. Phone is required for account security and optional WhatsApp notifications.</p>
+            <p>
+              Yes. Phone is required for account security and optional WhatsApp notifications.
+            </p>
           </div>
           <div className="faq">
             <h3>Can I edit or delete my Twin later?</h3>
-            <p>Yes. You have full control: edit style, revoke consents, and delete data.</p>
+            <p>
+              Yes. You have full control: edit style, revoke consents, and delete data.
+            </p>
           </div>
         </section>
 
         {/* Contact form */}
-        <section className="formWrap">
+        <section className="support-container form-wrap">
           <form onSubmit={submit} className="form" noValidate>
             <h2>Contact support</h2>
+
             <div className="row">
-              <div className="field">
-                <label>Name</label>
+              <label className="field">
+                <span>Name</span>
                 <input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="Your name"
                   required
                 />
-              </div>
-              <div className="field">
-                <label>Email</label>
+              </label>
+
+              <label className="field">
+                <span>Email</span>
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="you@domain.com"
+                  placeholder="you@example.com"
                   required
                 />
-              </div>
+              </label>
             </div>
 
-            <div className="field">
-              <label>Topic</label>
+            <label className="field">
+              <span>Topic</span>
               <select
                 value={form.topic}
                 onChange={(e) => setForm({ ...form, topic: e.target.value })}
@@ -119,10 +122,10 @@ export default function Page() {
                 <option value="privacy">Privacy</option>
                 <option value="twin">Twin setup</option>
               </select>
-            </div>
+            </label>
 
-            <div className="field">
-              <label>Message</label>
+            <label className="field">
+              <span>Message</span>
               <textarea
                 rows={5}
                 value={form.message}
@@ -130,184 +133,140 @@ export default function Page() {
                 placeholder="How can we help?"
                 required
               />
-            </div>
+            </label>
 
             {msg && <div className="note">{msg}</div>}
 
-            <button className="btn primary" type="submit" disabled={busy}>
-              {busy ? "Sending…" : "Send"}
-            </button>
+            <div className="actions">
+              <Link href="/" className="btn ghost">Cancel</Link>
+              <button className="btn neon" type="submit" disabled={busy}>
+                {busy ? "Sending…" : "Send"}
+              </button>
+            </div>
           </form>
         </section>
 
-        <footer className="footer">
-          <p>© {new Date().getFullYear()} Genio · All rights reserved.</p>
+        <footer className="support-footer">
+          <p>© {new Date().getFullYear()} genio os · All rights reserved.</p>
         </footer>
       </main>
 
       <style jsx>{`
-        .wrap {
-          min-height: 100vh;
+        :root {
+          --bg: #0a1018;
+          --card: #0f1725;
+          --text: #edf3ff;
+          --muted: #a7b7c8;
+          --stroke: #223145;
+          --neon1: #20e3b2;
+          --neon2: #6fc3ff;
+          --ink: #071018;
+        }
+
+        .support-wrap {
+          min-height: 100dvh;
           display: flex;
           flex-direction: column;
-          background: #0a1730;
-          color: #e6eef8;
+          background: radial-gradient(1200px 600px at 80% -10%, #14263d 0%, #0b111a 60%), #0b111a;
+          color: var(--text);
         }
-        .header {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 20px 24px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+        .support-container { width: min(1100px, 92%); margin-inline: auto; }
+
+        /* Header */
+        .support-hdr {
+          position: sticky; top: 0; z-index: 40;
+          backdrop-filter: saturate(150%) blur(10px);
+          background: #0b111add; border-bottom: 1px solid #1b2840;
         }
-        .brand {
-          font-size: 22px;
-          font-weight: 800;
-          color: #fff;
-          text-decoration: none;
+        .support-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; }
+        .brand-neon {
+          font-size: 26px; font-weight: 900; letter-spacing: .3px;
+          background: linear-gradient(135deg, var(--neon1), var(--neon2));
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          text-shadow: 0 0 8px rgba(111,195,255,.35), 0 0 18px rgba(32,227,178,.22);
         }
-        .nav {
-          display: flex;
-          gap: 14px;
-          align-items: center;
-        }
-        .navLink {
-          color: #c9d6e5;
-          text-decoration: none;
-          font-size: 15px;
-        }
+        .support-links { display: flex; gap: 10px; align-items: center; }
+
+        /* Buttons */
         .btn {
-          border-radius: 10px;
-          padding: 8px 16px;
-          font-weight: 600;
-          text-decoration: none;
+          display: inline-flex; align-items: center; justify-content: center;
+          border-radius: 12px; padding: 10px 14px; font-weight: 700; text-decoration: none;
+          border: 1px solid var(--stroke); background: #0f1828; color: var(--text);
         }
-        .btn.ghost {
-          border: 1px solid #ffd54d;
-          color: #ffd54d;
-        }
-        .btn.ghost:hover {
-          background: #ffd54d22;
-        }
-        .btn.primary {
-          background: #ffd54d;
-          color: #0a1730;
-        }
-        .btn.primary:hover {
-          filter: brightness(0.95);
-        }
+        .btn.ghost { border-style: dashed; }
+        .btn.outline { background: #0f1828; }
+        .btn.neon { border: none; background: linear-gradient(135deg, var(--neon1), var(--neon2)); color: var(--ink); }
 
-        .hero {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 64px 20px 16px;
-          text-align: center;
+        /* Hero */
+        .support-hero {
+          text-align: center; padding: 42px 0 10px;
         }
-        .hero h1 {
-          font-size: 40px;
-          margin-bottom: 10px;
-          background: linear-gradient(90deg, #ffd54d, #ffae00);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+        .support-hero h1 {
+          margin: 0 0 8px;
+          font-size: clamp(28px, 4.4vw, 42px);
+          line-height: 1.1;
+          background: linear-gradient(180deg, #f4f8ff 0%, #cfe0ff 100%);
+          -webkit-background-clip: text; color: transparent;
         }
-        .hero p {
-          color: #c9d6e5;
-        }
+        .support-sub { color: #c0d0e2; margin: 0; }
 
-        .grid {
-          max-width: 1100px;
-          margin: 24px auto;
-          padding: 0 20px;
-          display: grid;
-          gap: 16px;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+        /* FAQ grid */
+        .support-grid {
+          display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px; padding: 14px 0 4px;
         }
-        @media (max-width: 900px) {
-          .grid {
-            grid-template-columns: 1fr;
-          }
-        }
+        @media (max-width: 900px) { .support-grid { grid-template-columns: 1fr; } }
         .faq {
-          background: #0f1b33;
-          border: 1px solid #22304a;
-          border-radius: 14px;
-          padding: 18px;
+          background: linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92));
+          border: 1px solid #20304a;
+          border-radius: 14px; padding: 16px;
         }
-        .faq h3 {
-          margin: 0 0 6px;
+        .faq h3 { margin: 0 0 6px; }
+        .faq p { margin: 0; color: #b8c8df; }
+
+        /* Form */
+        .form-wrap { padding: 8px 0 26px; }
+        .form {
+          background: linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92));
+          border: 1px solid #20304a; border-radius: 14px; padding: 16px;
+          max-width: 760px; margin: 0 auto;
         }
-        .faq p {
-          margin: 0;
-          color: #b8c8df;
+        .form h2 { margin: 0 0 12px; }
+
+        .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        @media (max-width: 780px) { .row { grid-template-columns: 1fr; } }
+
+        .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+        .field > span { font-size: 14px; color: #dbe7fb; }
+
+        input, select, textarea {
+          background: #0f1828; color: var(--text);
+          border: 1px solid var(--stroke); border-radius: 10px; padding: 12px 14px; outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+          border-color: #2b86c8; box-shadow: 0 0 0 3px rgba(111,195,255,.12);
         }
 
-        .formWrap {
-          max-width: 900px;
-          margin: 8px auto 32px;
-          padding: 0 20px;
-          width: 100%;
-        }
-        .form {
-          background: #0f1b33;
-          border: 1px solid #22304a;
-          border-radius: 14px;
-          padding: 18px;
-        }
-        .form h2 {
-          margin: 0 0 12px;
-        }
-        .row {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 12px;
-        }
-        @media (max-width: 780px) {
-          .row {
-            grid-template-columns: 1fr;
-          }
-        }
-        .field {
-          display: flex;
-          flex-direction: column;
-          margin-bottom: 12px;
-        }
-        .field label {
-          font-size: 14px;
-          margin-bottom: 6px;
-          color: #dbe7fb;
-        }
-        input,
-        select,
-        textarea {
-          background: #0b1730;
-          border: 1px solid #2a3a56;
-          color: #e6eef8;
-          border-radius: 12px;
-          padding: 12px 14px;
-          outline: none;
-        }
-        input:focus,
-        select:focus,
-        textarea:focus {
-          border-color: #3f86ff;
-          box-shadow: 0 0 0 3px #3f86ff33;
-        }
         .note {
-          background: #0f3020;
-          border: 1px solid #2e7a59;
-          color: #b8ffde;
-          border-radius: 10px;
-          padding: 10px 12px;
-          margin: 8px 0;
+          background: #0f3020; border: 1px solid #2e7a59; color: #b8ffde;
+          border-radius: 10px; padding: 10px 12px; margin: 8px 0;
         }
-        .footer {
-          border-top: 1px solid #22304a;
-          padding: 20px;
-          text-align: center;
-          color: #93a7c4;
-          font-size: 14px;
-          margin-top: auto;
+
+        .actions { display: flex; gap: 10px; justify-content: space-between; margin-top: 10px; }
+
+        /* Footer */
+        .support-footer {
+          border-top: 1px solid #1b2840; color: #93a7c4; font-size: 14px;
+          text-align: center; padding: 18px; margin-top: auto;
+        }
+
+        /* Mobile tightening */
+        @media (max-width: 640px) {
+          .support-hdr { padding-top: 6px; }
+          .brand-neon { font-size: 24px; }
+          .support-sub { display: none; }        /* keep page compact on mobile */
+          .faq p { font-size: 14px; }
+          .actions { flex-direction: column; align-items: stretch; }
         }
       `}</style>
     </>
