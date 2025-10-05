@@ -70,3 +70,27 @@ a:hover {
 .mobile-menu[role="dialog"] {
   position: static !important;
 }
+
+/* === Chat input visibility fix (desktop + iOS) === */
+input,
+textarea,
+select {
+  color: #e6eef8 !important;
+  caret-color: #e6eef8 !important;
+  background-color: #0b1730;
+  -webkit-text-fill-color: #e6eef8 !important; /* iOS Safari fix */
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8aa0bf !important;
+  opacity: 1 !important;
+}
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #e6eef8 !important;
+  box-shadow: 0 0 0px 1000px #0b1730 inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
