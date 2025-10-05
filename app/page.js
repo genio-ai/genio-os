@@ -35,6 +35,7 @@ export default function Home() {
     }
   }, []);
 
+  const openNio = () => router.push("/chat");
   const goCreateTwin = () => router.push(hasAuth() ? "/onboarding" : "/signup");
 
   useEffect(() => {
@@ -135,6 +136,9 @@ export default function Home() {
           </Link>
 
           <div className="actions">
+            <Link className="nav-link" href="/pricing">Pricing</Link>
+            <Link className="nav-link" href="/contact">Contact us</Link>
+            <Link className="btn btn-outline" href="/login">Login</Link>
             <button
               ref={menuBtnRef}
               className="menu-chip"
@@ -148,7 +152,6 @@ export default function Home() {
               </svg>
               <span className="menu-text">Menu</span>
             </button>
-            <Link className="btn btn-outline" href="/login">Login</Link>
           </div>
         </div>
       </header>
@@ -174,9 +177,8 @@ export default function Home() {
 
             <nav className="panel-links">
               <Link href="/pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
-              {/* Support removed */}
-              <a href="mailto:hello@genio.systems" onClick={() => setMenuOpen(false)}>Contact us</a>
-              <Link href="/chat" onClick={() => setMenuOpen(false)}>Chat</Link>
+              <Link href="/contact" onClick={() => setMenuOpen(false)}>Contact us</Link>
+              <Link href="/login" onClick={() => setMenuOpen(false)}>Login</Link>
             </nav>
           </aside>
         </div>
@@ -187,58 +189,81 @@ export default function Home() {
         <div className="hero-text">
           <h1>Meet Nio — your Genio assistant</h1>
           <p className="hook">
-            Nio is your built-in assistant across Genio OS. Ask anything about your Twin, onboarding,
-            or account — Nio guides you, fixes issues, and helps you move faster.
+            Nio is your built-in assistant across Genio OS. Ask anything about your Twin,
+            onboarding, or account — Nio guides you, fixes issues, and helps you move faster.
           </p>
 
-          {/* Keep only one CTA -> goes to /signup */}
           <button className="btn btn-neon cta" onClick={goCreateTwin}>
             Create your twin
           </button>
-
-          {/* Simple contact email */}
-          <p className="contact">
-            Contact us: <a href="mailto:hello@genio.systems">hello@genio.systems</a>
-          </p>
         </div>
 
-        <figure className="hero-visual" aria-hidden="true">
-          <div className="blob" />
-          <svg className="twin" viewBox="0 0 480 480">
-            <defs>
-              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="#6FC3FF" />
-                <stop offset="1" stopColor="#20E3B2" />
-              </linearGradient>
-              <radialGradient id="g2" cx="50%" cy="10%" r="80%">
-                <stop offset="0" stopColor="#13243a" />
-                <stop offset="1" stopColor="#0b1421" />
-              </radialGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="4" result="b" />
-                <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
-              </filter>
-            </defs>
-            <rect x="0" y="0" width="480" height="480" rx="26" fill="url(#g2)" />
-            <circle cx="240" cy="164" r="74" fill="#0d1420" stroke="url(#g1)" strokeWidth="3" />
-            <ellipse cx="218" cy="160" rx="10" ry="12" fill="#bfe1ff" />
-            <ellipse cx="262" cy="160" rx="10" ry="12" fill="#bfe1ff" />
-            <path d="M210 188q30 22 60 0" stroke="url(#g1)" strokeWidth="4" fill="none" strokeLinecap="round" />
-            <rect x="168" y="230" width="144" height="150" rx="20" fill="#0d1420" stroke="#233043" />
-            <path d="M350 160 q20 20 0 40" stroke="url(#g1)" strokeWidth="4" fill="none" filter="url(#glow)" />
-            <path d="M360 150 q32 36 0 72" stroke="url(#g1)" strokeWidth="3" fill="none" opacity=".75" />
-            <path d="M370 140 q44 52 0 104" stroke="url(#g1)" strokeWidth="2" fill="none" opacity=".55" />
-          </svg>
-        </figure>
+        {/* Nio face button (animated) */}
+        <div className="hero-visual" aria-hidden="true">
+          <button
+            className="nio-face"
+            onClick={openNio}
+            aria-label="Open Nio assistant"
+          >
+            <svg className="twin" viewBox="0 0 480 480">
+              <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#6FC3FF" />
+                  <stop offset="1" stopColor="#20E3B2" />
+                </linearGradient>
+                <radialGradient id="g2" cx="50%" cy="10%" r="80%">
+                  <stop offset="0" stopColor="#13243a" />
+                  <stop offset="1" stopColor="#0b1421" />
+                </radialGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="4" result="b" />
+                  <feMerge>
+                    <feMergeNode in="b" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              <rect x="0" y="0" width="480" height="480" rx="26" fill="url(#g2)" />
+
+              {/* head */}
+              <circle cx="240" cy="164" r="74" fill="#0d1420" stroke="url(#g1)" strokeWidth="3" />
+
+              {/* eyes */}
+              <g className="eyes">
+                <ellipse className="eye e1" cx="218" cy="160" rx="10" ry="12" fill="#bfe1ff" />
+                <ellipse className="eye e2" cx="262" cy="160" rx="10" ry="12" fill="#bfe1ff" />
+              </g>
+
+              {/* mouth */}
+              <g className="mouth">
+                <path d="M210 188q30 22 60 0" stroke="url(#g1)" strokeWidth="4" fill="none" strokeLinecap="round" />
+              </g>
+
+              {/* body */}
+              <rect x="168" y="230" width="144" height="150" rx="20" fill="#0d1420" stroke="#233043" />
+
+              {/* animated waves */}
+              <g className="waves">
+                <path className="wave wave1" d="M350 160 q20 20 0 40" stroke="url(#g1)" strokeWidth="4" fill="none" filter="url(#glow)" />
+                <path className="wave wave2" d="M360 150 q32 36 0 72" stroke="url(#g1)" strokeWidth="3" fill="none" opacity=".75" />
+                <path className="wave wave3" d="M370 140 q44 52 0 104" stroke="url(#g1)" strokeWidth="2" fill="none" opacity=".55" />
+              </g>
+            </svg>
+          </button>
+        </div>
       </main>
 
       <style jsx global>{`
-        :root{ --bg:#0a1018; --card:#0f1725; --muted:#a7b7c8; --text:#edf3ff;
-               --neon1:#20E3B2; --neon2:#6FC3FF; --ink:#071018; }
+        :root{
+          --bg:#0a1018; --card:#0f1725; --muted:#a7b7c8; --text:#edf3ff;
+          --neon1:#20E3B2; --neon2:#6FC3FF; --ink:#071018;
+        }
         *{box-sizing:border-box}
         html,body{height:100%}
         body{
-          margin:0; font:16px/1.55 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+          margin:0;
+          font:16px/1.55 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
           color:var(--text);
           background:radial-gradient(1200px 600px at 80% -10%, #14263d 0%, var(--bg) 60%), #0b111a;
           max-width:100vw; overflow-x:hidden;
@@ -246,33 +271,29 @@ export default function Home() {
         .container{width:min(1200px,92%); margin-inline:auto}
         a{color:inherit; text-decoration:none}
 
+        /* Header */
         .hdr{position:sticky; top:0; z-index:50; backdrop-filter:saturate(150%) blur(10px); background:#0b111add; transition:box-shadow .2s}
         .hdr.scrolled{box-shadow:0 8px 28px rgba(0,0,0,.5)}
-        .nav{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 0}
+        .nav{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0}
 
         .brand{display:inline-flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto; white-space:nowrap}
-        .brand-name{font-weight:800; letter-spacing:.2px; font-size:clamp(18px, 2.2vw, 24px);}
+        .brand-name{font-weight:900; letter-spacing:.2px; font-size:26px;}
         .brand-name--neon{
           background:linear-gradient(135deg, var(--neon1), var(--neon2));
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           text-shadow:0 0 8px rgba(111,195,255,.4), 0 0 18px rgba(32,227,178,.25);
           transition:text-shadow .2s ease, filter .2s ease;
         }
-        .brand:hover .brand-name--neon,
-        .brand:focus-visible .brand-name--neon{ text-shadow:0 0 10px rgba(111,195,255,.55), 0 0 26px rgba(32,227,178,.35); filter:drop-shadow(0 0 8px rgba(111,195,255,.15)); }
 
-        .actions{display:flex; align-items:center; gap:8px}
-        .menu-chip{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; background:#0e1a2a; border:1px solid #1e2b41; color:#cfe6ff}
+        .actions{display:flex; align-items:center; gap:12px}
+        .nav-link{color:#cfe6ff; text-decoration:none; font-weight:600}
+        .nav-link:hover{text-decoration:underline}
+        .menu-chip{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px; background:#0e1a2a; border:1px solid #1e2b41; color:#cfe6ff}
         .btn{display:inline-flex; align-items:center; justify-content:center; border-radius:12px; cursor:pointer; padding:10px 14px; font-weight:700; border:1px solid #223145; background:#0f1828; color:var(--text)}
         .btn-neon{border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink)}
         .btn-outline{background:#0f1828; font-weight:600}
-        @media (max-width:360px){
-          .menu-text{display:none}
-          .menu-chip{padding:6px 8px}
-          .btn{padding:6px 10px; font-size:13px}
-          .brand-name{font-size:16px}
-        }
 
+        /* Drawer */
         .sheet{position:fixed; inset:0; z-index:60}
         .backdrop{position:absolute; inset:0; background:rgba(0,0,0,.6)}
         .panel{position:absolute; right:0; top:0; height:100%; width:min(86%, 340px); background:var(--card); border-left:1px solid #20304a; display:flex; flex-direction:column; padding:16px; box-shadow:-10px 0 40px rgba(0,0,0,.45)}
@@ -281,23 +302,59 @@ export default function Home() {
         .panel-links{display:flex; flex-direction:column; gap:10px; margin-top:18px}
         .panel-links a{padding:12px 14px; border-radius:12px; background:#0f1b2d; color:#e7f0ff; border:1px solid #1f2c44}
 
+        /* Hero */
         .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:32px; align-items:center; padding:84px 0}
         .hero-text h1{
-          margin:0 0 14px; font-size:clamp(32px,5vw,56px); line-height:1.05;
+          margin:0 0 14px; font-size:clamp(28px,5vw,56px); line-height:1.05;
           background:linear-gradient(180deg, #f4f8ff 0%, #cfe0ff 100%); -webkit-background-clip:text; color:transparent;
           text-shadow:0 0 18px rgba(111,195,255,.15);
         }
-        .hero-text .hook{color:#c0d0e2; margin:0 0 18px; max-width:58ch}
-        .contact{margin-top:10px; color:#a7b7c8; font-size:14px}
+        .hero-text .hook{color:#c0d0e2; margin:0 0 18px; max-width:60ch}
         .cta{min-width:220px}
+
         .hero-visual{position:relative; aspect-ratio:1/1; min-height:320px; display:grid; place-items:center}
-        .blob{
-          position:absolute; width:560px; height:560px; border-radius:50%;
-          background:radial-gradient(circle at 30% 30%, var(--neon1), transparent 60%), radial-gradient(circle at 70% 70%, var(--neon2), transparent 60%);
-          filter:blur(44px) saturate(160%); opacity:.35;
+        .nio-face{
+          position:relative; display:grid; place-items:center; background:transparent; border:none; padding:0; cursor:pointer; border-radius:24px; outline-offset:4px;
+          transition:transform .15s ease, filter .2s ease;
         }
-        .twin{width:min(440px,90%); filter:drop-shadow(0 10px 40px rgba(0,0,0,.5))}
-        @media (max-width:940px){ .hero{grid-template-columns:1fr; text-align:center} .hero-visual{margin-top:16px} }
+        .nio-face:focus-visible{ outline: 3px solid rgba(111,195,255,.5); }
+        .nio-face:hover{ transform: translateY(-2px); filter: drop-shadow(0 8px 24px rgba(0,0,0,.35)); }
+        .nio-face:active{ transform: translateY(0); }
+
+        /* Eyes blink */
+        .eyes .eye{ transform-origin: center; animation: blink 6s ease-in-out infinite; }
+        .eyes .e2{ animation-delay: .25s; } /* slight offset for natural feel */
+        @keyframes blink {
+          0%, 96%, 100% { transform: scaleY(1); }
+          97%, 99% { transform: scaleY(0.1); }
+        }
+
+        /* Mouth subtle idle “talk” */
+        .mouth{ transform-origin: 240px 188px; animation: talkIdle 4.5s ease-in-out infinite; }
+        .nio-face:hover .mouth{ animation-duration: 2.8s; } /* a bit livelier on hover */
+        @keyframes talkIdle {
+          0%,100% { transform: scaleY(1); }
+          50%     { transform: scaleY(1.06); }
+        }
+
+        /* Waves (always live) */
+        @keyframes wavePulse {
+          0% { opacity:.25; transform: translateX(0) scale(1); }
+          50% { opacity:1; transform: translateX(2px) scale(1.02); }
+          100% { opacity:.25; transform: translateX(0) scale(1); }
+        }
+        .waves .wave{ transform-origin: 360px 160px; animation: wavePulse 1.8s ease-in-out infinite; }
+        .waves .wave2{ animation-duration: 2.2s; animation-delay: .2s; }
+        .waves .wave3{ animation-duration: 2.6s; animation-delay: .4s; }
+
+        .twin{ width:min(440px,90%); filter:drop-shadow(0 10px 40px rgba(0,0,0,.5)); }
+        .nio-face .twin{ animation: twinFloat 6s ease-in-out infinite; }
+        @keyframes twinFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+        @media (max-width:940px){
+          .hero{grid-template-columns:1fr; text-align:center}
+          .hero-visual{margin-top:16px}
+        }
       `}</style>
     </div>
   );
