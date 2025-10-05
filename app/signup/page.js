@@ -199,9 +199,7 @@ export default function SignupPage() {
             <div className="note">
               This email is already registered.
               <div className="note-actions">
-                <Link className="btn ghost small" href="/login">
-                  Go to login
-                </Link>
+                <Link className="btn ghost small" href="/login">Go to login</Link>
                 <button type="button" className="btn btn-neon small" onClick={onResume}>
                   Resume onboarding
                 </button>
@@ -285,17 +283,14 @@ export default function SignupPage() {
           {err && <div className="alert">{err}</div>}
 
           <div className="actions">
-            <Link className="btn ghost" href="/">
-              Go Back
-            </Link>
+            <Link className="btn ghost" href="/">Go Back</Link>
             <button className="btn btn-neon" type="submit" disabled={busy}>
-              {busy ? "Creating…" : "Create account"}
+              {busy ? "Creating…" : "Start my twin"}
             </button>
           </div>
 
           <p className="tos">
-            By continuing, you agree to our <a href="/terms">Terms</a> and{" "}
-            <a href="/privacy">Privacy Policy</a>.
+            By continuing, you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
           </p>
         </form>
       </section>
