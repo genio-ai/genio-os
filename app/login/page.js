@@ -35,24 +35,19 @@ export default function LoginPage() {
     setSuggestSignup(false);
 
     if (!validateEmail(email)) return setErr("Enter a valid email.");
-    if (password.length < 8) return setErr("Password must be at least 8 characters.");
+    if (password.length < 8)
+      return setErr("Password must be at least 8 characters.");
 
     setBusy(true);
     try {
       const { supabase } = await import("@/lib/supabase");
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
 
       if (error || !data?.user) {
-        const msg = (error?.message || "").toLowerCase();
         setErr("Incorrect email or password.");
-        // Hint to signup if looks like a non-existing account
-        if (msg.includes("invalid") || msg.includes("not") || msg.includes("no user")) {
-          setSuggestSignup(true);
-        }
         return;
       }
 
@@ -76,22 +71,13 @@ export default function LoginPage() {
         .eq("id", user.id)
         .single();
 
-      if (row?.role === "admin") {
-        router.replace("/admin");
-      } else {
-        router.replace("/dashboard");
-      }
+      if (row?.role === "admin") router.replace("/admin");
+      else router.replace("/dashboard");
     } catch {
       setErr("Login failed. Please try again.");
     } finally {
       setBusy(false);
     }
-  };
-
-  const goToSignup = () => {
-    const q = new URLSearchParams();
-    if (email) q.set("email", email.trim().toLowerCase());
-    router.push(`/signup${q.toString() ? `?${q.toString()}` : ""}`);
   };
 
   return (
@@ -101,9 +87,6 @@ export default function LoginPage() {
           <Link href="/" className="brand">
             <span className="brand-neon">genio os</span>
           </Link>
-          <nav className="links">
-            <Link href="/signup">Create account</Link>
-          </nav>
         </div>
       </header>
 
@@ -113,19 +96,7 @@ export default function LoginPage() {
           <p className="sub">Sign in to access your twin and dashboard.</p>
 
           {msg && <div className="note">{msg}</div>}
-          {err && (
-            <div className="alert">
-              <div>{err}</div>
-              {suggestSignup && (
-                <div className="hint">
-                  Don’t have an account?{" "}
-                  <button type="button" className="linklike" onClick={goToSignup}>
-                    Go to Signup
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+          {err && <div className="alert">{err}</div>}
 
           <label className="field">
             <span>Email</span>
@@ -150,7 +121,11 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required
               />
-              <button type="button" className="toggle" onClick={() => setShow((s) => !s)}>
+              <button
+                type="button"
+                className="toggle"
+                onClick={() => setShow((s) => !s)}
+              >
                 {show ? "Hide" : "Show"}
               </button>
             </div>
@@ -178,10 +153,6 @@ export default function LoginPage() {
               {busy ? "Signing in…" : "Login"}
             </button>
           </div>
-
-          <p className="tos">
-            New here? <Link href="/signup">Create an account</Link>.
-          </p>
         </form>
       </section>
     </main>
