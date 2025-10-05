@@ -1,9 +1,11 @@
 .login-page {
   min-height: 100vh;
-  background: radial-gradient(1200px 600px at 80% -10%, #14263d 0%, #0b111a 60%), #0b111a;
-  color: #edf3ff;
   display: flex;
   flex-direction: column;
+  justify-content: center; /* centers vertically */
+  align-items: center;
+  background: radial-gradient(1200px 600px at 80% -10%, #14263d 0%, #0b111a 60%), #0b111a;
+  color: #edf3ff;
 }
 
 :root {
@@ -12,19 +14,32 @@
   --ink: #071018;
 }
 
-.container { width: min(640px, 92%); margin-inline: auto; }
+.container {
+  width: min(640px, 92%);
+  margin-inline: auto;
+}
 
 .hdr {
-  position: sticky; top: 0; z-index: 50;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
   backdrop-filter: saturate(150%) blur(10px);
-  background: #0b111add; border-bottom: 1px solid #1b2840;
+  background: transparent;
+  border: none;
 }
-.nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; }
-
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 0;
+}
 .brand-neon {
   background: linear-gradient(135deg, var(--neon1), var(--neon2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 8px rgba(111,195,255,0.35), 0 0 18px rgba(32,227,178,0.22);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 8px rgba(111, 195, 255, 0.35),
+    0 0 18px rgba(32, 227, 178, 0.22);
   font-weight: 800;
 }
 
@@ -36,15 +51,28 @@
   color: transparent;
 }
 
-.sub { color: #c0d0e2; margin: 0 0 12px; }
+.sub {
+  color: #c0d0e2;
+  margin: 0 0 12px;
+}
 
 .card {
   border: 1px solid #20304a;
-  background: linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92));
-  border-radius: 14px; padding: 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 37, 0.92),
+    rgba(12, 18, 30, 0.92)
+  );
+  border-radius: 14px;
+  padding: 24px 20px;
+  width: 100%;
+  max-width: 400px;
 }
 
-.field { display: block; margin: 10px 0; }
+.field {
+  display: block;
+  margin: 10px 0;
+}
 .field > span {
   display: block;
   margin: 0 0 6px;
@@ -52,97 +80,144 @@
 }
 
 input {
-  background: #0f1828; color: #edf3ff; border: 1px solid #223145;
-  border-radius: 10px; padding: 10px 12px; width: 100%;
+  background: #0f1828;
+  color: #edf3ff;
+  border: 1px solid #223145;
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 100%;
   display: block;
 }
 
-.pw { display: flex; align-items: stretch; gap: 8px; }
-.pw input { flex: 1; }
-
+.pw {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.pw input {
+  flex: 1;
+}
 .toggle {
-  border: 1px dashed #2a3a56; background: #0f1b2d; color: #cfe6ff;
-  border-radius: 10px; padding: 0 12px; cursor: pointer;
+  border: 1px dashed #2a3a56;
+  background: #0f1b2d;
+  color: #cfe6ff;
+  border-radius: 10px;
+  padding: 0 12px;
+  cursor: pointer;
 }
 
-.row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; }
-.check { display: flex; align-items: center; gap: 10px; }
-.forgot { color: #cfe0ff; }
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 6px 0;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.forgot {
+  color: #cfe0ff;
+}
 
-.actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
 
 .btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 12px; cursor: pointer; padding: 10px 14px; font-weight: 700;
-  border: 1px solid #223145; background: #0f1828; color: #edf3ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 10px 14px;
+  font-weight: 700;
+  border: 1px solid #223145;
+  background: #0f1828;
+  color: #edf3ff;
 }
-.btn.btn-neon { border: none; background: linear-gradient(135deg, var(--neon1), var(--neon2)); color: var(--ink); }
-.btn.ghost { background: #0f1828; border-style: dashed; }
+.btn.btn-neon {
+  border: none;
+  background: linear-gradient(135deg, var(--neon1), var(--neon2));
+  color: var(--ink);
+}
+.btn.ghost {
+  background: #0f1828;
+  border-style: dashed;
+}
 
 .alert {
-  border: 1px solid #5b2330; background: #1a0f14; color: #ffd6df;
-  padding: 10px 12px; border-radius: 10px; margin: 8px 0;
+  border: 1px solid #5b2330;
+  background: #1a0f14;
+  color: #ffd6df;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin: 8px 0;
 }
-.alert .hint { margin-top: 6px; font-size: 14px; }
+.alert .hint {
+  margin-top: 6px;
+  font-size: 14px;
+}
 .linklike {
-  background: none; border: none; padding: 0;
-  color: #cfe0ff; text-decoration: underline; cursor: pointer; font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #cfe0ff;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
 }
 
 .note {
-  border: 1px solid #23485b; background: #0f1a20; color: #d6f2ff;
-  padding: 10px 12px; border-radius: 10px; margin: 8px 0;
+  border: 1px solid #23485b;
+  background: #0f1a20;
+  color: #d6f2ff;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin: 8px 0;
 }
 
-.tos { color: #9fb5d1; font-size: 12px; margin-top: 10px; }
+.tos {
+  color: #9fb5d1;
+  font-size: 12px;
+  margin-top: 10px;
+}
 
 /* === Mobile fixes === */
 @media (max-width: 640px) {
-  .login-page .container {
-    width: 92%;
-    padding: 0 8px;
+  .login-page {
+    justify-content: flex-start;
+    padding-top: 80px;
   }
-
   .login-page .card.form {
     padding: 18px 14px;
   }
-
   .login-page input,
   .login-page button,
   .login-page .btn {
     font-size: 15px;
   }
-
   .login-page .row {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 6px !important;
   }
-
   .login-page .actions {
     flex-direction: column;
     align-items: stretch;
   }
-
-  .login-page .hdr .nav {
-    flex-wrap: wrap;
-    row-gap: 6px;
-  }
-
-  .login-page .hdr .links {
-    font-size: 15px;
-  }
-
   .login-page h1 {
     font-size: 22px;
     line-height: 1.3;
   }
-
   .login-page .pw {
     flex-direction: column;
     gap: 4px;
   }
-
   .login-page .toggle {
     align-self: flex-end;
     font-size: 14px;
