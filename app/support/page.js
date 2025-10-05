@@ -3,23 +3,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function SupportPage() {
-  const router = useRouter();
-
-  // optional guard: if not logged in, redirect to login
-  useEffect(() => {
-    document.title = "Support — genio os";
-    try {
-      const hasCookie = document.cookie.includes("auth=") || document.cookie.includes("token=");
-      const hasLS = !!localStorage.getItem("auth") || !!localStorage.getItem("token");
-      if (!hasCookie && !hasLS) {
-        router.replace("/login?next=/support");
-      }
-    } catch {}
-  }, [router]);
-
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -28,6 +13,10 @@ export default function SupportPage() {
   });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    document.title = "Support — genio os";
+  }, []);
 
   async function submit(e) {
     e.preventDefault();
@@ -52,7 +41,7 @@ export default function SupportPage() {
   return (
     <>
       <main className="wrap">
-        {/* Header: brand + Go Back only */}
+        {/* Header (brand + Go Back only, NO login/signup, NO redirects) */}
         <header className="hdr">
           <div className="container nav">
             <Link href="/" className="brand" aria-label="genio os">
@@ -80,11 +69,15 @@ export default function SupportPage() {
           </article>
           <article className="card faq">
             <h3>Do I need phone verification?</h3>
-            <p>Yes. Phone is required for account security and optional WhatsApp notifications.</p>
+            <p>
+              Yes. Phone is required for account security and optional WhatsApp notifications.
+            </p>
           </article>
           <article className="card faq">
             <h3>Can I edit or delete my Twin later?</h3>
-            <p>Yes. You have full control: edit style, revoke consents, and delete data.</p>
+            <p>
+              Yes. You have full control: edit style, revoke consents, and delete data.
+            </p>
           </article>
         </section>
 
@@ -262,7 +255,7 @@ export default function SupportPage() {
         /* Mobile tightening */
         @media (max-width: 640px) {
           .brand-neon { font-size: 24px; }
-          .sub { display: none; } /* keep page compact on mobile */
+          .sub { display: none; }
         }
       `}</style>
     </>
