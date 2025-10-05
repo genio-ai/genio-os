@@ -1,7 +1,7 @@
 // File: app/page.js
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -22,20 +22,6 @@ export default function Home() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const hasAuth = useCallback(() => {
-    try {
-      const cookieHasAuth =
-        document.cookie.includes("auth=") || document.cookie.includes("token=");
-      const lsHasAuth =
-        !!localStorage.getItem("auth") || !!localStorage.getItem("token");
-      return cookieHasAuth || lsHasAuth;
-    } catch {
-      return false;
-    }
-  }, []);
-
-  const goCreateTwin = () => router.push(hasAuth() ? "/onboarding" : "/signup");
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -191,10 +177,11 @@ export default function Home() {
             It’s your personal assistant on call — one click, by the name you choose.
           </p>
 
-          {/* CTA buttons */}
+          {/* Single CTA */}
           <div className="hero-ctas">
-            <Link className="btn btn-neon cta" href="/signup">Sign up</Link>
-            <button className="btn btn-neon cta" onClick={goCreateTwin}>Create your twin</button>
+            <button className="btn btn-neon cta" onClick={() => router.push("/signup")}>
+              Create your twin
+            </button>
           </div>
         </div>
 
@@ -248,15 +235,13 @@ export default function Home() {
         .nav{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 0}
 
         .brand{display:inline-flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto; white-space:nowrap}
-        .brand-name{font-weight:900; letter-spacing:.3px; font-size:22px;} /* bigger logo text */
+        .brand-name{font-weight:900; letter-spacing:.3px; font-size:22px;}
         .brand-name--neon{
           background:linear-gradient(135deg, var(--neon1), var(--neon2));
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           text-shadow:0 0 8px rgba(111,195,255,.4), 0 0 18px rgba(32,227,178,.25);
           transition:text-shadow .2s ease, filter .2s ease;
         }
-        .brand:hover .brand-name--neon,
-        .brand:focus-visible .brand-name--neon{ text-shadow:0 0 10px rgba(111,195,255,.55), 0 0 26px rgba(32,227,178,.35); filter:drop-shadow(0 0 8px rgba(111,195,255,.15)); }
 
         .actions{display:flex; align-items:center; gap:10px}
         .menu-chip{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; background:#0e1a2a; border:1px solid #1e2b41; color:#cfe6ff}
@@ -264,7 +249,6 @@ export default function Home() {
         .btn-neon{border:none; background:linear-gradient(135deg, var(--neon1), var(--neon2)); color:var(--ink)}
         .btn-outline{background:#0f1828; font-weight:600}
 
-        /* Mobile tighten header */
         @media (max-width:360px){
           .menu-text{display:none}
           .menu-chip{padding:6px 8px}
@@ -294,11 +278,16 @@ export default function Home() {
         .hero-text .hook{color:#c0d0e2; margin:0 0 18px; max-width:58ch}
         .cta{min-width:220px}
 
-        /* CTA row: spacing desktop, stacked on mobile */
-        .hero-ctas{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+        /* Single CTA layout */
+        .hero-ctas{display:flex; justify-content:center}
         @media (max-width:940px){
-          .hero-ctas{flex-direction:column; align-items:center}
-          .cta{width:100%; max-width:320px}
+          .hero{grid-template-columns:1fr; text-align:center; padding:60px 0; min-height:90dvh; place-items:center}
+          .hero-ctas{justify-content:center}
+          .cta{width:100%; max-width:340px}
+          .hero-text .hook{
+            margin-inline:auto; max-width:46ch;
+            display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+          }
         }
 
         .hero-visual{position:relative; aspect-ratio:1/1; min-height:320px; display:grid; place-items:center}
@@ -308,16 +297,6 @@ export default function Home() {
           filter:blur(44px) saturate(160%); opacity:.35;
         }
         .twin{width:min(440px,90%); filter:drop-shadow(0 10px 40px rgba(0,0,0,.5))}
-
-        /* Mobile hero balance: center content, clamp long text, reduce padding */
-        @media (max-width:940px){
-          .hero{grid-template-columns:1fr; text-align:center; padding:60px 0; min-height:90dvh; place-items:center}
-          .hero-text .hook{
-            margin-inline:auto; max-width:46ch;
-            display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
-          }
-          .hero-visual{margin-top:12px}
-        }
       `}</style>
     </div>
   );
