@@ -1,0 +1,108 @@
+.signup-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;  /* center vertically on desktop */
+  align-items: center;
+  background: radial-gradient(1200px 600px at 80% -10%, #14263d 0%, #0b111a 60%), #0b111a;
+  color: #edf3ff;
+}
+
+:root {
+  --neon1: #20e3b2;
+  --neon2: #6fc3ff;
+  --ink: #071018;
+  --stroke: #223145;
+}
+
+.container { width: min(860px, 92%); margin-inline: auto; }
+
+/* Header / Logo */
+.hdr {
+  width: 100%;
+  position: absolute;
+  top: 0; left: 0;
+  background: transparent;
+  border: none;
+  padding-top: 30px;
+  padding-bottom: 12px;
+  backdrop-filter: saturate(150%) blur(10px);
+}
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand-neon {
+  font-size: 2rem; font-weight: 900; letter-spacing: .5px;
+  background: linear-gradient(135deg, var(--neon1), var(--neon2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 8px rgba(111,195,255,.35), 0 0 18px rgba(32,227,178,.22);
+}
+.links { display: flex; gap: 10px; align-items: center; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 12px; cursor: pointer; padding: 10px 14px; font-weight: 700;
+  border: 1px solid var(--stroke); background: #0f1828; color: #edf3ff;
+}
+.btn.btn-neon { border: none; background: linear-gradient(135deg, var(--neon1), var(--neon2)); color: var(--ink); }
+.btn.ghost { background: #0f1828; border-style: dashed; }
+.small { font-size: 13px; padding: 8px 12px; }
+
+/* Resume banner */
+.resume {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  border: 1px solid #23485b; background: #0f1a20; color: #d6f2ff;
+  padding: 10px 12px; border-radius: 10px; margin-bottom: 12px;
+}
+.resume-text { font-weight: 600; }
+
+/* Card & form */
+.card {
+  border: 1px solid #20304a;
+  background: linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92));
+  border-radius: 14px; padding: 20px;
+}
+.form h1 {
+  margin: 0 0 6px; font-size: clamp(24px, 5vw, 36px);
+  background: linear-gradient(180deg, #f4f8ff 0%, #cfe0ff 100%);
+  -webkit-background-clip: text; color: transparent;
+}
+.sub { color: #c0d0e2; margin: 0 0 12px; }
+
+.note {
+  border: 1px solid #23485b; background: #0f1a20; color: #d6f2ff;
+  padding: 10px 12px; border-radius: 10px; margin: 8px 0;
+}
+.note-actions { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+
+.field { display: block; margin: 10px 0; }
+.field > span { display: block; margin: 0 0 6px; line-height: 1.2; }
+
+input {
+  background: #0f1828; color: #edf3ff; border: 1px solid var(--stroke);
+  border-radius: 10px; padding: 10px 12px; width: 100%; display: block;
+}
+input:focus { outline: none; border-color: #2b86c8; box-shadow: 0 0 0 3px rgba(111,195,255,.12); }
+
+.hint { color: #9fb5d1; font-size: 12px; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.check { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+
+.alert {
+  border: 1px solid #5b2330; background: #1a0f14; color: #ffd6df;
+  padding: 10px 12px; border-radius: 10px; margin: 8px 0;
+}
+
+.actions { display: flex; gap: 10px; justify-content: space-between; margin-top: 12px; }
+
+.tos { color: #9fb5d1; font-size: 12px; margin-top: 10px; }
+
+/* Mobile */
+@media (max-width: 720px) {
+  .signup-page { justify-content: flex-start; padding-top: 110px; }
+  .grid { grid-template-columns: 1fr; }
+  .card.form { padding: 18px 14px; }
+  .links { gap: 8px; }
+  .brand-neon { font-size: 1.7rem; }
+}
