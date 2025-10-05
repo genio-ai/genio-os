@@ -1,10 +1,11 @@
 "use client";
 
+import "./login.css";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function Page() {
+export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -15,6 +16,7 @@ export default function Page() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
+  const [suggestSignup, setSuggestSignup] = useState(false);
 
   useEffect(() => {
     document.title = "Login — genio os";
@@ -30,6 +32,7 @@ export default function Page() {
     e.preventDefault();
     setErr("");
     setMsg("");
+    setSuggestSignup(false);
 
     if (!validateEmail(email)) return setErr("Enter a valid email.");
     if (password.length < 8) return setErr("Password must be at least 8 characters.");
@@ -42,10 +45,17 @@ export default function Page() {
         email: email.trim().toLowerCase(),
         password,
       });
+
       if (error || !data?.user) {
+        const msg = (error?.message || "").toLowerCase();
         setErr("Incorrect email or password.");
+        // Hint to signup if looks like a non-existing account
+        if (msg.includes("invalid") || msg.includes("not") || msg.includes("no user")) {
+          setSuggestSignup(true);
+        }
         return;
       }
+
       const user = data.user;
 
       try {
@@ -78,8 +88,14 @@ export default function Page() {
     }
   };
 
+  const goToSignup = () => {
+    const q = new URLSearchParams();
+    if (email) q.set("email", email.trim().toLowerCase());
+    router.push(`/signup${q.toString() ? `?${q.toString()}` : ""}`);
+  };
+
   return (
-    <>
+    <main className="login-page">
       <header className="hdr">
         <div className="container nav">
           <Link href="/" className="brand">
@@ -91,13 +107,25 @@ export default function Page() {
         </div>
       </header>
 
-      <main className="container">
+      <section className="container">
         <form className="card form" onSubmit={onSubmit} noValidate>
           <h1>Welcome back</h1>
           <p className="sub">Sign in to access your twin and dashboard.</p>
 
           {msg && <div className="note">{msg}</div>}
-          {err && <div className="alert">{err}</div>}
+          {err && (
+            <div className="alert">
+              <div>{err}</div>
+              {suggestSignup && (
+                <div className="hint">
+                  Don’t have an account?{" "}
+                  <button type="button" className="linklike" onClick={goToSignup}>
+                    Go to Signup
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <label className="field">
             <span>Email</span>
@@ -155,7 +183,7 @@ export default function Page() {
             New here? <Link href="/signup">Create an account</Link>.
           </p>
         </form>
-      </main>
-    </>
+      </section>
+    </main>
   );
 }
