@@ -1,5 +1,6 @@
 .signup-page {
-  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: center;  /* center vertically on desktop */
@@ -24,8 +25,8 @@
   top: 0; left: 0;
   background: transparent;
   border: none;
-  padding-top: 30px;
-  padding-bottom: 12px;
+  padding-top: 28px;
+  padding-bottom: 10px;
   backdrop-filter: saturate(150%) blur(10px);
 }
 .nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -60,7 +61,9 @@
   border: 1px solid #20304a;
   background: linear-gradient(180deg, rgba(15,23,37,.92), rgba(12,18,30,.92));
   border-radius: 14px; padding: 20px;
+  width: 100%; max-width: 420px; margin: 0 auto;
 }
+.form { display: flex; flex-direction: column; gap: 10px; }
 .form h1 {
   margin: 0 0 6px; font-size: clamp(24px, 5vw, 36px);
   background: linear-gradient(180deg, #f4f8ff 0%, #cfe0ff 100%);
@@ -74,7 +77,7 @@
 }
 .note-actions { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
 
-.field { display: block; margin: 10px 0; }
+.field { display: block; margin: 8px 0; }
 .field > span { display: block; margin: 0 0 6px; line-height: 1.2; }
 
 input {
@@ -87,22 +90,30 @@ input:focus { outline: none; border-color: #2b86c8; box-shadow: 0 0 0 3px rgba(1
 
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-.check { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.check {
+  display: flex; align-items: center; gap: 8px; margin: 12px 0;
+  color: #c0d0e2; font-size: 14px; line-height: 1.4;
+  flex-wrap: wrap; justify-content: flex-start; text-align: left; width: 100%;
+}
+.check input[type="checkbox"] {
+  width: 18px; height: 18px; accent-color: #20e3b2; flex-shrink: 0;
+}
 
 .alert {
   border: 1px solid #5b2330; background: #1a0f14; color: #ffd6df;
   padding: 10px 12px; border-radius: 10px; margin: 8px 0;
 }
 
-.actions { display: flex; gap: 10px; justify-content: space-between; margin-top: 12px; }
+.actions { display: flex; gap: 10px; justify-content: space-between; margin-top: 10px; }
 
-.tos { color: #9fb5d1; font-size: 12px; margin-top: 10px; }
+.tos { color: #9fb5d1; font-size: 12px; margin-top: 8px; }
 
 /* Mobile */
 @media (max-width: 720px) {
-  .signup-page { justify-content: flex-start; padding-top: 110px; }
+  .signup-page { justify-content: center; padding-top: 80px; }
+  .resume, .sub, .hint { display: none; }            /* reduce height */
   .grid { grid-template-columns: 1fr; }
-  .card.form { padding: 18px 14px; }
-  .links { gap: 8px; }
+  .card { padding: 16px; max-width: 380px; }
   .brand-neon { font-size: 1.7rem; }
+  .actions { flex-direction: column; align-items: stretch; }
 }
