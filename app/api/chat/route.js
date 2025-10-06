@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { NIO_SYSTEM_CONTEXT } from "@/app/api/nio/system";
 
 export const runtime = "edge";
 
@@ -10,7 +11,7 @@ export async function POST(req) {
     }
 
     const prompt = [
-      { role: "system", content: "You are Genio Twin assistant, helpful and concise." },
+      { role: "system", content: NIO_SYSTEM_CONTEXT },
       ...(history || []),
       { role: "user", content: message },
     ];
