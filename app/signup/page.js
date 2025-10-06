@@ -15,7 +15,6 @@ function isValidPhone(p) {
   const v = String(p).trim();
   return /^\+?[1-9]\d{7,14}$/.test(v);
 }
-
 function safeGet(key, fallback) {
   try {
     const v = localStorage.getItem(key);
@@ -39,16 +38,12 @@ function cryptoRandomId() {
 }
 function stepToPath(step) {
   switch (step) {
-    case "personality":
-      return "/onboarding/personality";
-    case "voice":
-      return "/onboarding/voice";
-    case "video":
-      return "/onboarding/video";
-    case "review":
-      return "/onboarding/review";
-    default:
-      return "/onboarding/personality";
+    case "plan": return "/twin/create/plan";
+    case "consent": return "/twin/create/consent";
+    case "voice": return "/twin/create/voice";
+    case "build": return "/twin/create/build";
+    case "finish": return "/twin/create/finish";
+    default: return "/twin/create/plan";
   }
 }
 
@@ -70,8 +65,15 @@ export default function SignupPage() {
 
   const saveTimer = useRef(null);
 
+  // 🔹 check if user already logged in
   useEffect(() => {
-    document.title = "Create your account — genio os";
+    const auth = safeGet(AUTH_KEY, null);
+    if (auth?.id) {
+      router.replace("/twin/create/plan");
+      return;
+    }
+
+    document.title = "Create your account — Genio OS";
     const s = safeGet(DRAFT_KEY, null);
     if (s) {
       if (s.fullName) setFullName(s.fullName);
@@ -79,10 +81,10 @@ export default function SignupPage() {
       if (s.phone) setPhone(s.phone);
       if (typeof s.useWA === "boolean") setUseWA(s.useWA);
     }
-    const auth = safeGet(AUTH_KEY, null);
+
     const twinDraft = safeGet(TWIN_DRAFT_KEY, null);
     if (auth && twinDraft) {
-      const path = stepToPath(twinDraft._lastStep || "personality");
+      const path = stepToPath(twinDraft._lastStep || "plan");
       setResumePath(path);
       setCanResume(true);
     }
@@ -101,7 +103,7 @@ export default function SignupPage() {
 
   const onResume = () => {
     const twinDraft = safeGet(TWIN_DRAFT_KEY, null);
-    const path = stepToPath(twinDraft?._lastStep || "personality");
+    const path = stepToPath(twinDraft?._lastStep || "plan");
     router.push(path);
   };
 
@@ -124,7 +126,7 @@ export default function SignupPage() {
       const found = users.find((u) => u.email === lower);
       if (found) {
         const twinDraft = safeGet(TWIN_DRAFT_KEY, null);
-        const path = stepToPath(twinDraft?._lastStep || "personality");
+        const path = stepToPath(twinDraft?._lastStep || "plan");
         setResumePath(path);
         setExists(true);
         setCanResume(true);
@@ -141,25 +143,13 @@ export default function SignupPage() {
       };
       users.push(user);
       setUsers(users);
-
       safeSet(AUTH_KEY, { id: user.id, email: user.email, name: user.name });
 
-      const twinDraft = safeGet(TWIN_DRAFT_KEY, null);
-      if (!twinDraft || typeof twinDraft !== "object") {
-        safeSet(TWIN_DRAFT_KEY, { owner: user.id, _lastStep: "personality" });
-      } else if (!twinDraft._lastStep) {
-        safeSet(TWIN_DRAFT_KEY, {
-          ...twinDraft,
-          owner: twinDraft.owner || user.id,
-          _lastStep: "personality",
-        });
-      }
+      safeSet(TWIN_DRAFT_KEY, { owner: user.id, _lastStep: "plan" });
 
-      try {
-        localStorage.removeItem(DRAFT_KEY);
-      } catch {}
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
 
-      router.replace("/onboarding/personality");
+      router.replace("/twin/create/plan");
     } finally {
       setBusy(false);
     }
@@ -169,9 +159,7 @@ export default function SignupPage() {
     <main className="signup-page">
       <header className="hdr">
         <div className="container nav">
-          <Link href="/" className="brand">
-            <span className="brand-neon">genio os</span>
-          </Link>
+          <Link href="/" className="brand"><span className="brand-neon">genio os</span></Link>
           <nav className="links">
             <Link href="/" className="btn ghost">Go Back</Link>
             <Link href="/login">Login</Link>
@@ -183,16 +171,14 @@ export default function SignupPage() {
         {canResume && (
           <div className="resume">
             <div className="resume-text">You have an unfinished setup.</div>
-            <button className="btn btn-neon small" onClick={onResume}>
-              Resume onboarding
-            </button>
+            <button className="btn btn-neon small" onClick={onResume}>Resume onboarding</button>
           </div>
         )}
 
         <form className="card form" onSubmit={onSubmit} noValidate>
           <h1>Create your account</h1>
           <p className="sub">
-            One account for everything: build your Twin, manage data and consents, and keep full control.
+            One account for everything: build your Twin, manage voice data, and control usage.
           </p>
 
           {exists && (
@@ -200,84 +186,42 @@ export default function SignupPage() {
               This email is already registered.
               <div className="note-actions">
                 <Link className="btn ghost small" href="/login">Go to login</Link>
-                <button type="button" className="btn btn-neon small" onClick={onResume}>
-                  Resume onboarding
-                </button>
+                <button type="button" className="btn btn-neon small" onClick={onResume}>Resume onboarding</button>
               </div>
             </div>
           )}
 
           <label className="field">
             <span>Full name *</span>
-            <input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Your full name"
-              required
-              autoComplete="name"
-            />
+            <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" required />
           </label>
 
           <label className="field">
             <span>Email *</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              autoComplete="email"
-            />
-            <small className="hint">Used for receipts and account recovery.</small>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required />
+            <small className="hint">Used for account recovery.</small>
           </label>
 
           <label className="field">
-            <span>Phone (for OTP & WhatsApp) *</span>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+27 123 456 789"
-              required
-              autoComplete="tel"
-              inputMode="tel"
-            />
+            <span>Phone *</span>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+27 123 456 789" required />
             <small className="hint">Use international format with country code.</small>
           </label>
 
           <div className="grid">
             <label className="field">
               <span>Password *</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
-                required
-                autoComplete="new-password"
-              />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" required />
             </label>
             <label className="field">
               <span>Confirm password *</span>
-              <input
-                type="password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                placeholder="Re-enter password"
-                required
-                autoComplete="new-password"
-              />
+              <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Re-enter password" required />
             </label>
           </div>
 
           <label className="check">
-            <input
-              type="checkbox"
-              checked={useWA}
-              onChange={(e) => setUseWA(e.target.checked)}
-            />
-            <span>Use WhatsApp for notifications (optional)</span>
+            <input type="checkbox" checked={useWA} onChange={(e) => setUseWA(e.target.checked)} />
+            <span>Use WhatsApp for notifications</span>
           </label>
 
           {err && <div className="alert">{err}</div>}
