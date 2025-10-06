@@ -1,9 +1,18 @@
 // File: app/api/twin/sessions/route.js
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
 
-export const runtime = "nodejs";         // <-- مهم لحل مشاكل الشبكة مع Supabase
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+function qs(params) {
+  return Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== "")
+    .map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`)
+    .join("&");
+}
 
 /**
  * GET /api/twin/sessions?limit=5&userId=...&twinId=...
@@ -11,33 +20,51 @@ export const dynamic = "force-dynamic";
  */
 export async function GET(req) {
   try {
-    const url = new URL(req.url);
-    const limitParam = Number(url.searchParams.get("limit") || "5");
-    const limit = Math.max(1, Math.min(20, limitParam));
-    const userId = url.searchParams.get("userId");
-    const twinId = url.searchParams.get("twinId");
+    const u = new URL(req.url);
+    const limit = Math.max(1, Math.min(20, Number(u.searchParams.get("limit") || "5")));
+    const userId = u.searchParams.get("userId") || "";
+    const twinId = u.searchParams.get("twinId") || "";
 
-    let q = supabase
-      .from("twin_sessions")
-      .select("id, created_at, lang, duration_s, provider");
-
-    if (userId) q = q.eq("user_id", userId);
-    if (!userId && twinId) q = q.eq("twin_id", twinId);
-
-    q = q.order("created_at", { ascending: false }).limit(limit);
-
-    const { data, error } = await q;
-
-    if (error) {
-      return NextResponse.json({ items: [], error: error.message }, { status: 200 });
+    if (!url || !anon) {
+      return NextResponse.json({ items: [], error: "Missing Supabase env" }, { status: 200 });
     }
 
-    const items = (data || []).map((r) => ({
-      id: r.id,
-      ts: r.created_at,
-      lang: r.lang || "en",
-      duration_s: Number(r.duration_s) || 0,
-      provider: r.provider || "openai",
+    // Build REST query
+    const table = "twin_sessions";
+    const filters = [];
+    if (userId) filters.push(`user_id=eq.${userId}`);
+    else if (twinId) filters.push(`twin_id=eq.${twinId}`);
+
+    const query = [
+      ...filters,
+      `order=created_at.desc`,
+      `limit=${limit}`,
+      `select=id,created_at,lang,duration_s,provider`,
+    ].join("&");
+
+    const endpoint = `${url}/rest/v1/${table}?${query}`;
+
+    const r = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        apikey: anon,
+        Authorization: `Bearer ${anon}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!r.ok) {
+      const txt = await r.text().catch(() => "");
+      return NextResponse.json({ items: [], error: `REST ${r.status}: ${txt}` }, { status: 200 });
+    }
+
+    const rows = await r.json();
+    const items = (rows || []).map((row) => ({
+      id: row.id,
+      ts: row.created_at,
+      lang: row.lang || "en",
+      duration_s: Number(row.duration_s) || 0,
+      provider: row.provider || "openai",
     }));
 
     return NextResponse.json({ items }, { status: 200 });
