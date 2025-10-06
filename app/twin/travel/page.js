@@ -3,82 +3,102 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Twin Travel Mode v3 — Autonomous Interpreter
+ * Twin Travel Mode — Autonomous, Voice-Only, Hands-Free
  * - One toggle (Start/Stop)
- * - Voice Activity Detection (VAD) to auto-start/stop turns
+ * - VAD (voice activity detection) to auto-start/stop turns
  * - Auto language detection (no manual selection)
- * - Auto translate to the other speaker's language
- * - Always speaks back in the user's cloned voice via /api/twin/say
- * - Auto-ducking: pause listening while speaking to avoid feedback
- * - Minimal, professional UI
+ * - Auto partner language learning (remembers the other speaker's language)
+ * - Auto translate + reply using the user's cloned voice via /api/twin/say
+ * - Auto-ducking while speaking to avoid feedback
+ * - Smart turn caps, cooldowns, and error hardening for mobile browsers
  *
- * Backend requirements already covered in your project:
- *   POST /api/travel/asr         -> { ok:true, text, lang }   (lang like "ar", "en", ...)
+ * Backends expected (already added earlier):
+ *   POST /api/travel/asr         -> { ok:true, text, lang }
  *   POST /api/travel/translate   -> { ok:true, text }
- *   POST /api/twin/say           -> audio bytes (tts in targetLang, user's voice)
+ *   POST /api/twin/say           -> audio bytes (audio/mpeg|audio/wav) in target language
  *
- * TODO (wire from auth/session later): userId / twinId
+ * Notes:
+ * - Wire real userId/twinId from your auth/session. Placeholders included.
+ * - Auto-start supported via ?autostart=1 (for Siri Shortcuts / deep links).
  */
 
 export default function TravelModePage() {
-  // You can wire these from session/user settings later
-  const userId = "demo";
-  const twinId = "twin_demo";
-  const myPrimaryLang = "ar"; // user's native language (used only to bias "who spoke")
+  // Session wiring (replace with real auth state if available)
+  const userId = useEnv("NEXT_PUBLIC_TWIN_USER_ID", "demo");
+  const twinId = useEnv("NEXT_PUBLIC_TWIN_ID", "twin_demo");
 
-  // Runtime UI state
+  // Heuristic: user's primary language (only to bias "who spoke")
+  const myPrimaryLang = useEnv("NEXT_PUBLIC_TWIN_PRIMARY_LANG", "ar");
+
+  // UI state
   const [running, setRunning] = useState(false);
   const [phase, setPhase] = useState("idle"); // idle | listening | recording | thinking | speaking
-  const [hint, setHint] = useState("Activate to start the autonomous interpreter.");
-  const [log, setLog] = useState([]); // latest first: {id, role:"me"|"them", text, src?, tgt?}
   const [errorMsg, setErrorMsg] = useState("");
+  const [sessionStats, setSessionStats] = useState({ turns: 0, lastLangThem: "" });
 
-  // Media/WebAudio refs
+  // Learned partner language (updated when we observe consistent non-user language)
+  const learnedPartnerLangRef = useRef("");
+
+  // I/O + WebAudio
   const streamRef = useRef(null);
   const recRef = useRef(null);
   const chunksRef = useRef([]);
   const audioCtxRef = useRef(null);
-  const sourceRef = useRef(null);
+  const srcRef = useRef(null);
   const analyserRef = useRef(null);
   const rafRef = useRef(null);
-  const outAudioRef = useRef(null);
+  const outRef = useRef(null);
 
-  // VAD tuning
-  const vadRef = useRef({
-    rmsThreshold: 0.016,   // sensitivity (lower = more sensitive)
-    startHoldMs: 120,      // need this many ms of activity to start
-    endSilenceMs: 650,     // end turn after silence
-    maxTurnMs: 8000,       // hard cap per turn
+  // VAD parameters (tuned for phone mics + typical indoor SNR)
+  const vad = useRef({
+    rmsThreshold: 0.016,   // sensitivity (lower => more sensitive)
+    startHoldMs: 120,      // ms above threshold to start a turn
+    endSilenceMs: 650,     // ms below threshold to end a turn
+    maxTurnMs: 8000,       // hard cap per turn to keep flow snappy
+    minGapMs: 220,         // guard between turns to avoid chatter
   });
 
   // VAD state
   const activeRef = useRef(false);
-  const startAtRef = useRef(0);
+  const startedAtRef = useRef(0);
   const silenceAtRef = useRef(0);
+  const lastTurnEndedAtRef = useRef(0);
 
-  // speaking guard (ducking)
+  // While speaking we fully suspend VAD to avoid self-trigger
   const speakingGuardRef = useRef(false);
 
   useEffect(() => {
+    const qp = new URLSearchParams(window.location.search);
+    if (qp.get("autostart") === "1") start().catch(() => {});
     return () => cleanupAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function pushLog(entry) {
-    setLog((prev) => [{ id: Date.now() + Math.random(), ...entry }, ...prev].slice(0, 32));
+  function useEnv(key, fallback) {
+    // Read from NEXT_PUBLIC_* at build-time if injected, else fallback
+    if (typeof process !== "undefined" && process.env && process.env[key]) {
+      return process.env[key];
+    }
+    return fallback;
+  }
+
+  function bumpStats(partnerLangGuess = "") {
+    setSessionStats((s) => {
+      const lastLangThem = partnerLangGuess || s.lastLangThem || "";
+      return { turns: s.turns + 1, lastLangThem };
+    });
   }
 
   async function start() {
     try {
       setErrorMsg("");
-      setLog([]);
       await initIO();
-      speakingGuardRef.current = false;
+      learnedPartnerLangRef.current = ""; // reset between sessions
       setPhase("listening");
-      setHint("Listening… speak naturally. The twin will translate and reply automatically.");
       setRunning(true);
-      runVAD();
+      loopVAD();
     } catch (e) {
-      setErrorMsg(e?.message || "Failed to access microphone.");
+      setErrorMsg(normalizeErr(e));
       cleanupAll();
     }
   }
@@ -86,18 +106,13 @@ export default function TravelModePage() {
   function stop() {
     setRunning(false);
     setPhase("idle");
-    setHint("Session ended.");
     cleanupAll();
   }
 
   async function initIO() {
-    // Microphone (AEC/NS enabled)
+    // Microphone with built-in AEC/NS/AGC
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
     });
     streamRef.current = stream;
 
@@ -105,32 +120,37 @@ export default function TravelModePage() {
     const mime = pickMime();
     const rec = new MediaRecorder(stream, { mimeType: mime });
     recRef.current = rec;
+    chunksRef.current = [];
     rec.ondataavailable = (e) => e.data && chunksRef.current.push(e.data);
-    rec.onstop = async () => {
-      try {
-        const blob = new Blob(chunksRef.current, { type: rec.mimeType });
-        chunksRef.current = [];
-        await handleTurn(blob);
-      } catch (e) {
-        setErrorMsg(e?.message || "Failed to process turn.");
-      }
+    rec.onstop = () => {
+      // Defer to next tick to avoid blocking the stop()
+      setTimeout(async () => {
+        try {
+          const blob = new Blob(chunksRef.current, { type: rec.mimeType });
+          chunksRef.current = [];
+          await handleTurn(blob);
+        } catch (err) {
+          setErrorMsg(normalizeErr(err));
+        }
+      }, 0);
     };
 
-    // WebAudio for VAD
+    // WebAudio graph for VAD
     const AC = window.AudioContext || window.webkitAudioContext;
     const ctx = new AC();
     audioCtxRef.current = ctx;
 
     const src = ctx.createMediaStreamSource(stream);
-    sourceRef.current = src;
+    srcRef.current = src;
 
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 1024;
     src.connect(analyser);
     analyserRef.current = analyser;
 
-    // Output audio element
-    outAudioRef.current = new Audio();
+    // Output audio
+    outRef.current = new Audio();
+    outRef.current.preload = "auto";
   }
 
   function cleanupAll() {
@@ -141,19 +161,22 @@ export default function TravelModePage() {
     recRef.current = null;
     chunksRef.current = [];
 
-    try { streamRef.current?.getTracks()?.forEach(t => t.stop()); } catch {}
+    try { streamRef.current?.getTracks()?.forEach((t) => t.stop()); } catch {}
     streamRef.current = null;
 
-    try { sourceRef.current?.disconnect(); } catch {}
-    sourceRef.current = null;
+    try { srcRef.current?.disconnect(); } catch {}
+    srcRef.current = null;
 
     try { audioCtxRef.current?.close(); } catch {}
     audioCtxRef.current = null;
 
     analyserRef.current = null;
+
     activeRef.current = false;
-    startAtRef.current = 0;
+    startedAtRef.current = 0;
     silenceAtRef.current = 0;
+    lastTurnEndedAtRef.current = performance.now();
+    speakingGuardRef.current = false;
   }
 
   function pickMime() {
@@ -168,7 +191,7 @@ export default function TravelModePage() {
   }
 
   /** VAD main loop */
-  function runVAD() {
+  function loopVAD() {
     const a = analyserRef.current;
     if (!a) return;
 
@@ -178,13 +201,20 @@ export default function TravelModePage() {
     const tick = () => {
       if (!running) return;
 
-      // If we are speaking, pause listening completely
+      // Full ducking while speaking
       if (speakingGuardRef.current) {
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
 
+      // Turn gap guard
+      if (now() - lastTurnEndedAtRef.current < vad.current.minGapMs) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
       a.getByteTimeDomainData(data);
+      // RMS
       let sum = 0;
       for (let i = 0; i < data.length; i++) {
         const v = (data[i] - 128) / 128;
@@ -193,39 +223,31 @@ export default function TravelModePage() {
       const rms = Math.sqrt(sum / data.length);
 
       const t = now();
-      const { rmsThreshold, startHoldMs, endSilenceMs, maxTurnMs } = vadRef.current;
+      const { rmsThreshold, startHoldMs, endSilenceMs, maxTurnMs } = mapVad(vad.current);
 
       if (!activeRef.current) {
         if (rms > rmsThreshold) {
-          if (!startAtRef.current) startAtRef.current = t;
-          if (t - startAtRef.current >= startHoldMs) {
-            // begin a turn
+          if (!startedAtRef.current) startedAtRef.current = t;
+          if (t - startedAtRef.current >= startHoldMs) {
             activeRef.current = true;
             silenceAtRef.current = 0;
-            startAtRef.current = t;
-            beginRecord();
+            startedAtRef.current = t;
+            startRec();
           }
         } else {
-          startAtRef.current = 0;
+          startedAtRef.current = 0;
         }
       } else {
-        // within a turn
         if (rms <= rmsThreshold) {
           if (!silenceAtRef.current) silenceAtRef.current = t;
           if (t - silenceAtRef.current >= endSilenceMs) {
-            endRecord();
-            activeRef.current = false;
-            startAtRef.current = 0;
-            silenceAtRef.current = 0;
+            endRec();
           }
         } else {
           silenceAtRef.current = 0;
         }
-        if (t - startAtRef.current >= maxTurnMs) {
-          endRecord(); // hard-stop to keep flow snappy
-          activeRef.current = false;
-          startAtRef.current = 0;
-          silenceAtRef.current = 0;
+        if (t - startedAtRef.current >= maxTurnMs) {
+          endRec(); // hard stop
         }
       }
 
@@ -235,92 +257,89 @@ export default function TravelModePage() {
     rafRef.current = requestAnimationFrame(tick);
   }
 
-  function beginRecord() {
+  function startRec() {
     try {
       chunksRef.current = [];
       recRef.current?.start(250);
       setPhase("recording");
-      setHint("Recording…");
     } catch (e) {
-      setErrorMsg(e?.message || "Recorder start failed.");
+      setErrorMsg(normalizeErr(e));
     }
   }
 
-  function endRecord() {
+  function endRec() {
     try {
       setPhase("thinking");
-      setHint("Translating…");
       recRef.current?.stop();
+      activeRef.current = false;
+      lastTurnEndedAtRef.current = performance.now();
+      startedAtRef.current = 0;
+      silenceAtRef.current = 0;
     } catch {
       // ignore
     }
   }
 
-  /** One full turn: ASR -> translate -> TTS (user's voice) */
+  /** One complete conversational turn */
   async function handleTurn(blob) {
     try {
-      // 1) ASR with language detection
+      // 1) ASR with auto language detection
       const asr = await callASR(blob);
       const spoken = (asr?.text || "").trim();
-      const detected = (asr?.lang || "").toLowerCase();
+      const detected = normLang(asr?.lang || "");
 
       if (!spoken) {
         setPhase("listening");
-        setHint("Listening…");
         return;
       }
 
-      // Decide who spoke (heuristic): if lang ~ myPrimaryLang => "me", else "them"
-      const meSpoke = langEq(detected, myPrimaryLang);
-      const speaker = meSpoke ? "me" : "them";
-      pushLog({ role: speaker, text: spoken, src: detected });
+      // Determine speaker: if detected ~ myPrimaryLang => me; else partner
+      const meSpoke = sameLang(detected, myPrimaryLang);
+      if (!meSpoke) {
+        // Learn partner language if consistent
+        const prev = learnedPartnerLangRef.current;
+        if (!prev || prev !== detected) learnedPartnerLangRef.current = detected;
+      }
 
-      // 2) Target language = the other's language
-      const target = meSpoke ? pickPartnerLang(detected) : myPrimaryLang;
+      // 2) Choose target language
+      const target =
+        meSpoke
+          ? (learnedPartnerLangRef.current || "en")  // speak to partner in their language if known
+          : myPrimaryLang;                            // bring partner's speech back to me in my language
 
       // 3) Translate
       const tr = await callTranslate(spoken, detected, target);
-      const outText = tr?.text || "";
-      pushLog({ role: meSpoke ? "them" : "me", text: outText, src: detected, tgt: target });
+      const outText = (tr?.text || "").trim();
+      if (!outText) {
+        setPhase("listening");
+        return;
+      }
 
-      // 4) Speak (always user's cloned voice, in target language)
-      speakingGuardRef.current = true;      // pause listening/recording
+      // 4) TTS (always user's cloned voice)
+      speakingGuardRef.current = true;
       setPhase("speaking");
-      setHint("Speaking…");
-      const audioBlob = await callSay(outText, target);
-      if (audioBlob) await play(audioBlob);
 
-      // brief cooldown to avoid VAD false triggers from residual audio
+      const audioBlob = await callSay(outText, target);
+      if (audioBlob) await playAudio(audioBlob);
+
+      // Cooldown to avoid residual self-trigger
       await sleep(160);
       speakingGuardRef.current = false;
 
+      bumpStats(meSpoke ? (learnedPartnerLangRef.current || target) : ""); // update stats
       setPhase("listening");
-      setHint("Listening…");
     } catch (e) {
-      setErrorMsg(e?.message || "Turn failed.");
+      setErrorMsg(normalizeErr(e));
       setPhase("listening");
-      setHint("Listening…");
     }
   }
 
-  function langEq(a = "", b = "") {
-    const n = (x) => (x || "").split("-")[0].trim();
-    return n(a) === n(b);
-  }
-
-  function pickPartnerLang(srcDetected) {
-    // If I spoke (srcDetected ~ myPrimaryLang), default partner language is English.
-    // You can make this smarter by caching last detected "them" language.
-    if (langEq(srcDetected, myPrimaryLang)) return "en";
-    // If not me, mirror partner's detected language
-    return srcDetected || "en";
-  }
-
-  // --- Backend calls ---
+  // ---- Backend calls ----
   async function callASR(blob) {
     const fd = new FormData();
     fd.append("audio", blob, "turn.webm");
-    // No hint to let server auto-detect; optionally bias with myPrimaryLang via fd.append("hintLang", myPrimaryLang)
+    // No hint => allow pure auto-detect. If needed, bias with:
+    // fd.append("hintLang", myPrimaryLang);
     const r = await fetch("/api/travel/asr", { method: "POST", body: fd });
     if (!r.ok) throw new Error("ASR failed");
     return r.json();
@@ -347,29 +366,50 @@ export default function TravelModePage() {
     return new Blob([ab], { type: r.headers.get("Content-Type") || "audio/mpeg" });
   }
 
-  async function play(blob) {
+  async function playAudio(blob) {
     try {
       const url = URL.createObjectURL(blob);
-      outAudioRef.current.src = url;
-      await outAudioRef.current.play();
-      await new Promise((res) => {
+      outRef.current.src = url;
+      await outRef.current.play();
+      await new Promise((resolve) => {
         const onEnd = () => {
-          outAudioRef.current.removeEventListener("ended", onEnd);
+          outRef.current.removeEventListener("ended", onEnd);
           URL.revokeObjectURL(url);
-          res();
+          resolve();
         };
-        outAudioRef.current.addEventListener("ended", onEnd);
+        outRef.current.addEventListener("ended", onEnd);
       });
     } catch {
-      // ignore
+      // Ignore playback errors
     }
   }
 
+  // ---- Utils ----
+  function mapVad(v) {
+    // Slightly tighter start/stop if the environment is noisy (mobile)
+    return {
+      rmsThreshold: v.rmsThreshold ?? v.rms ?? 0.016,
+      startHoldMs: v.startHoldMs ?? v.startMs ?? 120,
+      endSilenceMs: v.endSilenceMs ?? v.endMs ?? 650,
+      maxTurnMs: v.maxTurnMs ?? v.maxMs ?? 8000,
+    };
+  }
+
+  function sameLang(a, b) {
+    return normLang(a) === normLang(b);
+  }
+  function normLang(x) {
+    return String(x || "").toLowerCase().split("-")[0].trim();
+  }
   function sleep(ms) {
     return new Promise((r) => setTimeout(r, ms));
   }
+  function normalizeErr(e) {
+    const m = (e && (e.message || e.toString())) || "unknown";
+    return m.length > 200 ? m.slice(0, 200) + "…" : m;
+  }
 
-  // --- UI ---
+  // ---- UI ----
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="mx-auto max-w-3xl px-6 py-10">
@@ -382,53 +422,52 @@ export default function TravelModePage() {
           </div>
           <div>
             {!running ? (
-              <button className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20" onClick={start}>
+              <button
+                className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20"
+                onClick={start}
+              >
                 Start
               </button>
             ) : (
-              <button className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-400/40 hover:bg-red-500/30" onClick={stop}>
+              <button
+                className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-400/40 hover:bg-red-500/30"
+                onClick={stop}
+              >
                 Stop
               </button>
             )}
           </div>
         </header>
 
-        {/* Status */}
+        {/* Status strip */}
         <div className="mt-6 flex items-center gap-4">
           <StatusLight phase={phase} />
-          <div className="text-sm text-gray-300">{hint}</div>
+          <div className="text-xs text-gray-400">
+            Turns: {sessionStats.turns}
+            {sessionStats.lastLangThem
+              ? ` • Partner: ${sessionStats.lastLangThem.toUpperCase()}`
+              : ""}
+          </div>
         </div>
 
-        {/* Live transcript */}
-        <section className="mt-8">
-          <h3 className="text-sm text-gray-300 mb-2">Live transcript</h3>
-          <ul className="space-y-2">
-            {log.map((l) => (
-              <li key={l.id} className="text-sm">
-                <span className={l.role === "me" ? "text-blue-300" : "text-green-300"}>
-                  {l.role === "me" ? "You" : "Them"}:
-                </span>{" "}
-                <span>{l.text}</span>
-                {l.tgt ? <span className="opacity-60">  → {l.tgt.toUpperCase()}</span> : null}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {errorMsg ? <div className="mt-6 text-sm text-red-300">{errorMsg}</div> : null}
+        {/* Minimal errors (not transcripts) */}
+        {errorMsg ? (
+          <div className="mt-4 text-xs text-red-300">{errorMsg}</div>
+        ) : null}
       </section>
     </main>
   );
 }
 
 function StatusLight({ phase }) {
-  const color = {
-    idle: "bg-gray-600",
-    listening: "bg-emerald-500",
-    recording: "bg-yellow-400",
-    thinking: "bg-purple-400",
-    speaking: "bg-blue-400",
-  }[phase] || "bg-gray-600";
+  const color =
+    {
+      idle: "bg-gray-600",
+      listening: "bg-emerald-500",
+      recording: "bg-yellow-400",
+      thinking: "bg-purple-400",
+      speaking: "bg-blue-400",
+    }[phase] || "bg-gray-600";
   return (
     <div className="flex items-center gap-3">
       <div className={`h-3 w-3 rounded-full ${color} animate-pulse`} />
