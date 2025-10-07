@@ -1,8 +1,7 @@
-// File: app/twin/create/page.js
 "use client";
 
-import OnboardingPage from "@/components/twin/OnboardingPage";
+import OnboardingPage from "@/app/components/twin/OnboardingPage";
 
-export default function TwinCreatePage() {
+export default function CreateTwinPage() {
   return <OnboardingPage />;
 }
