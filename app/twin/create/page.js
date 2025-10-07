@@ -1,6 +1,6 @@
 "use client";
 
-import OnboardingPage from "@/app/components/twin/OnboardingPage";
+import OnboardingPage from "../../components/twin/OnboardingPage";
 
 export default function CreateTwinPage() {
   return <OnboardingPage />;
