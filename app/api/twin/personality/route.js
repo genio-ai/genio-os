@@ -5,50 +5,49 @@ import { createClient } from "@supabase/supabase-js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getServerSupabase() {
-  const url =
-    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+function getSb() {
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_ANON_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    throw new Error(
-      "Supabase env vars missing. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Production."
-    );
-  }
+  if (!url || !key) throw new Error("Supabase env vars missing");
   return createClient(url, key, { auth: { persistSession: false } });
+}
+
+function buildAbout(p = {}) {
+  const parts = [];
+  if (p.about && typeof p.about === "string" && p.about.trim().length >= 10) {
+    return p.about.trim();
+  }
+  if (p.tone) parts.push(`Tone: ${p.tone}`);
+  if (p.pace) parts.push(`Pace: ${p.pace}`);
+  if (p.emojis) parts.push(`Emojis: ${p.emojis}`);
+  if (p.languages) parts.push(`Languages: ${p.languages}`);
+  if (p.preferred) parts.push(`Preferred: ${p.preferred}`);
+  if (p.avoided) parts.push(`Avoided: ${p.avoided}`);
+  if (p.signatures) parts.push(`Signatures: ${p.signatures}`);
+  const fallback = parts.join(" · ") || "Default personality";
+  return fallback.slice(0, 2000);
 }
 
 /**
  * POST /api/twin/personality
- * Body: { personality: { about: string, tone?, pace?, ... }, userId? }
+ * Body: { personality: {...}, userId? }
  * Returns: { ok: true, twinId }
  */
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { personality, userId } = body || {};
+    const { personality = {}, userId = null } = await req.json();
+    const about = buildAbout(personality);
 
-    if (
-      !personality ||
-      typeof personality.about !== "string" ||
-      personality.about.trim().length < 10
-    ) {
-      return NextResponse.json(
-        { ok: false, error: "Invalid personality payload" },
-        { status: 400 }
-      );
-    }
-
-    const supabase = getServerSupabase();
+    const sb = getSb();
     const twinId = "twin_" + Date.now();
 
-    const { error } = await supabase.from("twin_personality").insert({
+    const { error } = await sb.from("twin_personality").insert({
       id: twinId,
-      user_id: userId || null,
-      about: personality.about.trim(),
+      user_id: userId,
+      about,
       tone: personality.tone ?? null,
       pace: personality.pace ?? null,
       emojis: personality.emojis ?? null,
@@ -63,10 +62,8 @@ export async function POST(req) {
     });
 
     if (error) throw error;
-
     return NextResponse.json({ ok: true, twinId });
   } catch (err) {
-    console.error("POST /api/twin/personality failed:", err);
     return NextResponse.json(
       { ok: false, error: String(err?.message || err) },
       { status: 500 }
