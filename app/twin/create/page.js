@@ -1,34 +1,50 @@
-// File: app/twin/create/page.js
+// app/twin/create/page.js
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
-// Public client (browser) — requires NEXT_PUBLIC_* vars set
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 export default function CreateTwinPage() {
+  const router = useRouter();
   const [form, setForm] = useState({
-    tone: "Friendly",
-    pace: "Medium",
-    emojis: "Sometimes",
-    languages: "English",
+    tone: "",
+    pace: "",
+    emojis: "",
+    languages: "",
     about_me: "",
-    voice_path: "", // set this after your voice upload finishes
+    voice_path: "",
   });
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [okMsg, setOkMsg] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  async function createTwinFromClient() {
+  useEffect(() => {
+    try {
+      const onboarding = JSON.parse(localStorage.getItem("twin_onboarding") || "{}");
+      const voice = JSON.parse(localStorage.getItem("twin_voice") || "{}");
+      const data = {
+        tone: onboarding.tone || "Friendly",
+        pace: onboarding.pace || "Medium",
+        emojis: onboarding.emojis || "Sometimes",
+        languages: onboarding.languages || "English",
+        about_me: onboarding.about_me || "",
+        voice_path: voice.path || voice.url || "",
+      };
+      setForm(data);
+    } catch (e) {
+      console.warn("Failed to load twin draft", e);
+    }
+  }, []);
+
+  async function handleCreate() {
     setBusy(true);
     setError("");
-    setOkMsg("");
 
-    // 1) Ensure user exists on this domain
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
     if (authErr || !user) {
       setBusy(false);
@@ -36,56 +52,29 @@ export default function CreateTwinPage() {
       return;
     }
 
-    // 2) Pass the access token to the API so the server can verify auth
-    const { data: { session } } = await supabase.auth.getSession();
-    const accessToken = session?.access_token;
-    if (!accessToken) {
-      setBusy(false);
-      setError("No session token");
+    const res = await fetch("/api/twin/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...form, user_id: user.id }),
+    });
+
+    const json = await res.json();
+    setBusy(false);
+
+    if (!json.ok) {
+      setError(json.error || "Failed to create twin");
       return;
     }
 
-    try {
-      const res = await fetch("/api/twin/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // critical: allow server to verify you via Supabase JWT
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          tone: form.tone,
-          pace: form.pace,
-          emojis: form.emojis,
-          languages: form.languages,
-          about_me: form.about_me || "",
-          voice_path: form.voice_path || null,
-        }),
-      });
-
-      const json = await res.json();
-      setBusy(false);
-
-      if (!res.ok || !json.ok) {
-        setError(json.error || "Create twin failed");
-        return;
-      }
-
-      setOkMsg("Twin created successfully");
-      // TODO: router.push("/twin")
-    } catch (e) {
-      setBusy(false);
-      setError(e?.message || "Network error");
-    }
+    localStorage.removeItem("twin_onboarding");
+    localStorage.removeItem("twin_voice");
+    router.push("/twin");
   }
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="text-2xl font-semibold mb-6">Review & Create</h1>
-
-      {/* Simple preview fields */}
-      <div className="space-y-3 mb-8">
+      <div className="space-y-2 mb-6">
         <div>Tone: {form.tone}</div>
         <div>Pace: {form.pace}</div>
         <div>Emojis: {form.emojis}</div>
@@ -94,11 +83,10 @@ export default function CreateTwinPage() {
         <div>Voice path: {form.voice_path || "-"}</div>
       </div>
 
-      {error ? <p className="text-red-500 mb-4">{error}</p> : null}
-      {okMsg ? <p className="text-green-500 mb-4">{okMsg}</p> : null}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <button
-        onClick={createTwinFromClient}
+        onClick={handleCreate}
         disabled={busy}
         className="rounded bg-white/10 px-4 py-2 hover:bg-white/20 disabled:opacity-50"
       >
