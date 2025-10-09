@@ -5,21 +5,45 @@ import { createClient } from "@supabase/supabase-js";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getSb() {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+// -------- Helper: Fetch with timeout --------
+function makeTimedFetch(ms = 15000) {
+  return async (input, init = {}) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), ms);
+    try {
+      return await fetch(input, { ...init, signal: controller.signal });
+    } finally {
+      clearTimeout(id);
+    }
+  };
+}
+
+// -------- Supabase Client --------
+function getSupabase() {
+  const url =
+    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key =
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.SUPABASE_ANON_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) throw new Error("Supabase env vars missing");
-  return createClient(url, key, { auth: { persistSession: false } });
+
+  if (!url || !key) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  return createClient(url, key, {
+    auth: { persistSession: false },
+    global: { fetch: makeTimedFetch(15000) },
+  });
 }
 
+// -------- Helper: Build about text --------
 function buildAbout(p = {}) {
-  const parts = [];
-  if (p.about && typeof p.about === "string" && p.about.trim().length >= 10) {
-    return p.about.trim();
+  if (typeof p.about === "string" && p.about.trim().length >= 10) {
+    return p.about.trim().slice(0, 2000);
   }
+
+  const parts = [];
   if (p.tone) parts.push(`Tone: ${p.tone}`);
   if (p.pace) parts.push(`Pace: ${p.pace}`);
   if (p.emojis) parts.push(`Emojis: ${p.emojis}`);
@@ -27,24 +51,21 @@ function buildAbout(p = {}) {
   if (p.preferred) parts.push(`Preferred: ${p.preferred}`);
   if (p.avoided) parts.push(`Avoided: ${p.avoided}`);
   if (p.signatures) parts.push(`Signatures: ${p.signatures}`);
-  const fallback = parts.join(" · ") || "Default personality";
-  return fallback.slice(0, 2000);
+  const txt = parts.join(" · ") || "Default personality";
+  return txt.slice(0, 2000);
 }
 
-/**
- * POST /api/twin/personality
- * Body: { personality: {...}, userId? }
- * Returns: { ok: true, twinId }
- */
+// -------- POST /api/twin/personality --------
 export async function POST(req) {
+  const start = Date.now();
+
   try {
     const { personality = {}, userId = null } = await req.json();
+    const sb = getSupabase();
     const about = buildAbout(personality);
+    const twinId = `twin_${Date.now()}`;
 
-    const sb = getSb();
-    const twinId = "twin_" + Date.now();
-
-    const { error } = await sb.from("twin_personality").insert({
+    const row = {
       id: twinId,
       user_id: userId,
       about,
@@ -59,14 +80,25 @@ export async function POST(req) {
       sample2: personality.sample2 ?? null,
       sample3: personality.sample3 ?? null,
       created_at: new Date().toISOString(),
-    });
+    };
 
-    if (error) throw error;
-    return NextResponse.json({ ok: true, twinId });
-  } catch (err) {
+    const { error } = await sb.from("twin_personality").insert(row);
+
+    if (error) {
+      return NextResponse.json(
+        { ok: false, error: `Supabase insert error: ${error.message}` },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
-      { ok: false, error: String(err?.message || err) },
-      { status: 500 }
+      { ok: true, twinId, took_ms: Date.now() - start },
+      { status: 200 }
     );
+  } catch (err) {
+    const msg =
+      err?.message ||
+      (typeof err === "string" ? err : "Internal error while creating personality");
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }
