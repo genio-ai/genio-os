@@ -6,8 +6,8 @@ import { getServerSupabase } from "../../../../lib/supabase.server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// ---- Config
-const BUCKET = "voices";
+// ---- Config (reverted to original bucket)
+const BUCKET = "twin_voices";
 const MAX_PART_BYTES = 8 * 1024 * 1024;   // 8MB per part
 const MAX_TOTAL_BYTES = 64 * 1024 * 1024; // 64MB total
 
@@ -31,6 +31,25 @@ function ok(json, init = {}) {
 }
 function fail(message, status = 400, extra = {}) {
   return NextResponse.json({ ok: false, error: message, ...extra }, { status });
+}
+
+async function uploadBytes(supabase, bytes, name, contentType) {
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .upload(name, bytes, { contentType, upsert: false });
+
+  if (error) throw new Error(error.message);
+
+  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
+
+  // Return both legacy and new keys so UI stays happy
+  return {
+    path: data.path,
+    publicUrl: pub?.publicUrl || null,
+    // legacy aliases (keep both just in case UI expects these)
+    url: pub?.publicUrl || null,
+    voicePath: data.path,
+  };
 }
 
 // POST /api/twin/voice/upload
@@ -69,19 +88,8 @@ export async function POST(req) {
         .randomBytes(6)
         .toString("hex")}${ext}`;
 
-      const { data, error } = await supabase.storage
-        .from(BUCKET)
-        .upload(name, bytes, { contentType: type, upsert: false });
-
-      if (error) return fail(error.message, 500);
-
-      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
-      return ok({
-        path: data.path,
-        publicUrl: pub?.publicUrl || null,
-        size: bytes.byteLength,
-        contentType: type,
-      });
+      const out = await uploadBytes(supabase, bytes, name, type);
+      return ok({ ...out, size: bytes.byteLength, contentType: type });
     }
 
     // Raw body fallback (non-multipart)
@@ -99,19 +107,8 @@ export async function POST(req) {
       .randomBytes(6)
       .toString("hex")}${ext}`;
 
-    const { data, error } = await supabase.storage
-      .from(BUCKET)
-      .upload(name, buf, { contentType: type, upsert: false });
-
-    if (error) return fail(error.message, 500);
-
-    const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
-    return ok({
-      path: data.path,
-      publicUrl: pub?.publicUrl || null,
-      size: buf.byteLength,
-      contentType: type,
-    });
+    const out = await uploadBytes(supabase, buf, name, type);
+    return ok({ ...out, size: buf.byteLength, contentType: type });
   } catch (err) {
     return fail(err?.message || "Upload failed", 500);
   }
