@@ -1,7 +1,7 @@
 // app/api/twin/voice/upload/route.js
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { getServerSupabase } from "../../../lib/supabase.server";
+import { getServerSupabase } from "../../../../lib/supabase.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
