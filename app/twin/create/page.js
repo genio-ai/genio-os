@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+// Public client (browser) — requires NEXT_PUBLIC_* vars set
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -27,6 +28,7 @@ export default function CreateTwinPage() {
     setError("");
     setOkMsg("");
 
+    // 1) Ensure user exists on this domain
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
     if (authErr || !user) {
       setBusy(false);
@@ -34,36 +36,55 @@ export default function CreateTwinPage() {
       return;
     }
 
-    const res = await fetch("/api/twin/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: user.id,
-        tone: form.tone,
-        pace: form.pace,
-        emojis: form.emojis,
-        languages: form.languages,
-        about_me: form.about_me || "",
-        voice_path: form.voice_path || null,
-      }),
-    });
-
-    const json = await res.json();
-    setBusy(false);
-
-    if (!json.ok) {
-      setError(json.error || "Create twin failed");
+    // 2) Pass the access token to the API so the server can verify auth
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      setBusy(false);
+      setError("No session token");
       return;
     }
-    setOkMsg("Twin created successfully");
-    // TODO: router.push("/twin") or whatever next step
+
+    try {
+      const res = await fetch("/api/twin/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // critical: allow server to verify you via Supabase JWT
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          tone: form.tone,
+          pace: form.pace,
+          emojis: form.emojis,
+          languages: form.languages,
+          about_me: form.about_me || "",
+          voice_path: form.voice_path || null,
+        }),
+      });
+
+      const json = await res.json();
+      setBusy(false);
+
+      if (!res.ok || !json.ok) {
+        setError(json.error || "Create twin failed");
+        return;
+      }
+
+      setOkMsg("Twin created successfully");
+      // TODO: router.push("/twin")
+    } catch (e) {
+      setBusy(false);
+      setError(e?.message || "Network error");
+    }
   }
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="text-2xl font-semibold mb-6">Review & Create</h1>
 
-      {/* Simple preview fields (you likely already have your own UI) */}
+      {/* Simple preview fields */}
       <div className="space-y-3 mb-8">
         <div>Tone: {form.tone}</div>
         <div>Pace: {form.pace}</div>
