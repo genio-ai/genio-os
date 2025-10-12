@@ -2,10 +2,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+/**
+ * Runtime: NodeJS (not Edge)
+ * Dynamic: always revalidate (no caching of responses)
+ */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// -------- Helper: Fetch with timeout --------
+/* ------------------------------- utils ---------------------------------- */
 function makeTimedFetch(ms = 15000) {
   return async (input, init = {}) => {
     const controller = new AbortController();
@@ -18,31 +22,22 @@ function makeTimedFetch(ms = 15000) {
   };
 }
 
-// -------- Supabase Client --------
-function getSupabase() {
-  const url =
-    process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+function assertEnv() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
-    throw new Error("Missing Supabase environment variables");
+    throw new Error(
+      "Missing required env vars: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
+    );
   }
-
-  return createClient(url, key, {
-    auth: { persistSession: false },
-    global: { fetch: makeTimedFetch(15000) },
-  });
+  return { url, key };
 }
 
-// -------- Helper: Build about text --------
 function buildAbout(p = {}) {
   if (typeof p.about === "string" && p.about.trim().length >= 10) {
     return p.about.trim().slice(0, 2000);
   }
-
   const parts = [];
   if (p.tone) parts.push(`Tone: ${p.tone}`);
   if (p.pace) parts.push(`Pace: ${p.pace}`);
@@ -55,13 +50,32 @@ function buildAbout(p = {}) {
   return txt.slice(0, 2000);
 }
 
-// -------- POST /api/twin/personality --------
+/* ---------------------------- supabase client --------------------------- */
+function getSupabaseServer() {
+  const { url, key } = assertEnv();
+  return createClient(url, key, {
+    auth: { persistSession: false },
+    global: { fetch: makeTimedFetch(15000) },
+  });
+}
+
+/* ------------------------------- handler -------------------------------- */
 export async function POST(req) {
-  const start = Date.now();
+  const started = Date.now();
 
   try {
-    const { personality = {}, userId = null } = await req.json();
-    const sb = getSupabase();
+    const payload = await req.json();
+    const personality = payload?.personality ?? {};
+    const userId = payload?.userId ?? null;
+
+    if (!userId) {
+      return NextResponse.json(
+        { ok: false, error: "Missing userId" },
+        { status: 400 }
+      );
+    }
+
+    const sb = getSupabaseServer();
     const about = buildAbout(personality);
     const twinId = `twin_${Date.now()}`;
 
@@ -82,17 +96,23 @@ export async function POST(req) {
       created_at: new Date().toISOString(),
     };
 
-    const { error } = await sb.from("twin_personality").insert(row);
+    const { error } = await sb
+      .from("twin_personality")
+      .insert(row);
 
     if (error) {
+      // Bubble up the Postgrest error clearly to logs and client
       return NextResponse.json(
-        { ok: false, error: `Supabase insert error: ${error.message}` },
+        {
+          ok: false,
+          error: `Supabase insert error: ${error.message || "unknown"}`,
+        },
         { status: 500 }
       );
     }
 
     return NextResponse.json(
-      { ok: true, twinId, took_ms: Date.now() - start },
+      { ok: true, twinId, took_ms: Date.now() - started },
       { status: 200 }
     );
   } catch (err) {
