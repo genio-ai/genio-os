@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { getBrowserSupabase } from "@/app/lib/supabase.client";
 
 /* --------------------------------
  * Feature Flags
@@ -51,7 +52,6 @@ function reducer(state, action) {
     case "BUSY":
       return { ...state, busy: action.payload, error: action.payload ? "" : state.error };
     case "ERROR":
-      // do not force a default when payload is empty/null
       return { ...state, error: action.payload ?? "" };
     case "RESET_ERROR":
       return { ...state, error: "" };
@@ -103,7 +103,6 @@ async function postJSON(url, body) {
 }
 
 function pickSupportedMime(kind) {
-  // voice only here; keep generic for future
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   const isIOS = /iPad|iPhone|iPod/.test(ua);
   const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
@@ -115,7 +114,6 @@ function pickSupportedMime(kind) {
   for (const t of voiceOrder) {
     if (window.MediaRecorder?.isTypeSupported?.(t)) return t;
   }
-  // safe default
   return "audio/webm";
 }
 
@@ -185,10 +183,20 @@ export default function OnboardingPage() {
             try {
               dispatch({ type: "BUSY", payload: true });
 
-              // 1) personality
-              await postJSON("/api/twin/personality", { personality: state.personality });
+              // NEW: fetch userId from Supabase Auth
+              const supabase = getBrowserSupabase();
+              const { data: { user }, error: authErr } = await supabase.auth.getUser();
+              if (authErr) throw authErr;
+              if (!user?.id) throw new Error("Not signed in");
+              const userId = user.id;
 
-              // 2) voice upload (single POST)
+              // 1) personality (send userId)
+              await postJSON("/api/twin/personality", {
+                personality: state.personality,
+                userId
+              });
+
+              // 2) voice upload
               if (state.voice?.blob) {
                 const file = new File(
                   [state.voice.blob],
@@ -515,7 +523,6 @@ function MediaCapture({ minSec, maxSec, script, value, onChange, onNext, onBack,
         throw new Error("Microphone not available in this context.");
       }
 
-      // iOS/Safari friendly: try advanced, then fallback
       let stream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -543,17 +550,16 @@ function MediaCapture({ minSec, maxSec, script, value, onChange, onNext, onBack,
       rec.onstop = async () => {
         try {
           try { rec.requestData?.(); } catch {}
-          await new Promise((r) => setTimeout(r, 40)); // flush last chunk on Safari
+          await new Promise((r) => setTimeout(r, 40));
 
           stopTracks();
 
           const blob = new Blob(chunksRef.current, { type: mime });
           if (!blob || !blob.size) throw new Error("Empty file");
 
-          // derive seconds (fallback to elapsed time)
           const secondsRecorded = Math.max(1, Math.floor((Date.now() - startTimeRef.current) / 1000));
-
           const ext = extFromMime(mime);
+
           onChange({
             blob,
             seconds: secondsRecorded,
@@ -572,7 +578,7 @@ function MediaCapture({ minSec, maxSec, script, value, onChange, onNext, onBack,
         }
       };
 
-      rec.start(250); // required for Safari to emit dataavailable
+      rec.start(250);
       setRecording(true);
     } catch (e) {
       onChange(null);
