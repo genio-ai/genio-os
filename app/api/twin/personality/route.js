@@ -2,10 +2,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-/**
- * Runtime: NodeJS (not Edge)
- * Dynamic: always revalidate (no caching of responses)
- */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -25,7 +21,6 @@ function makeTimedFetch(ms = 15000) {
 function assertEnv() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
   if (!url || !key) {
     throw new Error(
       "Missing required env vars: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY"
@@ -59,7 +54,7 @@ function getSupabaseServer() {
   });
 }
 
-/* ------------------------------- handler -------------------------------- */
+/* -------------------------------- handler ------------------------------- */
 export async function POST(req) {
   const started = Date.now();
 
@@ -96,17 +91,11 @@ export async function POST(req) {
       created_at: new Date().toISOString(),
     };
 
-    const { error } = await sb
-      .from("twin_personality")
-      .insert(row);
+    const { error } = await sb.from("twin_personality").insert(row);
 
     if (error) {
-      // Bubble up the Postgrest error clearly to logs and client
       return NextResponse.json(
-        {
-          ok: false,
-          error: `Supabase insert error: ${error.message || "unknown"}`,
-        },
+        { ok: false, error: `Supabase insert error: ${error.message || "unknown"}` },
         { status: 500 }
       );
     }
