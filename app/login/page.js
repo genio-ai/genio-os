@@ -26,7 +26,8 @@ export default function LoginPage() {
 
     (async () => {
       try {
-        const { supabase } = await import("@/lib/supabase");
+        // ⬇️ كان "@/lib/supabase" —> صار مسار نسبي
+        const { supabase } = await import("../../lib/supabase");
         const { data } = await supabase.auth.getSession();
         if (data?.session?.user) router.replace("/twin/create/plan");
       } catch {}
@@ -45,7 +46,8 @@ export default function LoginPage() {
 
     setBusy(true);
     try {
-      const { supabase } = await import("@/lib/supabase");
+      // ⬇️ كان "@/lib/supabase" —> صار مسار نسبي
+      const { supabase } = await import("../../lib/supabase");
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
