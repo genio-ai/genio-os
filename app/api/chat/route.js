@@ -1,45 +1,23 @@
-import { NextResponse } from "next/server";
-import { NIO_SYSTEM_CONTEXT } from "@/app/api/nio/system";
-
+// File: app/api/chat/route.js
 export const runtime = "edge";
 
 export async function POST(req) {
   try {
-    const { message, history } = await req.json();
-    if (!message) {
-      return NextResponse.json({ error: "Message is required" }, { status: 400 });
-    }
+    const { message = "" } = await req.json();
 
-    const prompt = [
-      { role: "system", content: NIO_SYSTEM_CONTEXT },
-      ...(history || []),
-      { role: "user", content: message },
-    ];
+    // رد بسيط مؤقت ليتأكد البناء
+    const reply = message
+      ? `Nio: I received "${message}"`
+      : "Nio: Hello there!";
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: prompt,
-        temperature: 0.7,
-      }),
+    return new Response(JSON.stringify({ reply }), {
+      headers: { "Content-Type": "application/json" },
+      status: 200,
     });
-
-    const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content?.trim();
-
-    if (!reply) throw new Error("No response from model");
-
-    return NextResponse.json({ reply });
   } catch (err) {
-    console.error("Chat error:", err);
-    return NextResponse.json(
-      { error: err.message || "Chat request failed" },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: err.message || "Something went wrong" }),
+      { headers: { "Content-Type": "application/json" }, status: 400 }
     );
   }
 }
