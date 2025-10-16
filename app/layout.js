@@ -2,42 +2,57 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 
-// ↓↓↓ add these three lines
+// ---- Caching & Rendering (server-first)
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
-// ↑↑↑
 
+// ---- Font
 const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "600", "700", "800"],
   display: "swap",
 });
 
+// ---- Site constants
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") || "https://genio.systems";
 const OG_TITLE = "genio os — Create your digital twin";
 const OG_DESC =
   "Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks.";
 
+// ---- Viewport (recommended by Next.js)
+export const viewport = {
+  themeColor: "#0b111a",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+};
+
+// ---- Metadata / SEO
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: OG_TITLE,
   description: OG_DESC,
-  // themeColor removed (unsupported in current metadata API)
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: "/",
     title: OG_TITLE,
     description: OG_DESC,
-    images: ["/og-image.png"],
+    images: ["/og-image.png"], // ensure this file exists in /public
+    siteName: "genio os",
   },
   twitter: {
     card: "summary_large_image",
     title: OG_TITLE,
     description: OG_DESC,
     images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
   },
   icons: {
     icon: [
@@ -62,10 +77,13 @@ export const metadata = {
   manifest: "/site.webmanifest",
 };
 
+// ---- Root Layout
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} min-h-screen bg-neutral-950 text-white antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }
