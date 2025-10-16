@@ -1,297 +1,159 @@
-// File: pages/index.js
-import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import Head from "next/head";
+// File: app/page.js
 import Link from "next/link";
-import { Inter } from "next/font/google";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
-  display: "swap",
-});
-
+// ---- Config (read at build time)
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://genio.systems";
-const OG_TITLE = "Genio OS — Gaza Relief";
+const OG_TITLE = process.env.NEXT_PUBLIC_OG_TITLE || "Genio OS — Gaza Relief";
 const OG_DESC =
+  process.env.NEXT_PUBLIC_OG_DESC ||
   "Donate securely via PayPal to deliver direct humanitarian aid for families in Gaza.";
-
 const PAYPAL_LINK = process.env.NEXT_PUBLIC_PAYPAL_LINK || "";
-
-// Optional: default hero & inner images (you can replace with /public files)
 const HERO_IMG =
+  process.env.NEXT_PUBLIC_HERO_IMG ||
   "https://images.pexels.com/photos/13100143/pexels-photo-13100143.jpeg?auto=compress&cs=tinysrgb&h=1100";
 const IMG_WHY =
-  "https://images.pexels.com/photos/13100133/pexels-photo-13100133.jpeg?auto=compress&cs=tinysrgb&h=720";
-const IMG_TRUST =
-  "https://images.pexels.com/photos/13100140/pexels-photo-13100140.jpeg?auto=compress&cs=tinysrgb&h=720";
+  process.env.NEXT_PUBLIC_IMG_WHY ||
+  "https://images.pexels.com/photos/13100133/pexels-photo-13100133.jpeg?auto=compress&cs=tinysrgb&h=900";
 
-export default function Home() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [lang, setLang] = useState("ar"); // 'ar' | 'en'
-  const [amount, setAmount] = useState(25);
-  const [name, setName] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  const [ok, setOk] = useState("");
+// ---- SEO / OpenGraph
+export const metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: OG_TITLE,
+  description: OG_DESC,
+  openGraph: {
+    title: OG_TITLE,
+    description: OG_DESC,
+    url: SITE_URL,
+    siteName: "Genio OS",
+    images: [{ url: HERO_IMG }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: OG_TITLE,
+    description: OG_DESC,
+    images: [HERO_IMG],
+  },
+};
 
-  const menuBtnRef = useRef(null);
-  const closeBtnRef = useRef(null);
-  const panelRef = useRef(null);
-  const headerRef = useRef(null);
-  const mainRef = useRef(null);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 6);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const t = useMemo(() => {
-    const copy = {
-      ar: {
-        navContact: "اتصل بنا",
-        navEmail: "البريد",
-        switchAr: "عربي",
-        switchEn: "English",
-        heroTitle: "غزة تنزف… لكنها ما زالت صامدة",
-        heroDesc:
-          "تبرّعك اليوم ينقذ عائلة. سنرسل لك على واتساب وإيميل تحديثات موثّقة أين ذهب تبرعك وماذا أنجزنا.",
-        donateNow: "تبرّع الآن",
-        formTitle: "اكمل بياناتك قبل التبرّع",
-        name: "الاسم (إلزامي)",
-        whatsapp: "رقم واتساب (اختياري بصيغة دولية +971…)",
-        email: "الإيميل (اختياري)",
-        chooseAmount: "اختر المبلغ",
-        otherAmount: "مبلغ آخر",
-        agree:
-          "أوافق على استلام التحديثات عبر واتساب/الإيميل حول تبرعي والمشاريع.",
-        saveAndPay: "إرسال وحفظ ثم الدفع",
-        whyTitle: "لماذا هذه الحملة؟",
-        whyText:
-          "آلاف العائلات في غزة فقدت منازلها ومصدر رزقها. هدفنا توصيل مساعدات إنسانية مباشرة وشفافة (غذاء، ماء، أدوية، مساكن مؤقتة) عبر تبرعات آمنة من PayPal.",
-        trustTitle: "الشفافية أولاً",
-        trustBullets: [
-          "100% من التبرعات تُخصص للمساعدات الإنسانية.",
-          "توثيق بالصور والفيديو للتسليم والتأثير.",
-          "تقارير مبسّطة بالمبالغ والإنفاق.",
-        ],
-        contactTitle: "للتواصل",
-        contactLine: "info@genio.systems · WhatsApp: +972-000-000-000",
-        footer:
-          "معًا نبني الأمل — تبرعك اليوم قد يغيّر يومًا كاملًا لعائلة في غزة.",
-        errName: "الاسم مطلوب.",
-        errAmount: "حدد مبلغ صحيح (≥ 1).",
-        errGeneric: "حدث خطأ غير متوقع. سنكمل فتح PayPal.",
-        okSaved: "تم حفظ بياناتك، سيتم فتح PayPal الآن…",
-      },
-      en: {
-        navContact: "Contact Us",
-        navEmail: "Email",
-        switchAr: "عربي",
-        switchEn: "English",
-        heroTitle: "Gaza is bleeding… yet still standing",
-        heroDesc:
-          "Your donation helps a family today. We’ll send verified WhatsApp & email updates showing where your money goes and what we accomplish.",
-        donateNow: "Donate Now",
-        formTitle: "Complete your details before donating",
-        name: "Name (required)",
-        whatsapp: "WhatsApp (optional, international format +971…)",
-        email: "Email (optional)",
-        chooseAmount: "Choose an amount",
-        otherAmount: "Custom amount",
-        agree:
-          "I agree to receive WhatsApp/Email updates about my donation and the project.",
-        saveAndPay: "Save & Pay",
-        whyTitle: "Why this campaign?",
-        whyText:
-          "Thousands of families in Gaza have lost their homes and income. Our goal is to deliver direct, transparent aid (food, water, medicine, temporary shelter) through secure PayPal donations.",
-        trustTitle: "Transparency First",
-        trustBullets: [
-          "100% of donations go to humanitarian aid.",
-          "Every distribution is documented with photos/videos.",
-          "Simple reports of amounts received and spent.",
-        ],
-        contactTitle: "Contact",
-        contactLine: "info@genio.systems · WhatsApp: +972-000-000-000",
-        footer:
-          "Together we rebuild hope — your donation today can change a family’s day in Gaza.",
-        errName: "Name is required.",
-        errAmount: "Please choose a valid amount (≥ 1).",
-        errGeneric: "Unexpected error. We will proceed to PayPal.",
-        okSaved: "Saved. Opening PayPal…",
-      },
-    };
-    return copy[lang];
-  }, [lang]);
-
-  const preset = [10, 25, 50, 100];
-
-  function openPayPal(finalAmount) {
-    const amt = Math.max(1, Number(finalAmount || amount) || 1);
-
-    if (PAYPAL_LINK) {
-      const base = PAYPAL_LINK.replace(/\/+$/, "");
-      const url = `${base}/${amt}`;
-      window.open(url, "_blank", "noopener,noreferrer");
-      return;
-    }
-    // Fallback to your server checkout route
-    const params = new URLSearchParams({
-      amount: String(amt),
-      currency: "USD",
-      ref: "gaza",
-    });
-    window.location.href = `/api/payments/checkout?${params.toString()}`;
-  }
-
-  async function saveAndDonate() {
-    try {
-      setErr("");
-      setOk("");
-      if (!name.trim()) {
-        setErr(t.errName);
-        return;
-      }
-      const amt = Math.max(1, Number(amount) || 0);
-      if (!amt || amt < 1) {
-        setErr(t.errAmount);
-        return;
-      }
-
-      setBusy(true);
-
-      // Save donor (optional WhatsApp/email)
-      const payload = {
-        name: name.trim(),
-        whatsapp: whatsapp.trim(),
-        email: email.trim(),
-        amount: amt,
-        lang,
-        ref: "gaza",
-      };
-
-      let saved = false;
-      try {
-        const r = await fetch("/api/donors/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        saved = r.ok;
-      } catch {
-        saved = false;
-      }
-
-      if (saved) setOk(t.okSaved);
-      else setErr(t.errGeneric);
-
-      // Always proceed to PayPal (do not lose the donation)
-      setTimeout(() => {
-        openPayPal(amt);
-        setBusy(false);
-      }, 400);
-    } catch {
-      setErr(t.errGeneric);
-      openPayPal(amount);
-      setBusy(false);
-    }
-  }
-
+// ---- Page
+export default function HomePage() {
   return (
-    <div className={inter.className}>
-      <Head>
-        <title>{OG_TITLE}</title>
-        <meta name="description" content={OG_DESC} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="canonical" href={`${SITE_URL}/`} />
-        <meta name="theme-color" content="#0b111a" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${SITE_URL}/`} />
-        <meta property="og:title" content={OG_TITLE} />
-        <meta property="og:description" content={OG_DESC} />
-        <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={OG_TITLE} />
-        <meta name="twitter:description" content={OG_DESC} />
-        <meta name="twitter:image" content={`${SITE_URL}/og-image.png`} />
-      </Head>
-
-      {/* Header */}
-      <header
-        ref={headerRef}
-        className={scrolled ? "hdr scrolled" : "hdr"}
-        aria-label="Site header"
-        dir={lang === "ar" ? "rtl" : "ltr"}
-      >
-        <div className="container nav">
-          <Link href="/" className="brand" aria-label="Genio OS">
-            {/* Nio logo + eyes + voice ripple */}
-            <div className="nio-logo-wrap">
-              <img src="/logo-nio.svg" alt="Nio logo" className="logo" />
-              <div className="nio-eyes">
-                <span className="eye eye-left" />
-                <span className="eye eye-right" />
-              </div>
-              <div className="nio-voice" aria-hidden />
-            </div>
-            <span className="brand-name brand-name--neon">Genio OS</span>
+    <main className="min-h-screen bg-neutral-950 text-white">
+      {/* Top Navigation */}
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-950/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+          <Link href="/" className="font-semibold tracking-wide">
+            Genio OS
           </Link>
 
-          <div className="actions">
-            <Link className="btn btn-outline" href="/contact">
-              {t.navContact}
+          <nav className="flex items-center gap-6 text-sm">
+            <Link href="/chat" className="hover:opacity-80">
+              Chat
             </Link>
-            <a className="btn btn-outline" href="mailto:info@genio.systems">
-              {t.navEmail}
-            </a>
-
-            {/* Language switch */}
-            <div className="lang">
-              <button
-                className={lang === "ar" ? "lang-btn active" : "lang-btn"}
-                onClick={() => setLang("ar")}
-                aria-label="Arabic"
-              >
-                {t.switchAr}
-              </button>
-              <button
-                className={lang === "en" ? "lang-btn active" : "lang-btn"}
-                onClick={() => setLang("en")}
-                aria-label="English"
-              >
-                {t.switchEn}
-              </button>
-            </div>
-
-            <button
-              ref={menuBtnRef}
-              className="menu-chip"
-              onClick={() => setMenuOpen(true)}
-            >
-              ☰ Menu
-            </button>
-          </div>
+            <Link href="/support" className="hover:opacity-80">
+              Support
+            </Link>
+            <Link href="/login" className="hover:opacity-80">
+              Login
+            </Link>
+            <Link href="/admin" className="rounded-md border border-white/20 px-3 py-1.5 hover:bg-white/10">
+              Admin
+            </Link>
+          </nav>
         </div>
       </header>
 
-      {menuOpen && (
-        <div id="mobile-drawer" className="sheet" role="dialog">
-          <div className="backdrop" onClick={() => setMenuOpen(false)} />
-          <aside className="panel" ref={panelRef}>
-            <div className="panel-head">
-              <span className="brand-name brand-name--neon">Genio OS</span>
-              <button
-                ref={closeBtnRef}
-                className="close"
-                onClick={() => setMenuOpen(false)}
+      {/* Hero */}
+      <section className="relative">
+        <div
+          className="absolute inset-0 -z-10 bg-cover bg-center opacity-25"
+          style={{ backgroundImage: `url(${HERO_IMG})` }}
+        />
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-20 md:grid-cols-2">
+          <div className="flex flex-col justify-center">
+            <h1 className="mb-4 text-4xl font-extrabold leading-tight md:text-5xl">
+              {OG_TITLE}
+            </h1>
+            <p className="mb-8 text-base text-white/80 md:text-lg">{OG_DESC}</p>
+
+            <div className="flex flex-wrap gap-3">
+              {PAYPAL_LINK ? (
+                <a
+                  href={PAYPAL_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-md bg-emerald-500 px-5 py-3 text-sm font-semibold text-neutral-950 hover:bg-emerald-400"
+                >
+                  Donate via PayPal
+                </a>
+              ) : null}
+
+              <Link
+                href="/chat"
+                className="rounded-md border border-white/20 px-5 py-3 text-sm font-semibold hover:bg-white/10"
               >
-                ✕
-              </button>
+                Ask Nio
+              </Link>
             </div>
-            <nav className="panel-links">
-              <Link href="/chat">Chat</Link>
-              <Link href="/
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-white/10">
+            <img
+              src={IMG_WHY}
+              alt="Relief"
+              className="h-full w-full object-cover"
+              loading="eager"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Why / Info */}
+      <section className="border-t border-white/10">
+        <div className="mx-auto max-w-6xl px-4 py-14">
+          <h2 className="mb-6 text-2xl font-bold">Where your donation goes</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <Card
+              title="Direct Aid"
+              text="Funds are prioritized for urgent family needs: food, medicine, and safe accommodation."
+            />
+            <Card
+              title="Transparent"
+              text="We publish periodic summaries and keep admin costs minimal to maximize impact."
+            />
+            <Card
+              title="Secure"
+              text="Payments are processed through trusted providers. No card data stored on our side."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-white/60 md:flex-row">
+          <p>© {new Date().getFullYear()} Genio OS. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <Link href="/support" className="hover:opacity-80">
+              Support
+            </Link>
+            <Link href="/login" className="hover:opacity-80">
+              Login
+            </Link>
+          </div>
+        </div>
+      </footer>
+    </main>
+  );
+}
+
+// ---- UI
+function Card({ title, text }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-neutral-900 p-5">
+      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
+      <p className="text-white/70">{text}</p>
+    </div>
+  );
+}
