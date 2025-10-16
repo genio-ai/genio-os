@@ -1,96 +1,150 @@
+/* File: app/globals.css */
+
 /* Tailwind layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* === Base reset === */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* =========================
+   Base styles (Tailwind-safe)
+   ========================= */
+@layer base {
+  :root {
+    --bg: #08162e;
+    --bg-soft: #0b1730;
+    --text: #e6f0ff;
+    --text-soft: #e6eef8;
+    --text-dim: #8aa0bf;
+    --border: rgba(255, 255, 255, 0.12);
+    --border-soft: rgba(255, 255, 255, 0.08);
+  }
 
-html, body {
-  height: 100%;
-  background: #08162e;
-  color: #e6f0ff;
-  font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-}
+  html, body {
+    height: 100%;
+  }
 
-/* Links */
-a {
-  color: rgba(255, 255, 255, 0.92);
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-  opacity: 0.9;
-}
+  html {
+    scroll-behavior: smooth;
+  }
 
-/* === Mobile fixes === */
+  body {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: -apple-system, "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  }
 
-/* 1) Hide desktop nav links on mobile */
-@media (max-width: 899px) {
-  .nav-links {
-    display: none !important;
+  /* Links */
+  a {
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+    opacity: 0.9;
+  }
+
+  /* Accessible focus style for keyboard users */
+  :focus-visible {
+    outline: 2px solid rgba(0, 201, 255, 0.9);
+    outline-offset: 2px;
+  }
+
+  /* Form controls (desktop + iOS Safari autofill) */
+  input,
+  textarea,
+  select {
+    color: var(--text-soft) !important;
+    caret-color: var(--text-soft) !important;
+    background-color: var(--bg-soft);
+    -webkit-text-fill-color: var(--text-soft) !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-dim) !important;
+    opacity: 1 !important;
+  }
+
+  input:-webkit-autofill,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: var(--text-soft) !important;
+    box-shadow: 0 0 0px 1000px var(--bg-soft) inset !important;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-/* 2) Convert the mobile menu from overlay to dropdown under header */
-.site-header .mobile-menu {
-  position: static !important;
-  inset: auto !important;
-  z-index: auto !important;
-  background: transparent !important;
-  backdrop-filter: none !important;
-  pointer-events: auto !important;
-}
+/* =========================
+   Component-level helpers
+   ========================= */
+@layer components {
+  /* Hide desktop nav links on mobile */
+  @media (max-width: 899px) {
+    .nav-links {
+      display: none !important;
+    }
+  }
 
-.site-header .mobile-inner {
-  background: rgba(8, 22, 46, 0.96);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+  /* Mobile menu as dropdown under header (if used) */
+  .site-header .mobile-menu {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    pointer-events: auto !important;
+  }
 
-.site-header .mobile-inner .menu-link {
-  color: #e6efff;
-  text-decoration: none;
-  padding: 10px 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
+  .site-header .mobile-inner {
+    background: rgba(8, 22, 46, 0.96);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 
-.site-header .mobile-inner .menu-cta {
-  align-self: flex-start;
-}
+  .site-header .mobile-inner .menu-link {
+    color: #e6efff;
+    text-decoration: none;
+    padding: 10px 2px;
+    border-bottom: 1px solid var(--border-soft);
+  }
 
-/* 3) Safety override for old styles */
-.mobile-menu[role="dialog"] {
-  position: static !important;
-}
+  .site-header .mobile-inner .menu-cta {
+    align-self: flex-start;
+  }
 
-/* === Chat input visibility fix (desktop + iOS) === */
-input,
-textarea,
-select {
-  color: #e6eef8 !important;
-  caret-color: #e6eef8 !important;
-  background-color: #0b1730;
-  -webkit-text-fill-color: #e6eef8 !important; /* iOS Safari fix */
-}
+  /* Safety override for old styles */
+  .mobile-menu[role="dialog"] {
+    position: static !important;
+  }
 
-input::placeholder,
-textarea::placeholder {
-  color: #8aa0bf !important;
-  opacity: 1 !important;
-}
-
-input:-webkit-autofill,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
-  -webkit-text-fill-color: #e6eef8 !important;
-  box-shadow: 0 0 0px 1000px #0b1730 inset !important;
-  transition: background-color 9999s ease-in-out 0s;
+  /* Scrollbar (nice but subtle) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.25) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.25);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
 }
