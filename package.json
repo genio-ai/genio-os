@@ -12,7 +12,8 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "braintree-web-drop-in": "^1.42.0",
-    "@supabase/supabase-js": "^2.45.0"
+    "@supabase/supabase-js": "^2.45.0",
+    "@paypal/checkout-server-sdk": "^1.0.3"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.19",
