@@ -3,25 +3,35 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function CheckoutPage() {
-  const [total, setTotal] = useState(0);
+  // ——— TOTAL: اقرأه فورًا قبل أول رندر
+  const initialTotal = useMemo(() => {
+    if (typeof window === "undefined") return 0;
+    const url = new URL(window.location.href);
+    const t = url.searchParams.get("total") || localStorage.getItem("donation_total");
+    const val = parseFloat(t || "0");
+    return Number.isFinite(val) ? +val.toFixed(2) : 0;
+  }, []);
+  const [total, setTotal] = useState(initialTotal);
+
   const [busy, setBusy] = useState(false);
   const [sdkReady, setSdkReady] = useState(false);
   const hfRef = useRef(null);      // hostedFields instance
   const clientRef = useRef(null);  // braintree client instance
 
-  const fmt = useMemo(() => new Intl.NumberFormat("en-US", {
-    style: "currency", currency: "USD"
-  }), []);
+  const fmt = useMemo(
+    () => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }),
+    []
+  );
 
-  // Read total from URL or localStorage
+  // (اختياري) لو تغيّر الرابط بعد فتح الصفحة
   useEffect(() => {
     const url = new URL(window.location.href);
-    const t = url.searchParams.get("total");
-    const val = t ? parseFloat(t) : parseFloat(localStorage.getItem("donation_total") || "0");
-    setTotal(Number.isFinite(val) ? +val.toFixed(2) : 0);
+    const t = url.searchParams.get("total") || localStorage.getItem("donation_total");
+    const val = parseFloat(t || "0");
+    if (Number.isFinite(val)) setTotal(+val.toFixed(2));
   }, []);
 
-  // Load Braintree SDKs (client + hosted-fields) — لا 3DS
+  // تحميل SDK: client + hosted-fields (بدون 3DS)
   useEffect(() => {
     const urls = [
       "https://js.braintreegateway.com/web/3.96.0/js/client.min.js",
@@ -38,7 +48,7 @@ export default function CheckoutPage() {
     }
   }, []);
 
-  // Init Hosted Fields (نُظهر CVV صراحةً)
+  // تهيئة Hosted Fields (number / expiration / CVV)
   useEffect(() => {
     if (!sdkReady) return;
     let mounted = true;
@@ -93,7 +103,7 @@ export default function CheckoutPage() {
 
     try {
       setBusy(true);
-      // tokenize يجمّع number/exp/cvv ويولّد nonce
+      // tokenize يجمع number/exp/cvv ويولد nonce — بدون 3DS
       const { nonce } = await hf.tokenize({ vault: false });
 
       const res = await fetch("/api/payments/checkout", {
@@ -102,7 +112,7 @@ export default function CheckoutPage() {
           "Content-Type": "application/json",
           "X-Idempotency-Key": `don-${Date.now()}-${Math.random().toString(36).slice(2)}`
         },
-        body: JSON.stringify({ nonce, amount: +Number(total).toFixed(2) }) // 👈 بدون 3DS
+        body: JSON.stringify({ nonce, amount: +Number(total).toFixed(2) })
       });
 
       const j = await res.json();
@@ -127,6 +137,7 @@ export default function CheckoutPage() {
         <section className="card pay">
           <h1 className="title">Checkout • <span dir="rtl">إتمام الدفع</span></h1>
 
+          {/* Total واضح كنص */}
           <div className="sum card">
             <div className="row">
               <div className="lbl">Total</div>
@@ -134,7 +145,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Hosted Fields UI */}
+          {/* Hosted Fields */}
           <div className="hf" dir="ltr">
             <label className="lab">Card Number</label>
             <div id="card-number" className="hfBox" />
