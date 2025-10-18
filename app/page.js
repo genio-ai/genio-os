@@ -1,10 +1,12 @@
 // app/page.js
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 
+/* -----------------------
+ * Config
+ * ----------------------*/
 const FEE_RATE = 0.05;
-
 const ITEMS = [
   { id: "bread",     ar: "كيس خبز عائلي (5 أرغفة)",             en: "Family Bread Bag (5 loaves)",         price: 2.5 },
   { id: "veg_meal",  ar: "وجبة ساخنة نباتية (رز + خضار)",        en: "Hot Meal — Veg (Rice + Veg)",         price: 7.5 },
@@ -13,6 +15,178 @@ const ITEMS = [
   { id: "flour",     ar: "كيس طحين 25 كغ",                       en: "Flour 25 kg",                          price: 34 },
 ];
 
+/* -----------------------
+ * Payment Overlay (Modal)
+ * ----------------------*/
+function Backdrop({ onClose }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+        display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000
+      }}
+    />
+  );
+}
+
+function useDropin() {
+  const instanceRef = useRef(null);
+
+  async function ensureScript() {
+    if (window.braintree?.dropin) return;
+    await new Promise((resolve, reject) => {
+      const id = "bt-dropin-cdn";
+      if (document.getElementById(id)) return resolve();
+      const s = document.createElement("script");
+      s.id = id;
+      s.src = "https://js.braintreegateway.com/web/dropin/1.40.1/js/dropin.min.js";
+      s.onload = resolve;
+      s.onerror = () => reject(new Error("Failed to load Braintree Drop-in"));
+      document.body.appendChild(s);
+    });
+  }
+
+  async function init(containerEl) {
+    await ensureScript();
+
+    const tokRes = await fetch("/api/payments/token");
+    const { ok, clientToken, error } = await tokRes.json();
+    if (!ok) throw new Error(error || "No client token");
+
+    // cleanup older instance if any
+    if (instanceRef.current?.teardown) {
+      try { await instanceRef.current.teardown(); } catch {}
+      instanceRef.current = null;
+    }
+    if (containerEl) containerEl.innerHTML = "";
+
+    return new Promise((resolve, reject) => {
+      window.braintree.dropin.create(
+        {
+          authorization: clientToken,
+          container: containerEl,
+          paypal: { flow: "vault" },
+          card: { cardholderName: true },
+        },
+        (err, inst) => {
+          if (err) return reject(err);
+          instanceRef.current = inst;
+          resolve(inst);
+        }
+      );
+    });
+  }
+
+  async function pay(amount) {
+    if (!instanceRef.current) throw new Error("Payment UI not ready");
+    const { nonce } = await instanceRef.current.requestPaymentMethod();
+    const res = await fetch("/api/payments/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nonce, amount }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || "Payment failed");
+    return data.txn;
+  }
+
+  return { init, pay };
+}
+
+function PayOverlay({ open, onClose, amount, onSuccess }) {
+  const mountRef = useRef(null);
+  const [ready, setReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+  const [txn, setTxn] = useState(null);
+  const { init, pay } = useDropin();
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!open) return;
+      setErr(""); setTxn(null); setReady(false);
+      try {
+        await init(mountRef.current);
+        if (mounted) setReady(true);
+      } catch (e) {
+        if (mounted) setErr(e.message || "Drop-in init error");
+      }
+    })();
+    return () => { mounted = false; };
+  }, [open, init]);
+
+  async function onPay() {
+    try {
+      setLoading(true); setErr(""); setTxn(null);
+      const t = await pay(amount);
+      setTxn(t);
+      onSuccess?.(t);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (!open) return null;
+
+  return (
+    <>
+      <Backdrop onClose={onClose} />
+      <div
+        role="dialog"
+        aria-modal="true"
+        style={{
+          position: "fixed", zIndex: 1001, inset: 0, display: "flex",
+          alignItems: "center", justifyContent: "center", pointerEvents: "none"
+        }}
+      >
+        <div
+          style={{
+            width: "min(520px, 92vw)", background: "#111", color: "#fff",
+            borderRadius: 12, padding: 16, boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
+            pointerEvents: "auto"
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 style={{ margin: 0 }}>Checkout</h2>
+            <button onClick={onClose} style={{ background: "transparent", border: 0, color: "#fff", fontSize: 18 }}>✕</button>
+          </div>
+
+          <div style={{ marginTop: 8, opacity: 0.9 }}>Amount: <strong>${Number(amount).toFixed(2)}</strong></div>
+          <div ref={mountRef} style={{ marginTop: 12 }} />
+
+          <button
+            onClick={onPay}
+            disabled={!ready || loading}
+            style={{
+              marginTop: 14, width: "100%", padding: 12, borderRadius: 8,
+              border: "none", cursor: !ready || loading ? "not-allowed" : "pointer"
+            }}
+          >
+            {loading ? "Processing…" : `Pay $${Number(amount).toFixed(2)}`}
+          </button>
+
+          {err && <div style={{ color: "tomato", marginTop: 10 }}>{err}</div>}
+          {txn && (
+            <div style={{ marginTop: 12, fontSize: 14 }}>
+              <div><strong>Success</strong></div>
+              <div>ID: {txn.id}</div>
+              <div>Status: {txn.status}</div>
+              <div>Amount: {txn.amount}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* -----------------------
+ * Page
+ * ----------------------*/
 export default function Page() {
   // cart
   const [q, setQ] = useState(() => Object.fromEntries(ITEMS.map(i => [i.id, 0])));
@@ -24,6 +198,7 @@ export default function Page() {
 
   // ui
   const [nowStr, setNowStr] = useState("");
+  const [payOpen, setPayOpen] = useState(false);
 
   useEffect(() => {
     setNowStr(new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}));
@@ -40,11 +215,20 @@ export default function Page() {
 
   const inc = id => setQ(s=>({...s,[id]:(s[id]||0)+1}));
 
-  // ✅ نفس الزر لكن يفتح صفحة الدفع المستقلة
-  function goCheckout(){
-    if(subtotal<=0){ alert("Add items or enter a custom amount first."); return; }
-    localStorage.setItem("donation_total", String(total));
-    window.location.href = "/checkout?total=" + total.toFixed(2);
+  // open payment overlay
+  function openPay() {
+    if (subtotal <= 0) {
+      alert("Add items or enter a custom amount first.");
+      return;
+    }
+    setPayOpen(true);
+  }
+
+  // after success you can reset cart or keep it as you wish
+  function handlePaid() {
+    // Example: clear cart & inputs after success
+    // setQ(Object.fromEntries(ITEMS.map(i => [i.id, 0])));
+    // setCustom(""); setPhone(""); setEmail("");
   }
 
   return (
@@ -124,17 +308,25 @@ export default function Page() {
       {subtotal>0 && (
         <div className="sticky" role="region" aria-label="Donation summary">
           <div><strong>Total • <span dir="rtl">الإجمالي</span></strong>: {fmt.format(total)}</div>
-          <button className="btnPrimary" onClick={goCheckout}>Donate now • تبرّع الآن</button>
+          <button className="btnPrimary" onClick={openPay}>Donate now • تبرّع الآن</button>
         </div>
       )}
+
+      {/* Payment Modal */}
+      <PayOverlay
+        open={payOpen}
+        onClose={()=>setPayOpen(false)}
+        amount={total}
+        onSuccess={handlePaid}
+      />
 
       {/* ===== Styles ===== */}
       <style jsx global>{`
         :root{
-          --bg:#CFE5FA;           /* سماوي أغمق */
-          --unrwa:#0072CE;        /* أزرق أونروا */
-          --unrwa-dark:#003366;   /* نص داكن */
-          --line:#C5D9EF;         /* حدود ناعمة */
+          --bg:#CFE5FA;
+          --unrwa:#0072CE;
+          --unrwa-dark:#003366;
+          --line:#C5D9EF;
         }
         *{ box-sizing:border-box }
         html, body { height:100%; }
@@ -169,11 +361,9 @@ export default function Page() {
         .ping{ display:inline-block; width:10px; height:10px; border-radius:50%; background:#2DD07F; margin-right:6px; animation:pulseDot 1.8s infinite; }
         @keyframes pulseDot{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
 
-        /* STACK ALWAYS */
         .stack{ width:min(1200px,94vw); margin:0 auto 90px; padding:16px; display:flex; flex-direction:column; gap:16px; }
         .section{ display:flex; flex-direction:column; gap:12px; }
 
-        /* Items */
         .itemCard{ padding:14px 16px; display:flex; justify-content:space-between; align-items:center; }
         .enTitle{ font-weight:800; color: var(--unrwa-dark); }
         .arTitle{ font-size:14px; color:#355C82; margin-top:2px; }
@@ -196,7 +386,6 @@ export default function Page() {
         .customLabel{ display:block; margin-bottom:6px; color:#355C82; }
         .input{ width:100%; padding:12px; border:1px solid var(--line); border-radius:12px; }
 
-        /* Checkout */
         .panel{ padding:16px; }
         .panelHead{ font-weight:900; margin-bottom:8px; font-size:18px; color: var(--unrwa-dark); }
         .totalRow{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap; }
@@ -208,7 +397,6 @@ export default function Page() {
         .label{ display:block; margin:8px 0 6px; color:#2B4563; font-size:14px; }
         .hint{ margin-top:12px; font-size:12px; color:#6c8fb1; }
 
-        /* Sticky */
         .sticky{
           position:sticky; bottom:0; z-index:500; display:flex; justify-content:space-between; align-items:center; gap:12px;
           padding:12px 16px; background:#FFFFFFEE; border-top:1px solid var(--line); backdrop-filter: blur(6px);
