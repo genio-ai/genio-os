@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function CheckoutPage() {
-  // amounts can be passed via query (?total=12.34) or read from localStorage if عندك كارت
   const [total, setTotal] = useState(0);
   const [busy, setBusy] = useState(false);
   const [btReady, setBtReady] = useState(false);
@@ -15,7 +14,6 @@ export default function CheckoutPage() {
     []
   );
 
-  // read total from URL or storage
   useEffect(() => {
     const url = new URL(window.location.href);
     const t = url.searchParams.get("total");
@@ -23,7 +21,6 @@ export default function CheckoutPage() {
     setTotal(Number.isFinite(val) ? +val.toFixed(2) : 0);
   }, []);
 
-  // load Braintree Drop-in
   useEffect(() => {
     const src = "https://js.braintreegateway.com/web/dropin/1.39.1/js/dropin.min.js";
     if (document.querySelector(`script[src="${src}"]`)) {
@@ -38,7 +35,6 @@ export default function CheckoutPage() {
     document.head.appendChild(s);
   }, []);
 
-  // init drop-in
   useEffect(() => {
     if (!btReady || !dropinRef.current) return;
     let mounted = true;
@@ -55,8 +51,15 @@ export default function CheckoutPage() {
           container: dropinRef.current,
           locale: "en_US",
           paypal: false,
-          card: { cardholderName: true },
-          threeDSecure: { amount: (total || 0).toFixed(2) } // 3DS if enabled in dashboard
+          card: {
+            cardholderName: true,
+            overrides: {
+              fields: {
+                cvv: { label: "CVV", placeholder: "123" } // 👈 إجبار إظهار حقل CVV
+              }
+            }
+          },
+          threeDSecure: { amount: (total || 0).toFixed(2) }
         });
 
         if (mounted) instanceRef.current = inst;
@@ -80,18 +83,14 @@ export default function CheckoutPage() {
 
     try {
       setBusy(true);
-
-      // request nonce (and trigger 3DS challenge if active)
       const { nonce } = await instanceRef.current.requestPaymentMethod({
         threeDSecure: { amount: (total || 0).toFixed(2) }
       });
 
-      // send to server
       const res = await fetch("/api/payments/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // simple idempotency (improve with UUID on real prod)
           "X-Idempotency-Key": `don-${Date.now()}-${Math.random().toString(36).slice(2)}`
         },
         body: JSON.stringify({ nonce, amount: +Number(total).toFixed(2) })
@@ -142,31 +141,32 @@ export default function CheckoutPage() {
       </main>
 
       <style jsx global>{`
-        :root{
-          --bg:#F4F7FB; --line:#E3EAF3; --ink:#0E2240;
-          --pri:#0A66C2; --pri-dark:#084F97;
+        :root {
+          --bg: #f4f7fb;
+          --line: #e3eaf3;
+          --ink: #0e2240;
+          --pri: #0a66c2;
+          --pri-dark: #084f97;
         }
-        *{box-sizing:border-box}
-        body{margin:0; background:var(--bg); color:var(--ink); font-family:Inter, system-ui, sans-serif}
-        .bar{position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center;
-             padding:12px 16px; background:#fff; border-bottom:1px solid var(--line)}
-        .brand{font-weight:900; letter-spacing:.5px}
-        .link{background:transparent; border:0; color:#2b5d8f; cursor:pointer; font-weight:700}
-        .wrap{max-width:920px; margin:24px auto; padding:0 16px}
-        .card{background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 4px 10px rgba(0,0,0,.04)}
-        .pay{padding:18px; }
-        .title{margin:0 0 12px}
-        .sum{padding:12px; margin-bottom:16px}
-        .row{display:flex; justify-content:space-between; align-items:center}
-        .lbl{color:#4a678b}
-        .amt{font-weight:900}
-        .dropin{margin:12px 0}
-        .btn{
-          width:100%; height:46px; border-radius:12px; border:1px solid var(--pri-dark);
-          background:var(--pri); color:#fff; font-weight:900; cursor:pointer;
-        }
-        .btn:disabled{opacity:.6; cursor:not-allowed}
-        .hint{font-size:12px; color:#6a86a8; margin:10px 2px 0}
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+        .bar { position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center;
+               padding: 12px 16px; background: #fff; border-bottom: 1px solid var(--line); }
+        .brand { font-weight: 900; letter-spacing: .5px; }
+        .link { background: transparent; border: 0; color: #2b5d8f; cursor: pointer; font-weight: 700; }
+        .wrap { max-width: 920px; margin: 24px auto; padding: 0 16px; }
+        .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 4px 10px rgba(0,0,0,.04); }
+        .pay { padding: 18px; }
+        .title { margin: 0 0 12px; }
+        .sum { padding: 12px; margin-bottom: 16px; }
+        .row { display: flex; justify-content: space-between; align-items: center; }
+        .lbl { color: #4a678b; }
+        .amt { font-weight: 900; }
+        .dropin { margin: 12px 0; }
+        .btn { width: 100%; height: 46px; border-radius: 12px; border: 1px solid var(--pri-dark);
+               background: var(--pri); color: #fff; font-weight: 900; cursor: pointer; }
+        .btn:disabled { opacity: .6; cursor: not-allowed; }
+        .hint { font-size: 12px; color: #6a86a8; margin: 10px 2px 0; }
       `}</style>
     </div>
   );
