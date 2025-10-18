@@ -1,33 +1,39 @@
 import { NextResponse } from "next/server";
 import { getBraintreeGateway } from "../../../../lib/braintree";
 
+// مهم: خليه يشتغل على Node.js وليس Edge
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req) {
   try {
-    const { nonce, amount } = await req.json();
+    const { nonce, amount, orderId, customer } = await req.json();
 
     if (!nonce) {
-      return NextResponse.json(
-        { ok: false, error: "Missing payment nonce" },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "Missing payment nonce" }, { status: 400 });
     }
 
-    const amt = String(amount || "").trim();
+    const amt = String(amount ?? "").trim();
     if (!/^\d+(\.\d{1,2})?$/.test(amt)) {
-      return NextResponse.json(
-        { ok: false, error: "Invalid amount format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "Invalid amount format" }, { status: 400 });
     }
 
     const gateway = getBraintreeGateway();
 
+    // (اختياري) عيّن merchantAccountId إذا عندك عملة/حساب مخصص في Braintree
+    const merchantAccountId = process.env.BRAINTREE_MERCHANT_ACCOUNT_ID || undefined;
+
     const result = await gateway.transaction.sale({
       amount: amt,
       paymentMethodNonce: nonce,
-      options: { submitForSettlement: true }, // donations: no 3DS
+      merchantAccountId,             // يترك undefined إذا مش مضاف
+      options: {
+        submitForSettlement: true,   // تَسوية مباشرة (تبرعات)
+        // threeDSecure: { required: false }, // فعّلها لو مزوّدك يشترط 3DS
+      },
+      orderId: orderId || undefined, // مرّر رقم الطلب إن وجد
+      customer: customer || undefined,
+      customFields: undefined,       // أضف حقولًا مخصّصة من لوحة Braintree إن رغبت
     });
 
     if (result?.success && result?.transaction) {
@@ -38,9 +44,10 @@ export async function POST(req) {
       });
     }
 
+    // تجميع رسائل الخطأ من Braintree بشكل أوضح
     const deepErrors =
       typeof result?.errors?.deepErrors === "function"
-        ? result.errors.deepErrors().map((e) => e.message).join("; ")
+        ? result.errors.deepErrors().map((e) => `${e.code || ""} ${e.message}`).join("; ")
         : "";
     const message = result?.message || deepErrors || "Transaction failed";
 
