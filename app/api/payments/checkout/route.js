@@ -1,3 +1,4 @@
+// app/api/payments/checkout/route.js
 import { NextResponse } from "next/server";
 import { getBraintreeGateway } from "../../../../lib/braintree";
 
@@ -27,7 +28,7 @@ export async function POST(req) {
     const result = await gateway.transaction.sale({
       amount: amt,
       paymentMethodNonce: nonce,
-      options: { submitForSettlement: true },
+      options: { submitForSettlement: true }, // تبرّع، بدون 3DS
     });
 
     if (result?.success && result?.transaction) {
