@@ -17,9 +17,9 @@ const inter = Inter({
 // ---- Site constants
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "") || "https://genio.systems";
-const OG_TITLE = "genio os — Create your digital twin";
+const OG_TITLE = "Build Gaza — Support Relief and Hope";
 const OG_DESC =
-  "Another you — a digital twin that replies in your tone, posts content, sends WhatsApp & emails, even drops TikToks.";
+  "صفحة تبرعات رسمية لغزة. تبرع بأمان لتوفير الغذاء والطحين والمساعدات الأساسية للعائلات المتضرّرة عبر جمعيات مرخّصة وموثوقة. | Official Gaza Relief Page. Donate securely to provide food, flour, and essential supplies for displaced families through licensed and trusted charities.";
 
 // ---- Viewport (recommended by Next.js)
 export const viewport = {
@@ -41,7 +41,7 @@ export const metadata = {
     title: OG_TITLE,
     description: OG_DESC,
     images: ["/og-image.png"], // ensure this file exists in /public
-    siteName: "genio os",
+    siteName: "Build Gaza",
   },
   twitter: {
     card: "summary_large_image",
