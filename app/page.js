@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default function Page() {
   return (
     <main
@@ -39,7 +42,7 @@ export default function Page() {
           color: "#d4af37",
         }}
       >
-        Enter Reading Room →
+        Enter Reading Room
       </a>
     </main>
   );
