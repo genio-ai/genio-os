@@ -1,0 +1,3 @@
+# Ignore legacy folders/APIs so build doesn't compile them
+pages
+app/api/paypal
