@@ -1,3 +1,4 @@
-# Ignore legacy folders/APIs so build doesn't compile them
+# Ignore legacy or unused folders so build stays clean
 pages
 app/api/paypal
+app/api/debug-supabase
