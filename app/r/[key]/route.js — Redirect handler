@@ -1,0 +1,71 @@
+// app/r/[key]/route.js
+// GET /r/:key -> record click, set cookie, redirect to partner link (or placeholder)
+// Requires: referrals table populated OR fallback to using the key as attribution.
+
+import { supabaseAdmin } from '../../../lib/supabase';
+
+export async function GET(req, { params }) {
+  const key = params?.key;
+  if (!key) return Response.redirect('/', 302);
+
+  try {
+    // Try find a referral row (if you pre-created referrals with personal_url)
+    const { data: ref } = await supabaseAdmin
+      .from('referrals')
+      .select('id,personal_url,offer_id,affiliate_id')
+      .eq('key', key)
+      .limit(1)
+      .maybeSingle();
+
+    // If found, use personal_url. Otherwise, fallback to a placeholder redirect (we still record click attribution)
+    let destination = ref && ref.personal_url ? ref.personal_url : null;
+
+    // If no personal_url and we have affiliates table, try build fallback: find affiliate by user_key
+    if (!destination) {
+      const { data: aff } = await supabaseAdmin
+        .from('affiliates')
+        .select('id,user_key')
+        .eq('user_key', key)
+        .limit(1)
+        .maybeSingle();
+
+      if (aff && aff.user_key) {
+        // fallback destination — you should replace this with an actual partner default URL or a landing
+        destination = `${process.env.NEXT_PUBLIC_BASE_URL || (new URL(req.url)).origin}/?ref=${encodeURIComponent(key)}`;
+      } else {
+        // ultimate fallback: home
+        destination = '/';
+      }
+    }
+
+    // record click (non-blocking)
+    try {
+      const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || null;
+      const ua = req.headers.get('user-agent') || null;
+      await supabaseAdmin.from('referral_events').insert({
+        referral_key: key,
+        offer_id: ref ? ref.offer_id : null,
+        event_type: 'click',
+        ip,
+        ua,
+        metadata: { forwarded: true }
+      });
+    } catch (e) {
+      console.error('failed to insert click event', e);
+    }
+
+    // set cookie for attribution (14 days)
+    const cookie = `genio_ref=${encodeURIComponent(key)}; Path=/; Max-Age=${60 * 60 * 24 * 14}; HttpOnly; SameSite=Lax`;
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: destination,
+        'Set-Cookie': cookie
+      }
+    });
+  } catch (err) {
+    console.error('redirect handler error', err);
+    return Response.redirect('/', 302);
+  }
+}
