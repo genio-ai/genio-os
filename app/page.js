@@ -1,141 +1,179 @@
+// app/page.js
 "use client";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-import { useEffect, useMemo, useState } from "react";
+/**
+ * Link Chain — Landing (Bilingual AR/EN)
+ * - Language toggle stored in localStorage
+ * - Direction (ltr/rtl) handled per language
+ */
 
-export const dynamic = "force-dynamic"; // اجعل الصفحة ديناميكية
-
-const DECK = [
-  "The Fool","The Magician","The High Priestess","The Empress","The Emperor",
-  "The Hierophant","The Lovers","The Chariot","Strength","The Hermit",
-  "Wheel of Fortune","Justice","The Hanged Man","Death","Temperance",
-  "The Devil","The Tower","The Star","The Moon","The Sun","Judgement","The World"
-];
+const translations = {
+  en: {
+    title: "Link Chain",
+    tagline: "One link → instant income",
+    heroTitle: "Grab a ready affiliate link. Start earning today.",
+    heroDesc:
+      "No network signup. No setup. We provide a high-converting link + plug-and-post kit — copy, share, earn.",
+    getLink: "Get My Link",
+    how: "How it works",
+    plansTitle: "Pick a plan",
+    planBasic: "Basic",
+    planPro: "Pro",
+    planVIP: "VIP",
+    planBasicText: "One guaranteed link + post kit",
+    planProText: "Two links + monthly update",
+    planVIPText: "Three links + priority support",
+    priceBasic: "29 AED",
+    pricePro: "49 AED",
+    priceVIP: "79 AED",
+    footerNote:
+      "Payments via Stripe/PayPal. After purchase you'll be redirected to generate your sub-id link.",
+  },
+  ar: {
+    title: "لينك تشين",
+    tagline: "رابط واحد → دخل فوري",
+    heroTitle: "احصل على رابط أفلييت جاهز. ابدأ بالربح اليوم.",
+    heroDesc:
+      "لا تسجيل في شبكات. لا إعدادات معقّدة. نوفر رابط ناجح + أدوات نشر جاهزة — انسخ، شارك، واربح.",
+    getLink: "احصل على رابط",
+    how: "كيف تعمل",
+    plansTitle: "اختر الباقة",
+    planBasic: "أساسي",
+    planPro: "برو",
+    planVIP: "في أي بي",
+    planBasicText: "رابط مضمون واحد + أدوات نشر",
+    planProText: "رابطان + تحديث شهري",
+    planVIPText: "ثلاثة روابط + دعم أولوية",
+    priceBasic: "٢٩ درهم",
+    pricePro: "٤٩ درهم",
+    priceVIP: "٧٩ درهم",
+    footerNote:
+      "الدفع عبر Stripe/PayPal. بعد الشراء سيتم توجيهك لتوليد رابطك الخاص.",
+  },
+};
 
 export default function Page() {
-  const [mode, setMode] = useState("daily");
-  const [cards, setCards] = useState([]);
-  const [shuffling, setShuffling] = useState(false);
-
-  const count = useMemo(() => (mode === "daily" ? 1 : mode === "luck" ? 3 : 5), [mode]);
+  const [lang, setLang] = useState("en");
+  const t = translations[lang];
 
   useEffect(() => {
-    startReading("daily");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const saved = localStorage.getItem("lc_lang");
+    if (saved) setLang(saved);
   }, []);
 
-  function startReading(selectedMode) {
-    setMode(selectedMode);
-    setShuffling(true);
-    setCards([]);
-    setTimeout(() => {
-      const drawn = drawUnique(selectedMode === "daily" ? 1 : selectedMode === "luck" ? 3 : 5);
-      setCards(drawn);
-      setShuffling(false);
-    }, 700);
-  }
-
-  function drawUnique(n) {
-    const pool = [...DECK];
-    const drawn = [];
-    for (let i = 0; i < n; i++) {
-      const idx = Math.floor(Math.random() * pool.length);
-      drawn.push(pool.splice(idx, 1)[0]);
-    }
-    return drawn;
-  }
+  useEffect(() => {
+    localStorage.setItem("lc_lang", lang);
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  }, [lang]);
 
   return (
-    <main style={styles.page}>
-      <div style={styles.backdrop} />
-      <header style={styles.header}>
-        <img
-          src="/genio-reader-logo.png?v=2"
-          alt="GENIO The Reader"
-          width="40"
-          height="40"
-          onError={(e) => (e.currentTarget.style.display = "none")}
-          style={{ marginRight: 8 }}
-        />
-        <div style={{ fontWeight: 600, letterSpacing: 1 }}>GENIO — The Reader</div>
+    <main className="min-h-screen bg-gray-50 text-gray-900">
+      <header className="bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded flex items-center justify-center font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+              LC
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold">{t.title}</h1>
+              <p className="text-xs text-gray-500">{t.tagline}</p>
+            </div>
+          </div>
+
+          <nav className="flex items-center gap-4">
+            <Link href="/get-link" className="text-sm hover:underline">
+              {t.getLink}
+            </Link>
+            <Link href="/dashboard" className="text-sm hover:underline">
+              {t.how}
+            </Link>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setLang(lang === "en" ? "ar" : "en")}
+                className="px-3 py-1 border rounded text-sm"
+                aria-label="Toggle language"
+              >
+                {lang === "en" ? "عربى" : "EN"}
+              </button>
+              <Link
+                href="/admin"
+                className="px-4 py-2 bg-indigo-600 text-white rounded text-sm"
+              >
+                Admin
+              </Link>
+            </div>
+          </nav>
+        </div>
       </header>
 
-      <section style={styles.room}>
-        <h1 style={styles.title}>Reading Room</h1>
-        <p style={styles.subtitle}>Focus on your intention, breathe in, and receive your reading.</p>
+      <section className="max-w-6xl mx-auto px-6 py-16">
+        <div className="grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <h2 className="text-4xl font-extrabold leading-tight">
+              {t.heroTitle}
+            </h2>
+            <p className="mt-6 text-gray-600">{t.heroDesc}</p>
 
-        <div style={styles.controls}>
-          <button style={btn(mode === "daily")} onClick={() => startReading("daily")} disabled={shuffling}>Daily (1)</button>
-          <button style={btn(mode === "luck")}  onClick={() => startReading("luck")}  disabled={shuffling}>Luck (3)</button>
-          <button style={btn(mode === "next")}  onClick={() => startReading("next")}  disabled={shuffling}>Next Path (5)</button>
-        </div>
-
-        <div style={styles.table}>
-          {shuffling && <div style={styles.shuffle}>Shuffling…</div>}
-          {!shuffling && cards.length > 0 && (
-            <div style={styles.cardsGrid}>
-              {cards.map((c, i) => (
-                <div key={i} style={styles.card}>
-                  <div style={styles.cardFace}>{c}</div>
-                  <div style={styles.cardMeta}>
-                    {i === 0 && cards.length > 1 ? "Present"   : ""}
-                    {i === 1 && cards.length > 1 ? "Challenge" : ""}
-                    {i === 2 && cards.length > 1 ? "Outcome"   : ""}
-                  </div>
-                </div>
-              ))}
+            <div className="mt-8 flex gap-3">
+              <Link
+                href="/get-link"
+                className="inline-block bg-indigo-600 text-white px-5 py-3 rounded-md shadow"
+              >
+                {t.getLink}
+              </Link>
+              <Link
+                href="/dashboard"
+                className="inline-block px-5 py-3 rounded-md border border-gray-200"
+              >
+                {t.how}
+              </Link>
             </div>
-          )}
 
-          {!shuffling && cards.length > 0 && (
-            <div style={styles.interpretation}>
-              <h3 style={{ margin: "0 0 8px" }}>Interpretation</h3>
-              <p style={{ opacity: 0.9 }}>
-                Ground yourself and reflect on what this spread highlights. Let clarity guide your next gentle step.
-              </p>
-              <div style={styles.manifestBox}>
-                <div style={{ fontWeight: 600, marginBottom: 6 }}>Manifestation Tip</div>
-                <p style={{ margin: 0 }}>
-                  Breathe slowly for 30 seconds. State your intention in the present tense. Take one practical action today aligned with it.
-                </p>
+            <div className="mt-8 grid grid-cols-2 gap-4 text-sm">
+              <div className="bg-white p-4 rounded shadow-sm">
+                <div className="text-gray-500">{lang === "en" ? "No registration" : "بدون تسجيل"}</div>
+                <div className="font-semibold">{lang === "en" ? "Start in 1 minute" : "ابدأ خلال دقيقة"}</div>
+              </div>
+              <div className="bg-white p-4 rounded shadow-sm">
+                <div className="text-gray-500">{lang === "en" ? "Proven offers" : "عروض مجرّبة"}</div>
+                <div className="font-semibold">{lang === "en" ? "High conversion" : "معدلات تحويل عالية"}</div>
               </div>
             </div>
-          )}
+          </div>
+
+          <aside>
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold">{t.plansTitle}</h3>
+              <p className="text-xs text-gray-500 mt-1">{lang === "en" ? "Choose one and get a working link immediately." : "اختر باقة واحصل على رابط يعمل فورًا."}</p>
+
+              <div className="mt-6 space-y-4">
+                <PlanCard name={t.planBasic} desc={t.planBasicText} price={t.priceBasic} />
+                <PlanCard name={t.planPro} desc={t.planProText} price={t.pricePro} />
+                <PlanCard name={t.planVIP} desc={t.planVIPText} price={t.priceVIP} />
+              </div>
+
+              <div className="mt-6 text-sm text-gray-500">
+                {t.footerNote}
+              </div>
+            </div>
+          </aside>
         </div>
       </section>
-
-      <footer style={styles.footer}>GENIO — The Reader</footer>
     </main>
   );
 }
 
-const styles = {
-  page: { position: "relative", minHeight: "100vh", backgroundColor: "#0b0c2a", color: "#f5f5f5", fontFamily: "serif" },
-  backdrop: { position: "absolute", inset: 0, background: "radial-gradient(60% 55% at 50% 0%, rgba(255,255,255,0.06) 0%, rgba(11,12,42,0) 60%), linear-gradient(180deg, #0f1033 0%, #0b0c2a 60%)", pointerEvents: "none" },
-  header: { position: "fixed", top: 16, left: 16, display: "flex", alignItems: "center", opacity: 0.9, fontSize: 14 },
-  room: { position: "relative", maxWidth: 1080, margin: "0 auto", padding: "96px 20px 48px" },
-  title: { margin: "0 0 8px", fontSize: 28, color: "#d4af37" },
-  subtitle: { margin: "0 0 24px", opacity: 0.9 },
-  controls: { display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 },
-  table: { background: "linear-gradient(180deg, rgba(19,20,60,0.9) 0%, rgba(11,12,42,0.95) 100%)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 12, padding: 20, minHeight: 260 },
-  shuffle: { textAlign: "center", padding: "40px 0", opacity: 0.9 },
-  cardsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 },
-  card: { border: "1px solid rgba(212,175,55,0.35)", borderRadius: 10, padding: 12, background: "linear-gradient(180deg, rgba(18,19,52,0.8) 0%, rgba(12,13,44,0.9) 100%)" },
-  cardFace: { fontWeight: 700, marginBottom: 6 },
-  cardMeta: { fontSize: 12, opacity: 0.8 },
-  interpretation: { marginTop: 18, lineHeight: 1.6 },
-  manifestBox: { marginTop: 10, padding: 12, border: "1px solid rgba(212,175,55,0.25)", borderRadius: 8, background: "rgba(19,20,60,0.5)" },
-  footer: { textAlign: "center", opacity: 0.6, fontSize: 12, padding: "16px 0 24px" },
-};
-
-function btn(active) {
-  return {
-    backgroundColor: active ? "#d4af37" : "transparent",
-    color: active ? "#0b0c2a" : "#d4af37",
-    border: "1px solid #d4af37",
-    padding: "10px 14px",
-    fontSize: 14,
-    borderRadius: 6,
-    cursor: "pointer",
-    transition: "opacity .2s ease",
-  };
+function PlanCard({ name, desc, price }) {
+  return (
+    <div className="flex items-center justify-between p-4 border rounded">
+      <div>
+        <div className="font-medium">{name}</div>
+        <div className="text-xs text-gray-500">{desc}</div>
+      </div>
+      <div className="text-indigo-600 font-semibold">{price}</div>
+    </div>
+  );
 }
